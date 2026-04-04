@@ -1,1 +1,1 @@
-On va travailler sur le projet EDL. Clonez le projet sur votre IDE. Vous pourrez commit pour mettre à jour votre progression. On va séparer assez vite les travaux. Vos modifications doivent etre tous commit vers la branche secondaire que nous allons créer avant de merge vers la branche main.
+On va travailler sur le projet EDL. Clonez le projet sur votre IDE. Vous pourrez commit pour mettre à jour votre progression. On va séparer assez vite les travaux. Nos modifications doivent etre toutes vérifiées avant d'être push vers la branche main.
