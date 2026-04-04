@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inscription Prestataire — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script>tailwind.config={theme:{extend:{fontFamily:{syne:['Syne','sans-serif']},colors:{bg:'#0A0A0F',surface:'#13131A',surface2:'#1C1C27',brd:'#2A2A3D',accent:'#F5A623',tx:'#F0EDE8',muted:'#7A7A9A',ok:'#2ECC71'}}}}</script>
+  <style>
+    body{font-family:'DM Sans',sans-serif}
+    input,select,textarea{outline:none}
+    input:focus,select:focus,textarea:focus{border-color:#F5A623!important}
+    select option{background:#13131A}
+    textarea{resize:none}
+    @keyframes spin-slow{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    .spin-slow{animation:spin-slow 3s linear infinite}
+    @keyframes pdot{0%,100%{opacity:1}50%{opacity:.2}}.pdot{animation:pdot 1.5s infinite}
+  </style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+
+  <!-- Mobile header -->
+  <div class="md:hidden flex items-center justify-between px-4 py-4 border-b border-brd bg-surface">
+    <a href="index.html" class="font-syne font-extrabold text-lg">Bénin<span class="text-accent">Freelance</span></a>
+    <a href="index.html" class="text-muted text-xs">← Accueil</a>
+  </div>
+
+  <!-- Mobile progress -->
+  <div class="md:hidden px-4 pt-4 pb-2" id="mob-prog-wrap">
+    <div class="flex items-center justify-between mb-1">
+      <span id="mob-title" class="text-sm font-syne font-semibold">Étape 1 / 4</span>
+      <span id="mob-sub" class="text-xs text-muted">Informations</span>
+    </div>
+    <div class="h-1 bg-surface2 rounded-full">
+      <div id="mob-prog" class="h-full bg-accent rounded-full transition-all duration-500" style="width:25%"></div>
+    </div>
+  </div>
+
+  <div class="flex min-h-0 md:h-screen md:min-h-screen">
+
+    <!-- LEFT sidebar — hidden mobile -->
+    <div class="hidden md:flex md:w-5/12 lg:w-2/5 bg-surface border-r border-brd flex-col justify-between p-8 lg:p-10">
+      <a href="index.html" class="font-syne font-extrabold text-xl">Bénin<span class="text-accent">Freelance</span></a>
+      <div>
+        <div class="font-syne font-semibold text-lg mb-1">Compte prestataire</div>
+        <div class="text-xs text-muted mb-6">4 étapes · Vérification IA incluse</div>
+        <div class="flex flex-col">
+          <div class="flex items-start gap-3 py-2.5 relative">
+            <div class="absolute left-3 top-10 w-0.5 h-full bg-brd z-0"></div>
+            <div id="sc-1" class="w-6 h-6 rounded-full border-2 border-accent text-accent flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0">1</div>
+            <div class="pt-0.5"><div class="text-sm font-medium text-tx">Informations</div><div class="text-xs text-muted">Identité & contact</div></div>
+          </div>
+          <div class="flex items-start gap-3 py-2.5 relative">
+            <div class="absolute left-3 top-10 w-0.5 h-full bg-brd z-0"></div>
+            <div id="sc-2" class="w-6 h-6 rounded-full border-2 border-brd text-muted flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0">2</div>
+            <div class="pt-0.5"><div class="text-sm font-medium text-muted">Compétences</div><div class="text-xs text-muted">Catégorie & biographie</div></div>
+          </div>
+          <div class="flex items-start gap-3 py-2.5 relative">
+            <div class="absolute left-3 top-10 w-0.5 h-full bg-brd z-0"></div>
+            <div id="sc-3" class="w-6 h-6 rounded-full border-2 border-brd text-muted flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0">3</div>
+            <div class="pt-0.5"><div class="text-sm font-medium text-muted">Documents</div><div class="text-xs text-muted">CV + pièce d'identité</div></div>
+          </div>
+          <div class="flex items-start gap-3 py-2.5">
+            <div id="sc-4" class="w-6 h-6 rounded-full border-2 border-brd text-muted flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0">4</div>
+            <div class="pt-0.5"><div class="text-sm font-medium text-muted">Sécurité</div><div class="text-xs text-muted">Mot de passe</div></div>
+          </div>
+        </div>
+        <div class="bg-accent/8 border border-accent/20 rounded-xl p-4 mt-5">
+          <div class="text-xs font-semibold text-accent mb-1">⚡ Vérification</div>
+          <p class="text-xs text-muted leading-relaxed">Documents analysés automatiquement sous 24h. Profil activé après validation.</p>
+        </div>
+      </div>
+      <div class="text-xs text-muted space-y-1">
+        <p>Déjà un compte ? <a href="login.html" class="text-accent">Se connecter</a></p>
+        <p>Vous êtes client ? <a href="register-client.html" class="text-accent">Compte client</a></p>
+      </div>
+    </div>
+
+    <!-- RIGHT form -->
+    <div class="flex-1 flex items-start md:items-center justify-center px-4 sm:px-8 py-6 md:py-0 bg-bg overflow-y-auto">
+      <div class="w-full max-w-md">
+        <h2 class="font-syne font-bold text-2xl sm:text-3xl mb-1" id="step-title">Vos informations</h2>
+        <p class="text-muted text-sm mb-5" id="step-sub">Commençons par votre identité</p>
+
+        <!-- Desktop progress -->
+        <div class="hidden md:block h-0.5 bg-surface2 rounded-full mb-6">
+          <div id="prog" class="h-full bg-accent rounded-full transition-all duration-500" style="width:25%"></div>
+        </div>
+
+        <div id="err" class="hidden bg-red-900/30 border border-red-500/30 text-red-400 text-xs px-3 py-2 rounded-lg mb-4"></div>
+
+        <!-- STEP 1 -->
+        <div id="step1">
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div><label class="block text-xs text-muted font-medium mb-1.5">Nom</label><input id="nom" type="text" placeholder="Dossou" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+            <div><label class="block text-xs text-muted font-medium mb-1.5">Prénom</label><input id="prenom" type="text" placeholder="Kofi" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+          </div>
+          <div class="mb-3"><label class="block text-xs text-muted font-medium mb-1.5">Adresse email</label><input id="email" type="email" placeholder="kofi@email.com" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+          <div class="mb-3"><label class="block text-xs text-muted font-medium mb-1.5">Téléphone</label><input id="tel" type="tel" placeholder="+229 97 00 00 00" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+          <div class="mb-5">
+            <label class="block text-xs text-muted font-medium mb-1.5">Ville / Localité</label>
+            <select id="ville" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl appearance-none transition-colors">
+              <option value="">Sélectionner</option>
+              <option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option>
+              <option>Abomey-Calavi</option><option>Djougou</option><option>Bohicon</option>
+              <option>Kandi</option><option>Lokossa</option><option>Ouidah</option><option>Autre</option>
+            </select>
+          </div>
+          <button onclick="goStep(2)" class="w-full bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 hover:-translate-y-px transition-all">Continuer →</button>
+        </div>
+
+        <!-- STEP 2 -->
+        <div id="step2" class="hidden">
+          <div class="mb-4">
+            <label class="block text-xs text-muted font-medium mb-2">Catégorie principale</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="selCat(this)" class="ci flex items-center gap-2 bg-surface border border-brd text-tx text-xs px-3 py-2.5 rounded-lg hover:border-muted transition-all text-left"><div class="w-2 h-2 rounded-full border-2 border-brd shrink-0 cd"></div>💻 Développement</button>
+              <button type="button" onclick="selCat(this)" class="ci flex items-center gap-2 bg-surface border border-brd text-tx text-xs px-3 py-2.5 rounded-lg hover:border-muted transition-all text-left"><div class="w-2 h-2 rounded-full border-2 border-brd shrink-0 cd"></div>🎨 Design</button>
+              <button type="button" onclick="selCat(this)" class="ci flex items-center gap-2 bg-surface border border-brd text-tx text-xs px-3 py-2.5 rounded-lg hover:border-muted transition-all text-left"><div class="w-2 h-2 rounded-full border-2 border-brd shrink-0 cd"></div>⚡ Électricité</button>
+              <button type="button" onclick="selCat(this)" class="ci flex items-center gap-2 bg-surface border border-brd text-tx text-xs px-3 py-2.5 rounded-lg hover:border-muted transition-all text-left"><div class="w-2 h-2 rounded-full border-2 border-brd shrink-0 cd"></div>🔧 Plomberie</button>
+              <button type="button" onclick="selCat(this)" class="ci flex items-center gap-2 bg-surface border border-brd text-tx text-xs px-3 py-2.5 rounded-lg hover:border-muted transition-all text-left"><div class="w-2 h-2 rounded-full border-2 border-brd shrink-0 cd"></div>📱 Mobile App</button>
+              <button type="button" onclick="selCat(this)" class="ci flex items-center gap-2 bg-surface border border-brd text-tx text-xs px-3 py-2.5 rounded-lg hover:border-muted transition-all text-left"><div class="w-2 h-2 rounded-full border-2 border-brd shrink-0 cd"></div>📷 Photographie</button>
+              <button type="button" onclick="selCat(this)" class="ci flex items-center gap-2 bg-surface border border-brd text-tx text-xs px-3 py-2.5 rounded-lg hover:border-muted transition-all text-left"><div class="w-2 h-2 rounded-full border-2 border-brd shrink-0 cd"></div>📊 Marketing</button>
+              <button type="button" onclick="selCat(this)" class="ci flex items-center gap-2 bg-surface border border-brd text-tx text-xs px-3 py-2.5 rounded-lg hover:border-muted transition-all text-left"><div class="w-2 h-2 rounded-full border-2 border-brd shrink-0 cd"></div>🏗️ Maçonnerie</button>
+            </div>
+          </div>
+          <div class="mb-5">
+            <label class="block text-xs text-muted font-medium mb-1.5">Biographie professionnelle</label>
+            <textarea id="bio" rows="4" placeholder="Décrivez votre expérience, vos compétences clés et ce qui vous distingue..." class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"></textarea>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="goStep(1)" class="flex-1 border border-brd text-muted text-sm py-3 rounded-xl hover:border-muted hover:text-tx transition-all">← Retour</button>
+            <button onclick="goStep(3)" class="flex-[2] bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 transition-opacity">Continuer →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div id="step3" class="hidden">
+          <!-- CV -->
+          <div class="mb-4">
+            <label class="block text-xs text-muted font-medium mb-1.5">CV professionnel <span class="text-red-400">*</span></label>
+            <div id="zone-cv" onclick="document.getElementById('fcv').click()" ondragover="dov(event,'cv')" ondragleave="dlv('cv')" ondrop="drop(event,'cv')"
+              class="border-2 border-dashed border-brd rounded-xl p-5 text-center cursor-pointer hover:border-accent hover:bg-accent/5 transition-all bg-surface">
+              <div class="text-2xl mb-1">📄</div>
+              <div class="text-sm font-medium mb-0.5">Glissez votre CV ici</div>
+              <div class="text-xs text-muted">PDF uniquement · Max 5 Mo</div>
+              <input type="file" id="fcv" accept=".pdf" class="hidden" onchange="hfile('cv')"/>
+            </div>
+            <div id="info-cv" class="hidden items-center gap-2 bg-ok/10 border border-ok/25 rounded-lg px-3 py-2 mt-2">
+              <span class="text-ok text-sm shrink-0">✓</span>
+              <span id="fname-cv" class="text-ok text-xs flex-1 truncate"></span>
+              <button onclick="rfile('cv')" type="button" class="text-muted text-xs hover:text-tx shrink-0">✕</button>
+            </div>
+          </div>
+          <!-- Pièce d'identité -->
+          <div class="mb-4">
+            <label class="block text-xs text-muted font-medium mb-1.5">Pièce d'identité <span class="text-red-400">*</span></label>
+            <div id="zone-id" onclick="document.getElementById('fid').click()" ondragover="dov(event,'id')" ondragleave="dlv('id')" ondrop="drop(event,'id')"
+              class="border-2 border-dashed border-brd rounded-xl p-5 text-center cursor-pointer hover:border-accent hover:bg-accent/5 transition-all bg-surface">
+              <div class="text-2xl mb-1">🪪</div>
+              <div class="text-sm font-medium mb-0.5">Glissez votre pièce d'identité</div>
+              <div class="text-xs text-muted">PDF, JPG ou PNG · Max 5 Mo</div>
+              <input type="file" id="fid" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="hfile('id')"/>
+            </div>
+            <div id="info-id" class="hidden items-center gap-2 bg-ok/10 border border-ok/25 rounded-lg px-3 py-2 mt-2">
+              <span class="text-ok text-sm shrink-0">✓</span>
+              <span id="fname-id" class="text-ok text-xs flex-1 truncate"></span>
+              <button onclick="rfile('id')" type="button" class="text-muted text-xs hover:text-tx shrink-0">✕</button>
+            </div>
+          </div>
+          <div class="bg-surface2 border border-brd rounded-xl px-4 py-3 text-xs text-muted leading-relaxed mb-5">⚡ Documents analysés par l'IA Gemini. Non partagés publiquement.</div>
+          <div class="flex gap-3">
+            <button onclick="goStep(2)" class="flex-1 border border-brd text-muted text-sm py-3 rounded-xl hover:border-muted hover:text-tx transition-all">← Retour</button>
+            <button onclick="goStep(4)" class="flex-[2] bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 transition-opacity">Continuer →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div id="step4" class="hidden">
+          <div class="mb-4">
+            <label class="block text-xs text-muted font-medium mb-1.5">Mot de passe</label>
+            <div class="relative">
+              <input id="pwd" type="password" placeholder="Minimum 8 caractères" oninput="checkStr()" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 pr-10 rounded-xl placeholder-muted transition-colors"/>
+              <button type="button" onclick="tpw('pwd')" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm p-1">👁</button>
+            </div>
+            <div class="flex gap-1 mt-2 items-center">
+              <div id="b1" class="flex-1 h-0.5 bg-brd rounded-full transition-colors duration-300"></div>
+              <div id="b2" class="flex-1 h-0.5 bg-brd rounded-full transition-colors duration-300"></div>
+              <div id="b3" class="flex-1 h-0.5 bg-brd rounded-full transition-colors duration-300"></div>
+              <div id="b4" class="flex-1 h-0.5 bg-brd rounded-full transition-colors duration-300"></div>
+              <span id="plbl" class="text-xs ml-1 w-10 shrink-0"></span>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs text-muted font-medium mb-1.5">Confirmer le mot de passe</label>
+            <div class="relative">
+              <input id="pwd2" type="password" placeholder="Répétez le mot de passe" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 pr-10 rounded-xl placeholder-muted transition-colors"/>
+              <button type="button" onclick="tpw('pwd2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm p-1">👁</button>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 mb-5">
+            <input id="cgv" type="checkbox" class="mt-0.5 w-4 h-4 accent-yellow-400 shrink-0"/>
+            <label for="cgv" class="text-xs text-muted leading-relaxed">J'accepte les <a href="#" class="text-accent">conditions d'utilisation</a> et la <a href="#" class="text-accent">politique de confidentialité</a> (loi n° 2009-09)</label>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="goStep(3)" class="flex-1 border border-brd text-muted text-sm py-3 rounded-xl hover:border-muted hover:text-tx transition-all">← Retour</button>
+            <button onclick="submit()" class="flex-[2] bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 transition-opacity">Soumettre mon dossier</button>
+          </div>
+        </div>
+
+        <!-- STEP 5 — Pending -->
+        <div id="step5" class="hidden text-center py-6">
+          <div class="w-16 h-16 rounded-full bg-accent/10 border-2 border-accent/30 flex items-center justify-center text-3xl mx-auto mb-5 spin-slow">⚡</div>
+          <h3 class="font-syne font-bold text-2xl mb-2">Dossier soumis !</h3>
+          <p class="text-muted text-sm leading-relaxed mb-6">Nous analysons vos documents. Votre compte sera activé sous <span class="text-accent font-medium">24 heures</span>.</p>
+          <div class="bg-surface border border-brd rounded-xl p-4 text-left space-y-2">
+            <div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-ok shrink-0"></div><span class="text-xs text-tx">Informations personnelles vérifiées</span></div>
+            <div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-ok shrink-0"></div><span class="text-xs text-tx">Documents reçus</span></div>
+            <div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-accent shrink-0 pdot"></div><span class="text-xs text-muted">Analyse IA en cours...</span></div>
+            <div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-brd shrink-0"></div><span class="text-xs text-muted">Activation du profil</span></div>
+          </div>
+        </div>
+
+        <p id="foot" class="text-center text-xs text-muted mt-5">Déjà un compte ? <a href="login.html" class="text-accent">Se connecter</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let cur=1, selCatVal='';
+    const titles=['','Vos informations','Vos compétences','Vos documents','Sécurité'];
+    const subs=['','Commençons par votre identité','Votre domaine d\'expertise','CV et pièce d\'identité','Choisissez un mot de passe sécurisé'];
+    const progs=[0,25,50,75,100];
+    const mobS=['','Informations','Compétences','Documents','Sécurité'];
+
+    function goStep(n){
+      const err=document.getElementById('err');err.classList.add('hidden');
+      if(n>cur){
+        if(cur===1){
+          const v=['nom','prenom','email','tel','ville'].map(id=>document.getElementById(id).value.trim());
+          if(v.some(x=>!x)){showErr('Veuillez remplir tous les champs.');return;}
+          if(!v[2].includes('@')){showErr('Email invalide.');return;}
+        }
+        if(cur===2){
+          if(!selCatVal){showErr('Veuillez sélectionner une catégorie.');return;}
+          if(document.getElementById('bio').value.trim().length<30){showErr('La biographie doit faire au moins 30 caractères.');return;}
+        }
+        if(cur===3){
+          if(!document.getElementById('fcv').files[0]){showErr('Veuillez téléverser votre CV.');return;}
+          if(!document.getElementById('fid').files[0]){showErr("Veuillez téléverser votre pièce d'identité.");return;}
+        }
+      }
+      document.getElementById('step'+cur).classList.add('hidden');
+      setCircle(cur,'done');
+      cur=n;
+      document.getElementById('step'+cur).classList.remove('hidden');
+      setCircle(cur,'active');
+      const p=progs[cur]||100;
+      if(document.getElementById('prog'))document.getElementById('prog').style.width=p+'%';
+      if(document.getElementById('mob-prog'))document.getElementById('mob-prog').style.width=p+'%';
+      document.getElementById('step-title').textContent=titles[cur]||'';
+      document.getElementById('step-sub').textContent=subs[cur]||'';
+      if(document.getElementById('mob-title'))document.getElementById('mob-title').textContent='Étape '+(cur<5?cur:4)+' / 4';
+      if(document.getElementById('mob-sub'))document.getElementById('mob-sub').textContent=mobS[cur]||'';
+      if(cur===5){document.getElementById('foot').classList.add('hidden');const w=document.getElementById('mob-prog-wrap');if(w)w.classList.add('hidden');}
+    }
+
+    function setCircle(i,state){
+      const c=document.getElementById('sc-'+i);if(!c)return;
+      if(state==='done'){c.className='w-6 h-6 rounded-full border-2 border-accent bg-accent text-bg flex items-center justify-center font-syne font-bold text-xs z-10 shrink-0';c.textContent='✓';}
+      else if(state==='active'){c.className='w-6 h-6 rounded-full border-2 border-accent text-accent flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0';}
+    }
+
+    function submit(){
+      const pwd=document.getElementById('pwd').value, pwd2=document.getElementById('pwd2').value;
+      if(!pwd||!pwd2){showErr('Veuillez remplir les champs de mot de passe.');return;}
+      if(pwd.length<8){showErr('Le mot de passe doit faire au moins 8 caractères.');return;}
+      if(pwd!==pwd2){showErr('Les mots de passe ne correspondent pas.');return;}
+      if(!document.getElementById('cgv').checked){showErr("Veuillez accepter les conditions d'utilisation.");return;}
+      goStep(5);
+    }
+
+    function selCat(el){
+      document.querySelectorAll('.ci').forEach(x=>{x.classList.remove('border-accent','bg-accent/10','text-accent');x.classList.add('border-brd','bg-surface','text-tx');x.querySelector('.cd').style.cssText='';});
+      el.classList.add('border-accent','bg-accent/10','text-accent');el.classList.remove('border-brd','bg-surface','text-tx');
+      el.querySelector('.cd').style.background='#F5A623';el.querySelector('.cd').style.borderColor='#F5A623';
+      selCatVal=el.textContent.trim();
+    }
+
+    function hfile(type){
+      const input=document.getElementById(type==='cv'?'fcv':'fid'), file=input.files[0];
+      if(!file)return;
+      if(file.size>5*1024*1024){showErr('Fichier trop volumineux (max 5 Mo).');input.value='';return;}
+      document.getElementById('zone-'+type).classList.add('border-ok','bg-ok/5');
+      document.getElementById('zone-'+type).classList.remove('border-dashed','border-brd');
+      document.getElementById('fname-'+type).textContent=file.name;
+      const info=document.getElementById('info-'+type);info.classList.remove('hidden');info.classList.add('flex');
+    }
+
+    function rfile(type){
+      document.getElementById(type==='cv'?'fcv':'fid').value='';
+      document.getElementById('zone-'+type).classList.remove('border-ok','bg-ok/5');
+      document.getElementById('zone-'+type).classList.add('border-dashed','border-brd');
+      const info=document.getElementById('info-'+type);info.classList.add('hidden');info.classList.remove('flex');
+    }
+
+    function dov(e,t){e.preventDefault();document.getElementById('zone-'+t).classList.add('border-accent','bg-accent/5');}
+    function dlv(t){document.getElementById('zone-'+t).classList.remove('border-accent','bg-accent/5');}
+    function drop(e,t){
+      e.preventDefault();dlv(t);
+      const file=e.dataTransfer.files[0];if(!file)return;
+      const input=document.getElementById(t==='cv'?'fcv':'fid');
+      const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;hfile(t);
+    }
+
+    function tpw(id){const p=document.getElementById(id);p.type=p.type==='password'?'text':'password';}
+    function checkStr(){
+      const v=document.getElementById('pwd').value;let s=0;
+      if(v.length>=8)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+      const cols=['','#E74C3C','#F5A623','#F5A623','#2ECC71'],lbls=['','Faible','Moyen','Bon','Fort'];
+      for(let i=1;i<=4;i++)document.getElementById('b'+i).style.background=i<=s?cols[s]:'';
+      const l=document.getElementById('plbl');l.textContent=v?lbls[s]:'';l.style.color=cols[s]||'';
+    }
+    function showErr(msg){const e=document.getElementById('err');e.textContent=msg;e.classList.remove('hidden');}
+  </script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inscription Client — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script>tailwind.config={theme:{extend:{fontFamily:{syne:['Syne','sans-serif']},colors:{bg:'#0A0A0F',surface:'#13131A',surface2:'#1C1C27',brd:'#2A2A3D',accent:'#F5A623',tx:'#F0EDE8',muted:'#7A7A9A',ok:'#2ECC71'}}}}</script>
+  <style>body{font-family:'DM Sans',sans-serif} input,select{outline:none} input:focus,select:focus{border-color:#F5A623!important} select option{background:#13131A}</style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+
+  <!-- Mobile header -->
+  <div class="md:hidden flex items-center justify-between px-4 py-4 border-b border-brd bg-surface">
+    <a href="index.html" class="font-syne font-extrabold text-lg">Bénin<span class="text-accent">Freelance</span></a>
+    <a href="index.html" class="text-muted text-xs">← Accueil</a>
+  </div>
+
+  <!-- Mobile progress (visible only on mobile) -->
+  <div class="md:hidden px-4 pt-4 pb-2">
+    <div class="flex items-center justify-between mb-1">
+      <span id="mob-title" class="text-sm font-syne font-semibold">Étape 1 / 3</span>
+      <span id="mob-sub" class="text-xs text-muted">Informations</span>
+    </div>
+    <div class="h-1 bg-surface2 rounded-full">
+      <div id="mob-prog" class="h-full bg-accent rounded-full transition-all duration-500" style="width:33%"></div>
+    </div>
+  </div>
+
+  <div class="flex min-h-0 md:h-screen md:min-h-screen">
+
+    <!-- LEFT sidebar — hidden mobile -->
+    <div class="hidden md:flex md:w-5/12 lg:w-2/5 bg-surface border-r border-brd flex-col justify-between p-8 lg:p-12">
+      <a href="index.html" class="font-syne font-extrabold text-xl">Bénin<span class="text-accent">Freelance</span></a>
+      <div>
+        <div class="font-syne font-semibold text-lg mb-1">Créer votre compte client</div>
+        <div class="text-xs text-muted mb-8">3 étapes simples pour commencer</div>
+        <div class="flex flex-col gap-0">
+          <div id="snav-1" class="flex items-start gap-3 py-3 relative">
+            <div class="absolute left-3.5 top-11 w-0.5 h-full bg-brd z-0"></div>
+            <div id="sc-1" class="w-7 h-7 rounded-full border-2 border-accent text-accent flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0">1</div>
+            <div class="pt-0.5"><div class="text-sm font-medium text-tx">Informations personnelles</div><div class="text-xs text-muted">Nom, email, téléphone</div></div>
+          </div>
+          <div id="snav-2" class="flex items-start gap-3 py-3 relative">
+            <div class="absolute left-3.5 top-11 w-0.5 h-full bg-brd z-0"></div>
+            <div id="sc-2" class="w-7 h-7 rounded-full border-2 border-brd text-muted flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0">2</div>
+            <div class="pt-0.5"><div class="text-sm font-medium text-muted">Localisation</div><div class="text-xs text-muted">Ville et quartier</div></div>
+          </div>
+          <div id="snav-3" class="flex items-start gap-3 py-3">
+            <div id="sc-3" class="w-7 h-7 rounded-full border-2 border-brd text-muted flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0">3</div>
+            <div class="pt-0.5"><div class="text-sm font-medium text-muted">Sécurité</div><div class="text-xs text-muted">Mot de passe</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-muted space-y-1">
+        <p>Déjà un compte ? <a href="login.html" class="text-accent">Se connecter</a></p>
+        <p>Vous êtes prestataire ? <a href="register-prestataire.html" class="text-accent">Compte prestataire</a></p>
+      </div>
+    </div>
+
+    <!-- RIGHT — form -->
+    <div class="flex-1 flex items-start md:items-center justify-center px-4 sm:px-8 py-6 md:py-0 bg-bg overflow-y-auto">
+      <div class="w-full max-w-md">
+        <h2 class="font-syne font-bold text-2xl sm:text-3xl mb-1" id="step-title">Qui êtes-vous ?</h2>
+        <p class="text-muted text-sm mb-5" id="step-sub">Renseignez vos informations personnelles</p>
+
+        <!-- Desktop progress bar -->
+        <div class="hidden md:block h-0.5 bg-surface2 rounded-full mb-6">
+          <div id="prog" class="h-full bg-accent rounded-full transition-all duration-500" style="width:33%"></div>
+        </div>
+
+        <div id="err" class="hidden bg-red-900/30 border border-red-500/30 text-red-400 text-xs px-3 py-2 rounded-lg mb-4"></div>
+
+        <!-- STEP 1 -->
+        <div id="step1">
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div><label class="block text-xs text-muted font-medium mb-1.5">Nom</label><input id="nom" type="text" placeholder="Dossou" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+            <div><label class="block text-xs text-muted font-medium mb-1.5">Prénom</label><input id="prenom" type="text" placeholder="Kofi" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+          </div>
+          <div class="mb-4"><label class="block text-xs text-muted font-medium mb-1.5">Adresse email</label><input id="email" type="email" placeholder="kofi@email.com" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+          <div class="mb-5"><label class="block text-xs text-muted font-medium mb-1.5">Numéro de téléphone</label><input id="tel" type="tel" placeholder="+229 97 00 00 00" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+          <button onclick="goStep(2)" class="w-full bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 hover:-translate-y-px transition-all">Continuer →</button>
+        </div>
+
+        <!-- STEP 2 -->
+        <div id="step2" class="hidden">
+          <div class="mb-4">
+            <label class="block text-xs text-muted font-medium mb-1.5">Ville / Localité</label>
+            <select id="ville" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl appearance-none transition-colors">
+              <option value="">Sélectionner une ville</option>
+              <option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option>
+              <option>Abomey-Calavi</option><option>Djougou</option><option>Bohicon</option>
+              <option>Kandi</option><option>Lokossa</option><option>Ouidah</option><option>Autre</option>
+            </select>
+          </div>
+          <div class="mb-6"><label class="block text-xs text-muted font-medium mb-1.5">Quartier (optionnel)</label><input id="quartier" type="text" placeholder="Ex: Akpakpa, Godomey..." class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
+          <div class="flex gap-3">
+            <button onclick="goStep(1)" class="flex-1 border border-brd text-muted text-sm py-3 rounded-xl hover:border-muted hover:text-tx transition-all">← Retour</button>
+            <button onclick="goStep(3)" class="flex-[2] bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 transition-opacity">Continuer →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div id="step3" class="hidden">
+          <div class="mb-4">
+            <label class="block text-xs text-muted font-medium mb-1.5">Mot de passe</label>
+            <div class="relative">
+              <input id="pwd" type="password" placeholder="Minimum 8 caractères" oninput="checkStr()" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 pr-10 rounded-xl placeholder-muted transition-colors"/>
+              <button type="button" onclick="tpw('pwd')" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm p-1">👁</button>
+            </div>
+            <div class="flex gap-1 mt-2 items-center">
+              <div id="b1" class="flex-1 h-0.5 bg-brd rounded-full transition-colors duration-300"></div>
+              <div id="b2" class="flex-1 h-0.5 bg-brd rounded-full transition-colors duration-300"></div>
+              <div id="b3" class="flex-1 h-0.5 bg-brd rounded-full transition-colors duration-300"></div>
+              <div id="b4" class="flex-1 h-0.5 bg-brd rounded-full transition-colors duration-300"></div>
+              <span id="plbl" class="text-xs ml-1 w-10 shrink-0"></span>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs text-muted font-medium mb-1.5">Confirmer le mot de passe</label>
+            <div class="relative">
+              <input id="pwd2" type="password" placeholder="Répétez le mot de passe" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 pr-10 rounded-xl placeholder-muted transition-colors"/>
+              <button type="button" onclick="tpw('pwd2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm p-1">👁</button>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 mb-5">
+            <input id="cgv" type="checkbox" class="mt-0.5 w-4 h-4 accent-yellow-400 shrink-0"/>
+            <label for="cgv" class="text-xs text-muted leading-relaxed">J'accepte les <a href="#" class="text-accent">conditions d'utilisation</a> et la <a href="#" class="text-accent">politique de confidentialité</a> (loi n° 2009-09)</label>
+          </div>
+          <div class="flex gap-3">
+            <button onclick="goStep(2)" class="flex-1 border border-brd text-muted text-sm py-3 rounded-xl hover:border-muted hover:text-tx transition-all">← Retour</button>
+            <button onclick="submit()" class="flex-[2] bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 transition-opacity">Créer mon compte</button>
+          </div>
+        </div>
+
+        <!-- SUCCESS -->
+        <div id="step4" class="hidden text-center py-8">
+          <div class="w-16 h-16 rounded-full bg-ok/15 border-2 border-ok/30 flex items-center justify-center text-3xl mx-auto mb-5">✓</div>
+          <h3 class="font-syne font-bold text-2xl mb-2">Compte créé !</h3>
+          <p class="text-muted text-sm leading-relaxed mb-6">Bienvenue sur BéninFreelance. Vous pouvez maintenant rechercher des prestataires locaux.</p>
+          <a href="login.html" class="inline-block bg-accent text-bg font-syne font-bold px-8 py-3 rounded-xl">Accéder à la plateforme</a>
+        </div>
+
+        <p id="foot" class="text-center text-xs text-muted mt-5">Déjà un compte ? <a href="login.html" class="text-accent">Se connecter</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let cur=1;
+    const titles=['','Qui êtes-vous ?','Où êtes-vous ?','Sécurité du compte'];
+    const subs=['','Renseignez vos informations personnelles','Précisez votre localisation au Bénin','Choisissez un mot de passe sécurisé'];
+    const progs=[0,33,66,100];
+    const mobSubs=['','Informations','Localisation','Sécurité'];
+
+    function goStep(n){
+      const err=document.getElementById('err');
+      err.classList.add('hidden');
+      if(n>cur){
+        if(cur===1){
+          const v=['nom','prenom','email','tel'].map(id=>document.getElementById(id).value.trim());
+          if(v.some(x=>!x)){showErr('Veuillez remplir tous les champs.');return;}
+          if(!v[2].includes('@')){showErr('Email invalide.');return;}
+        }
+        if(cur===2&&!document.getElementById('ville').value){showErr('Veuillez sélectionner votre ville.');return;}
+      }
+      document.getElementById('step'+cur).classList.add('hidden');
+      setCircle(cur,'done');
+      cur=n;
+      document.getElementById('step'+cur).classList.remove('hidden');
+      setCircle(cur,'active');
+      const p=progs[cur]||100;
+      if(document.getElementById('prog'))document.getElementById('prog').style.width=p+'%';
+      if(document.getElementById('mob-prog'))document.getElementById('mob-prog').style.width=p+'%';
+      document.getElementById('step-title').textContent=titles[cur]||'';
+      document.getElementById('step-sub').textContent=subs[cur]||'';
+      if(document.getElementById('mob-title'))document.getElementById('mob-title').textContent='Étape '+(cur<4?cur:3)+' / 3';
+      if(document.getElementById('mob-sub'))document.getElementById('mob-sub').textContent=mobSubs[cur]||'';
+      if(cur===4){document.getElementById('foot').classList.add('hidden');const mh=document.querySelector('.md\\:hidden.px-4');if(mh)mh.classList.add('hidden');}
+    }
+
+    function setCircle(i,state){
+      const c=document.getElementById('sc-'+i);
+      if(!c)return;
+      if(state==='done'){c.className='w-7 h-7 rounded-full border-2 border-accent bg-accent text-bg flex items-center justify-center font-syne font-bold text-xs z-10 shrink-0';c.textContent='✓';}
+      else if(state==='active'){c.className='w-7 h-7 rounded-full border-2 border-accent text-accent flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0';}
+    }
+
+    function submit(){
+      const pwd=document.getElementById('pwd').value, pwd2=document.getElementById('pwd2').value;
+      if(!pwd||!pwd2){showErr('Veuillez remplir les champs de mot de passe.');return;}
+      if(pwd.length<8){showErr('Le mot de passe doit faire au moins 8 caractères.');return;}
+      if(pwd!==pwd2){showErr('Les mots de passe ne correspondent pas.');return;}
+      if(!document.getElementById('cgv').checked){showErr("Veuillez accepter les conditions d'utilisation.");return;}
+      goStep(4);
+    }
+
+    function tpw(id){const p=document.getElementById(id);p.type=p.type==='password'?'text':'password';}
+
+    function checkStr(){
+      const v=document.getElementById('pwd').value;
+      let s=0;
+      if(v.length>=8)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+      const cols=['','#E74C3C','#F5A623','#F5A623','#2ECC71'];
+      const lbls=['','Faible','Moyen','Bon','Fort'];
+      for(let i=1;i<=4;i++)document.getElementById('b'+i).style.background=i<=s?cols[s]:'';
+      const l=document.getElementById('plbl');l.textContent=v?lbls[s]:'';l.style.color=cols[s]||'';
+    }
+
+    function showErr(msg){const e=document.getElementById('err');e.textContent=msg;e.classList.remove('hidden');}
+  </script>
+</body>
+</html>

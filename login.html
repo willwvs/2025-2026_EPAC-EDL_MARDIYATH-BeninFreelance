@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config={theme:{extend:{fontFamily:{syne:['Syne','sans-serif']},colors:{bg:'#0A0A0F',surface:'#13131A',surface2:'#1C1C27',brd:'#2A2A3D',accent:'#F5A623',tx:'#F0EDE8',muted:'#7A7A9A',ok:'#2ECC71'}}}}
+  </script>
+  <style>body{font-family:'DM Sans',sans-serif} input{outline:none} input:focus{border-color:#F5A623!important}</style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+
+  <!-- Mobile header -->
+  <div class="md:hidden flex items-center justify-between px-4 py-4 border-b border-brd bg-surface">
+    <a href="index.html" class="font-syne font-extrabold text-lg">Bénin<span class="text-accent">Freelance</span></a>
+    <a href="index.html" class="text-muted text-xs">← Accueil</a>
+  </div>
+
+  <div class="flex min-h-screen md:min-h-0 md:h-screen">
+
+    <!-- LEFT — hidden on mobile -->
+    <div class="hidden md:flex md:w-5/12 lg:w-1/2 bg-surface border-r border-brd flex-col justify-between p-8 lg:p-12">
+      <a href="index.html" class="font-syne font-extrabold text-xl">Bénin<span class="text-accent">Freelance</span></a>
+      <div>
+        <h2 class="font-syne font-bold text-2xl lg:text-3xl leading-snug mb-4">Des talents locaux,<br>une <span class="text-accent">confiance</span> digitale.</h2>
+        <p class="text-muted text-sm leading-relaxed mb-8">Rejoignez la première communauté de freelances et de clients au Bénin.</p>
+        <div class="bg-surface2 border border-brd rounded-2xl p-5">
+          <p class="text-sm leading-relaxed mb-4">"Grâce à BéninFreelance, j'ai décroché 3 missions en une semaine."</p>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-accent/15 flex items-center justify-center font-syne font-bold text-accent text-xs shrink-0">KD</div>
+            <div>
+              <div class="text-sm font-medium">Kofi Dossou</div>
+              <div class="text-xs text-muted">Développeur Web · Cotonou</div>
+              <div class="text-accent text-xs mt-0.5">★★★★★</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-8">
+        <div><div class="font-syne font-bold text-2xl text-accent">500+</div><div class="text-xs text-muted mt-0.5">Prestataires</div></div>
+        <div><div class="font-syne font-bold text-2xl text-accent">4.7★</div><div class="text-xs text-muted mt-0.5">Note moyenne</div></div>
+        <div><div class="font-syne font-bold text-2xl text-accent">12</div><div class="text-xs text-muted mt-0.5">Catégories</div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT — form -->
+    <div class="flex-1 flex items-start md:items-center justify-center px-4 sm:px-8 py-8 md:py-0 bg-bg overflow-y-auto">
+      <div class="w-full max-w-sm">
+        <h2 class="font-syne font-bold text-2xl sm:text-3xl mb-1">Bon retour 👋</h2>
+        <p class="text-muted text-sm mb-6">Connectez-vous à votre compte</p>
+
+        <!-- Switch rôle -->
+        <div class="flex bg-surface border border-brd rounded-xl p-1 mb-5">
+          <button id="btn-c" onclick="switchRole('client')" class="flex-1 py-2 rounded-lg text-sm font-medium bg-accent text-bg transition-all">Je suis client</button>
+          <button id="btn-p" onclick="switchRole('prestataire')" class="flex-1 py-2 rounded-lg text-sm font-medium text-muted transition-all">Je suis prestataire</button>
+        </div>
+
+        <div id="err" class="hidden bg-red-900/30 border border-red-500/30 text-red-400 text-xs px-3 py-2 rounded-lg mb-4"></div>
+
+        <div class="mb-4">
+          <label class="block text-xs text-muted font-medium mb-1.5">Adresse email</label>
+          <input id="email" type="email" placeholder="votre@email.com" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/>
+        </div>
+        <div class="mb-5">
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs text-muted font-medium">Mot de passe</label>
+            <a href="#" class="text-xs text-accent hover:opacity-70">Oublié ?</a>
+          </div>
+          <div class="relative">
+            <input id="pwd" type="password" placeholder="••••••••" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 pr-10 rounded-xl placeholder-muted transition-colors"/>
+            <button type="button" onclick="togglePw()" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm p-1">👁</button>
+          </div>
+        </div>
+
+        <button onclick="handleLogin()" class="w-full bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 hover:-translate-y-px transition-all text-sm sm:text-base">Se connecter</button>
+
+        <div class="flex items-center gap-3 my-5">
+          <div class="flex-1 h-px bg-brd"></div><span class="text-xs text-muted">ou</span><div class="flex-1 h-px bg-brd"></div>
+        </div>
+
+        <button class="w-full bg-surface border border-brd text-tx text-sm font-medium py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-surface2 transition-all">
+          <span class="font-bold">G</span> Continuer avec Google
+        </button>
+
+        <p class="text-center text-xs text-muted mt-5">
+          Pas encore de compte ?
+          <a href="register-client.html" class="text-accent font-medium">Client</a> ·
+          <a href="register-prestataire.html" class="text-accent font-medium">Prestataire</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let role='client';
+    function switchRole(r){
+      role=r;
+      const bc=document.getElementById('btn-c'), bp=document.getElementById('btn-p');
+      if(r==='client'){bc.className='flex-1 py-2 rounded-lg text-sm font-medium bg-accent text-bg transition-all';bp.className='flex-1 py-2 rounded-lg text-sm font-medium text-muted transition-all';}
+      else{bp.className='flex-1 py-2 rounded-lg text-sm font-medium bg-accent text-bg transition-all';bc.className='flex-1 py-2 rounded-lg text-sm font-medium text-muted transition-all';}
+    }
+    function togglePw(){const p=document.getElementById('pwd');p.type=p.type==='password'?'text':'password';}
+    function handleLogin(){
+      const e=document.getElementById('email').value.trim(), p=document.getElementById('pwd').value, err=document.getElementById('err');
+      if(!e||!p){showErr('Veuillez remplir tous les champs.');return;}
+      if(!e.includes('@')){showErr('Adresse email invalide.');return;}
+      err.classList.add('hidden');
+      window.location.href=role==='prestataire'?'profil-prestataire.html':'index.html';
+    }
+    function showErr(msg){const e=document.getElementById('err');e.textContent=msg;e.classList.remove('hidden');}
+  </script>
+</body>
+</html>
