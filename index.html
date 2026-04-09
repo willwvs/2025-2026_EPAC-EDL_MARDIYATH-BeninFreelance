@@ -1,27 +1,53 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BéninFreelance — Marketplace de services locaux</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { syne: ['Syne','sans-serif'] },
-          colors: { bg:'#0A0A0F', surface:'#13131A', surface2:'#1C1C27', brd:'#2A2A3D', accent:'#F5A623', accent2:'#E8855A', tx:'#F0EDE8', muted:'#7A7A9A', ok:'#2ECC71' }
+          fontFamily: { syne: ['Syne', 'sans-serif'] },
+          colors: { bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27', brd: '#2A2A3D', accent: '#F5A623', accent2: '#E8855A', tx: '#F0EDE8', muted: '#7A7A9A', ok: '#2ECC71' }
         }
       }
     }
   </script>
   <style>
-    body{font-family:'DM Sans',sans-serif}
-    .hl{background:linear-gradient(90deg,#F5A623,#E8855A);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}.blink{animation:blink 2s infinite}
+    body {
+      font-family: 'DM Sans', sans-serif
+    }
+
+    .hl {
+      background: linear-gradient(90deg, #F5A623, #E8855A);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .2
+      }
+    }
+
+    .blink {
+      animation: blink 2s infinite
+    }
   </style>
 </head>
+
 <body class="bg-bg text-tx">
 
   <!-- NAV -->
@@ -32,18 +58,24 @@
         <a href="#" class="text-muted text-sm hover:text-tx transition-colors">Explorer</a>
         <a href="#" class="text-muted text-sm hover:text-tx transition-colors">Prestataires</a>
         <a href="#" class="text-muted text-sm hover:text-tx transition-colors">Tarifs</a>
-        <a href="login.html" class="bg-accent text-bg text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-85 transition-opacity">Commencer</a>
+        <a href="login.html"
+          class="bg-accent text-bg text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-85 transition-opacity">Commencer</a>
       </div>
       <button onclick="toggleMenu()" class="md:hidden p-2 text-muted">
-        <svg id="ico-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-        <svg id="ico-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <svg id="ico-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <svg id="ico-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
     <div id="mob-menu" class="hidden md:hidden border-t border-brd bg-surface px-4 py-4 flex flex-col gap-2">
       <a href="#" class="text-muted text-sm py-2 hover:text-tx">Explorer</a>
       <a href="#" class="text-muted text-sm py-2 hover:text-tx">Prestataires</a>
       <a href="#" class="text-muted text-sm py-2 hover:text-tx">Tarifs</a>
-      <a href="login.html" class="bg-accent text-bg text-sm font-semibold px-4 py-2.5 rounded-lg text-center mt-1">Commencer</a>
+      <a href="login.html"
+        class="bg-accent text-bg text-sm font-semibold px-4 py-2.5 rounded-lg text-center mt-1">Commencer</a>
     </div>
   </nav>
 
@@ -51,71 +83,46 @@
   <section class="max-w-6xl mx-auto px-4 sm:px-8 py-12 sm:py-20">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
       <div>
-        <div class="inline-flex items-center gap-2 bg-accent/10 border border-accent/25 text-accent text-xs font-medium px-3 py-1.5 rounded-full mb-5">
-          <span class="w-1.5 h-1.5 bg-ok rounded-full blink inline-block"></span>Plateforme locale béninoise
-        </div>
+
         <h1 class="font-syne font-extrabold text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight mb-4">
-          Trouvez le bon<br><span class="hl">prestataire</span>,<br/>pas le plus proche
+          Trouvez le bon<br><span class="hl">prestataire</span>,<br />pas le plus proche
         </h1>
-        <p class="text-muted text-base sm:text-lg leading-relaxed mb-7 max-w-md">La première marketplace de services freelances au Bénin. Développeurs, plombiers, graphistes — vérifiés, évalués, disponibles.</p>
+        <p class="text-muted text-base sm:text-lg leading-relaxed mb-7 max-w-md">La première marketplace de services
+          freelances au Bénin. Développeurs, plombiers, graphistes — vérifiés, évalués, disponibles.</p>
         <div class="flex flex-col sm:flex-row gap-3 mb-8">
-          <a href="register-client.html" class="bg-accent text-bg font-bold px-6 py-3 rounded-xl text-center text-sm sm:text-base hover:opacity-90 hover:-translate-y-0.5 transition-all">Je cherche un service</a>
-          <a href="register-prestataire.html" class="border border-brd text-tx font-medium px-6 py-3 rounded-xl text-center text-sm sm:text-base hover:border-accent hover:bg-accent/5 transition-all">Proposer mes services</a>
+          <a href="register-client.html"
+            class="bg-accent text-bg font-bold px-6 py-3 rounded-xl text-center text-sm sm:text-base hover:opacity-90 hover:-translate-y-0.5 transition-all">Je
+            cherche un service</a>
+          <a href="register-prestataire.html"
+            class="border border-brd text-tx font-medium px-6 py-3 rounded-xl text-center text-sm sm:text-base hover:border-accent hover:bg-accent/5 transition-all">Proposer
+            mes services</a>
         </div>
         <div class="flex gap-5 sm:gap-8">
-          <div><div class="font-syne font-bold text-xl sm:text-2xl text-accent">500+</div><div class="text-xs text-muted mt-0.5">Prestataires</div></div>
+          <div>
+            <div class="font-syne font-bold text-xl sm:text-2xl text-accent">500+</div>
+            <div class="text-xs text-muted mt-0.5">Prestataires</div>
+          </div>
           <div class="w-px bg-brd self-stretch"></div>
-          <div><div class="font-syne font-bold text-xl sm:text-2xl text-accent">12</div><div class="text-xs text-muted mt-0.5">Catégories</div></div>
+          <div>
+            <div class="font-syne font-bold text-xl sm:text-2xl text-accent">12</div>
+            <div class="text-xs text-muted mt-0.5">Catégories</div>
+          </div>
           <div class="w-px bg-brd self-stretch"></div>
-          <div><div class="font-syne font-bold text-xl sm:text-2xl text-accent">4.7★</div><div class="text-xs text-muted mt-0.5">Note moyenne</div></div>
+          <div>
+            <div class="font-syne font-bold text-xl sm:text-2xl text-accent">4.7★</div>
+            <div class="text-xs text-muted mt-0.5">Note moyenne</div>
+          </div>
         </div>
       </div>
       <!-- Preview card — visible md+ -->
       <div class="hidden lg:flex flex-col gap-3">
-        <div class="bg-surface border border-brd rounded-2xl p-4">
-          <div class="inline-flex items-center gap-1 bg-ok/10 border border-ok/25 text-ok text-xs px-2 py-0.5 rounded mb-3">✓ Vérifié IA</div>
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-full bg-accent/15 flex items-center justify-center font-syne font-bold text-accent text-xs shrink-0">KD</div>
-            <div><div class="font-syne font-semibold text-sm">Kofi Dossou</div><div class="text-xs text-muted">Développeur Web Full Stack</div></div>
-          </div>
-          <div class="text-accent text-xs mb-2">★★★★★ <span class="text-muted">(48 avis)</span></div>
-          <div class="flex gap-1.5 flex-wrap">
-            <span class="bg-surface2 border border-brd text-muted text-xs px-2 py-0.5 rounded">React</span>
-            <span class="bg-surface2 border border-brd text-muted text-xs px-2 py-0.5 rounded">Laravel</span>
-            <span class="bg-surface2 border border-brd text-muted text-xs px-2 py-0.5 rounded">Cotonou</span>
-          </div>
-        </div>
-        <div class="bg-surface border border-brd rounded-2xl p-4 opacity-60">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-accent2/15 flex items-center justify-center font-syne font-bold text-accent2 text-xs shrink-0">AM</div>
-            <div><div class="font-syne font-semibold text-sm">Aïcha Moussa</div><div class="text-xs text-muted">Graphiste & UI Designer · ★★★★☆</div></div>
-          </div>
-        </div>
-        <div class="bg-surface border border-brd rounded-2xl p-4 opacity-30">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-ok/15 flex items-center justify-center font-syne font-bold text-ok text-xs shrink-0">BS</div>
-            <div><div class="font-syne font-semibold text-sm">Basile Sagbo</div><div class="text-xs text-muted">Électricien Bâtiment</div></div>
-          </div>
-        </div>
+        <img src="assets/img_hero_1.jpg" alt="" class="rounded-2xl h-[300px] w-[330px] object-cover self-in">
+        <img src="assets/img_hero_2.jpg" alt="" class="rounded-2xl h-[300px] w-[330px] object-cover self-end translate-y-[-60px]">
+
       </div>
     </div>
   </section>
 
-  <!-- CATEGORIES -->
-  <section class="bg-surface border-y border-brd py-10 sm:py-14">
-    <p class="text-center text-muted text-sm sm:text-base font-syne mb-6">Parcourir par catégorie</p>
-    <div class="flex flex-wrap gap-2 sm:gap-3 justify-center px-4 sm:px-8 max-w-4xl mx-auto">
-      <button onclick="setActive(this)" class="cat active-cat bg-accent text-bg border border-accent text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full font-medium transition-all">Tout</button>
-      <button onclick="setActive(this)" class="cat bg-surface2 border border-brd text-tx text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full transition-all hover:border-accent hover:text-accent">💻 Développement</button>
-      <button onclick="setActive(this)" class="cat bg-surface2 border border-brd text-tx text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full transition-all hover:border-accent hover:text-accent">🎨 Design</button>
-      <button onclick="setActive(this)" class="cat bg-surface2 border border-brd text-tx text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full transition-all hover:border-accent hover:text-accent">⚡ Électricité</button>
-      <button onclick="setActive(this)" class="cat bg-surface2 border border-brd text-tx text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full transition-all hover:border-accent hover:text-accent">🔧 Plomberie</button>
-      <button onclick="setActive(this)" class="cat bg-surface2 border border-brd text-tx text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full transition-all hover:border-accent hover:text-accent">📱 Mobile</button>
-      <button onclick="setActive(this)" class="cat bg-surface2 border border-brd text-tx text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full transition-all hover:border-accent hover:text-accent">📷 Photo</button>
-      <button onclick="setActive(this)" class="cat bg-surface2 border border-brd text-tx text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full transition-all hover:border-accent hover:text-accent">📊 Marketing</button>
-      <button onclick="setActive(this)" class="cat bg-surface2 border border-brd text-tx text-xs sm:text-sm px-3 sm:px-5 py-2 rounded-full transition-all hover:border-accent hover:text-accent">🏗️ Maçonnerie</button>
-    </div>
-  </section>
 
   <!-- HOW -->
   <section class="max-w-6xl mx-auto px-4 sm:px-8 py-14 sm:py-20">
@@ -127,19 +134,27 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
       <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden">
         <div class="font-syne font-extrabold text-6xl text-accent/10 absolute -top-2 right-3 select-none">01</div>
-        <div class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">🔍</div>
+        <div
+          class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">
+          🔍</div>
         <h3 class="font-syne font-semibold text-base mb-2">Recherchez</h3>
-        <p class="text-sm text-muted leading-relaxed">Filtrez par catégorie, localité et note minimale pour trouver le profil idéal.</p>
+        <p class="text-sm text-muted leading-relaxed">Filtrez par catégorie, localité et note minimale pour trouver le
+          profil idéal.</p>
       </div>
       <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden">
         <div class="font-syne font-extrabold text-6xl text-accent/10 absolute -top-2 right-3 select-none">02</div>
-        <div class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">💬</div>
+        <div
+          class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">
+          💬</div>
         <h3 class="font-syne font-semibold text-base mb-2">Contactez</h3>
-        <p class="text-sm text-muted leading-relaxed">Envoyez un message via la messagerie intégrée de la plateforme.</p>
+        <p class="text-sm text-muted leading-relaxed">Envoyez un message via la messagerie intégrée de la plateforme.
+        </p>
       </div>
       <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden">
         <div class="font-syne font-extrabold text-6xl text-accent/10 absolute -top-2 right-3 select-none">03</div>
-        <div class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">⭐</div>
+        <div
+          class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">
+          ⭐</div>
         <h3 class="font-syne font-semibold text-base mb-2">Évaluez</h3>
         <p class="text-sm text-muted leading-relaxed">Laissez un avis pour aider la communauté à choisir.</p>
       </div>
@@ -150,10 +165,15 @@
   <section class="max-w-6xl mx-auto px-4 sm:px-8 pb-16 sm:pb-24">
     <div class="bg-surface border border-brd rounded-3xl px-6 sm:px-14 py-12 sm:py-16 text-center">
       <h2 class="font-syne font-bold text-2xl sm:text-4xl mb-3">Rejoignez la communauté</h2>
-      <p class="text-muted text-sm sm:text-base mb-8 max-w-md mx-auto">Que vous cherchiez un service ou que vous souhaitiez proposer vos compétences</p>
+      <p class="text-muted text-sm sm:text-base mb-8 max-w-md mx-auto">Que vous cherchiez un service ou que vous
+        souhaitiez proposer vos compétences</p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a href="register-prestataire.html" class="bg-accent text-bg font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-opacity text-center">Devenir prestataire</a>
-        <a href="register-client.html" class="border border-brd text-tx font-medium px-8 py-3 rounded-xl hover:border-accent hover:text-accent transition-all text-center">Trouver un prestataire</a>
+        <a href="register-prestataire.html"
+          class="bg-accent text-bg font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-opacity text-center">Devenir
+          prestataire</a>
+        <a href="register-client.html"
+          class="border border-brd text-tx font-medium px-8 py-3 rounded-xl hover:border-accent hover:text-accent transition-all text-center">Trouver
+          un prestataire</a>
       </div>
     </div>
   </section>
@@ -165,19 +185,20 @@
   </footer>
 
   <script>
-    function toggleMenu(){
+    function toggleMenu() {
       document.getElementById('mob-menu').classList.toggle('hidden');
       document.getElementById('ico-open').classList.toggle('hidden');
       document.getElementById('ico-close').classList.toggle('hidden');
     }
-    function setActive(el){
-      document.querySelectorAll('.cat').forEach(b=>{
-        b.classList.remove('bg-accent','text-bg','border-accent','font-medium');
-        b.classList.add('bg-surface2','text-tx','border-brd');
+    function setActive(el) {
+      document.querySelectorAll('.cat').forEach(b => {
+        b.classList.remove('bg-accent', 'text-bg', 'border-accent', 'font-medium');
+        b.classList.add('bg-surface2', 'text-tx', 'border-brd');
       });
-      el.classList.add('bg-accent','text-bg','border-accent','font-medium');
-      el.classList.remove('bg-surface2','text-tx','border-brd');
+      el.classList.add('bg-accent', 'text-bg', 'border-accent', 'font-medium');
+      el.classList.remove('bg-surface2', 'text-tx', 'border-brd');
     }
   </script>
 </body>
+
 </html>
