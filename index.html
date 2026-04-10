@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BéninFreelance — Marketplace de services locaux</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link
     href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
     rel="stylesheet" />
@@ -45,14 +46,100 @@
     .blink {
       animation: blink 2s infinite
     }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 1s ease-in-out forwards;
+    }
+
+    @keyframes slideRight {
+      from {
+        transform: translateX(-100px);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .animate-slideRight {
+      animation: slideRight 1s ease-out;
+    }
+
+    @keyframes slideLeft {
+      from {
+        transform: translateX(+100px);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .animate-slideLeft {
+      animation: slideLeft 1s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100px);
+      }
+
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .animate-slideDown {
+      animation: slideDown 1s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(+1px);
+      }
+
+      to {
+        transform: translateY(-500px);
+      }
+    }
+
+    .animate-slideUp {
+      animation: slideUp 1s ease-out;
+    }
+
+    @keyframes zoomIn {
+      from {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .animate-zoomIn {
+      animation: zoomIn 0.6s ease-out forwards;
+    }
   </style>
 </head>
 
 <body class="bg-bg text-tx">
 
   <!-- NAV -->
-  <nav class="sticky top-0 z-50 bg-bg/95 border-b border-brd backdrop-blur-sm">
-    <div class="max-w-6xl mx-auto px-4 sm:px-8 flex items-center justify-between h-16">
+  <nav class="sticky top-0 z-50 bg-bg/95  backdrop-blur-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 flex items-center justify-between h-16 border-b border-brd">
       <a href="index.html" class="font-syne font-extrabold text-lg">Bénin<span class="text-accent">Freelance</span></a>
       <div class="hidden md:flex items-center gap-6">
         <a href="#" class="text-muted text-sm hover:text-tx transition-colors">Explorer</a>
@@ -70,8 +157,9 @@
         </svg>
       </button>
     </div>
-    <div id="mob-menu" class="hidden md:hidden border-t border-brd bg-surface px-4 py-4 flex flex-col gap-2">
-      <a href="#" class="text-muted text-sm py-2 hover:text-tx">Explorer</a>
+    <div id="mob-menu"
+      class="hidden md:hidden border-t border-brd bg-surface px-4 py-4 flex flex-col gap-2 transition-all duration-500 ease-in-out">
+      <a href=" #" class="text-muted text-sm py-2 hover:text-tx">Explorer</a>
       <a href="#" class="text-muted text-sm py-2 hover:text-tx">Prestataires</a>
       <a href="#" class="text-muted text-sm py-2 hover:text-tx">Tarifs</a>
       <a href="login.html"
@@ -91,10 +179,10 @@
           freelances au Bénin. Développeurs, plombiers, graphistes — vérifiés, évalués, disponibles.</p>
         <div class="flex flex-col sm:flex-row gap-3 mb-8">
           <a href="register-client.html"
-            class="bg-accent text-bg font-bold px-6 py-3 rounded-xl text-center text-sm sm:text-base hover:opacity-90 hover:-translate-y-0.5 transition-all">Je
+            class="bg-accent text-bg font-bold px-6 py-3 rounded-xl text-center text-sm sm:text-base hover:opacity-90 hover:-translate-y-0.5 transition-all animate-slideRight">Je
             cherche un service</a>
           <a href="register-prestataire.html"
-            class="border border-brd text-tx font-medium px-6 py-3 rounded-xl text-center text-sm sm:text-base hover:border-accent hover:bg-accent/5 transition-all">Proposer
+            class="border border-brd text-tx font-medium px-6 py-3 rounded-xl text-center text-sm sm:text-base hover:border-accent hover:bg-accent/5 transition-all animate-slideLeft">Proposer
             mes services</a>
         </div>
         <div class="flex gap-5 sm:gap-8">
@@ -116,8 +204,10 @@
       </div>
       <!-- Preview card — visible md+ -->
       <div class="hidden lg:flex flex-col gap-3">
-        <img src="assets/img_hero_1.jpg" alt="" class="rounded-2xl h-[300px] w-[330px] object-cover self-in">
-        <img src="assets/img_hero_2.jpg" alt="" class="rounded-2xl h-[300px] w-[330px] object-cover self-end translate-y-[-60px]">
+        <img src="assets/img_hero_1.jpg" alt=""
+          class="rounded-2xl h-[300px] w-[330px] object-cover self-in animate-slideLeft">
+        <img src="assets/img_hero_2.jpg" alt=""
+          class="rounded-2xl h-[300px] w-[330px] object-cover self-end translate-y-[-60px] animate-slideRight">
 
       </div>
     </div>
@@ -132,29 +222,32 @@
       <p class="text-muted text-sm sm:text-base">Trois étapes pour trouver le bon prestataire</p>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-      <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden">
+      <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden animate-zoomIn">
         <div class="font-syne font-extrabold text-6xl text-accent/10 absolute -top-2 right-3 select-none">01</div>
         <div
           class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">
-          🔍</div>
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
         <h3 class="font-syne font-semibold text-base mb-2">Recherchez</h3>
         <p class="text-sm text-muted leading-relaxed">Filtrez par catégorie, localité et note minimale pour trouver le
           profil idéal.</p>
       </div>
-      <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden">
+      <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden animate-zoomIn">
         <div class="font-syne font-extrabold text-6xl text-accent/10 absolute -top-2 right-3 select-none">02</div>
         <div
           class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">
-          💬</div>
+          <i class="fa-solid fa-message"></i>
+        </div>
         <h3 class="font-syne font-semibold text-base mb-2">Contactez</h3>
         <p class="text-sm text-muted leading-relaxed">Envoyez un message via la messagerie intégrée de la plateforme.
         </p>
       </div>
-      <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden">
+      <div class="bg-surface border border-brd rounded-2xl p-6 relative overflow-hidden animate-zoomIn">
         <div class="font-syne font-extrabold text-6xl text-accent/10 absolute -top-2 right-3 select-none">03</div>
         <div
           class="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-lg mb-4">
-          ⭐</div>
+          <i class="fa-solid fa-star" style="color: rgb(234, 235, 22);"></i>
+        </div>
         <h3 class="font-syne font-semibold text-base mb-2">Évaluez</h3>
         <p class="text-sm text-muted leading-relaxed">Laissez un avis pour aider la communauté à choisir.</p>
       </div>
@@ -169,10 +262,10 @@
         souhaitiez proposer vos compétences</p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="register-prestataire.html"
-          class="bg-accent text-bg font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-opacity text-center">Devenir
+          class="bg-accent text-bg font-bold px-8 py-3 rounded-xl hover:opacity-90 transition-opacity text-center animate-slideRight">Devenir
           prestataire</a>
         <a href="register-client.html"
-          class="border border-brd text-tx font-medium px-8 py-3 rounded-xl hover:border-accent hover:text-accent transition-all text-center">Trouver
+          class="border border-brd text-tx font-medium px-8 py-3 rounded-xl hover:border-accent hover:text-accent transition-all text-center animate-slideLeft">Trouver
           un prestataire</a>
       </div>
     </div>
@@ -186,13 +279,26 @@
 
   <script>
     function toggleMenu() {
-      document.getElementById('mob-menu').classList.toggle('hidden');
+      const menu = document.getElementById('mob-menu');
+      const isHidden = menu.classList.contains('hidden');
       document.getElementById('ico-open').classList.toggle('hidden');
       document.getElementById('ico-close').classList.toggle('hidden');
+
+      if (isHidden) {
+        // Ouverture → slide down
+        menu.classList.remove('hidden', 'animate-slideUp');
+        menu.classList.add('animate-slideDown');
+      } else {
+        // Fermeture → slide up puis cache
+        menu.classList.remove('animate-slideDown');
+        menu.classList.add('animate-slideUp');
+        setTimeout(() => menu.classList.add('hidden'), 900);
+      }
     }
+
     function setActive(el) {
       document.querySelectorAll('.cat').forEach(b => {
-        b.classList.remove('bg-accent', 'text-bg', 'border-accent', 'font-medium');
+        b.classList.remove('bg-accent', 'text-bg', 'border-accent', 'font-medium'); animate - slideUp
         b.classList.add('bg-surface2', 'text-tx', 'border-brd');
       });
       el.classList.add('bg-accent', 'text-bg', 'border-accent', 'font-medium');

@@ -7,7 +7,67 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script>tailwind.config={theme:{extend:{fontFamily:{syne:['Syne','sans-serif']},colors:{bg:'#0A0A0F',surface:'#13131A',surface2:'#1C1C27',brd:'#2A2A3D',accent:'#F5A623',tx:'#F0EDE8',muted:'#7A7A9A',ok:'#2ECC71'}}}}</script>
-  <style>body{font-family:'DM Sans',sans-serif} input,select{outline:none} input:focus,select:focus{border-color:#F5A623!important} select option{background:#13131A}</style>
+  <style>
+  
+  body{font-family:'DM Sans',sans-serif} input,select{outline:none} input:focus,select:focus{border-color:#F5A623!important} select option{background:#13131A}
+  @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 1s ease-in-out forwards;
+    }
+
+    @keyframes slideRight {
+      from {
+        transform: translateX(-500px);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .animate-slideRight {
+      animation: slideRight 1s ease-out;
+    }
+
+    @keyframes slideLeft {
+      from {
+        transform: translateX(+500px);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .animate-slideLeft {
+      animation: slideLeft 1s ease-out;
+    }
+
+    @keyframes zoomIn {
+      from {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .animate-zoomIn {
+      animation: zoomIn 0.6s ease-out forwards;
+    }
+  </style>
 </head>
 <body class="bg-bg text-tx min-h-screen">
 
@@ -31,7 +91,7 @@
   <div class="flex min-h-0 md:h-screen md:min-h-screen">
 
     <!-- LEFT sidebar — hidden mobile -->
-    <div class="hidden md:flex md:w-5/12 lg:w-2/5 bg-surface border-r border-brd flex-col justify-between p-8 lg:p-12">
+    <div class="hidden md:flex md:w-5/12 lg:w-2/5 bg-surface border-r border-brd flex-col justify-between p-8 lg:p-12 animate-slideRight">
       <a href="index.html" class="font-syne font-extrabold text-xl">Bénin<span class="text-accent">Freelance</span></a>
       <div>
         <div class="font-syne font-semibold text-lg mb-1">Créer votre compte client</div>
@@ -60,7 +120,7 @@
     </div>
 
     <!-- RIGHT — form -->
-    <div class="flex-1 flex items-start md:items-center justify-center px-4 sm:px-8 py-6 md:py-0 bg-bg overflow-y-auto">
+    <div class="flex-1 flex items-start md:items-center justify-center px-4 sm:px-8 py-6 md:py-0 bg-bg overflow-y-auto animate-slideLeft">
       <div class="w-full max-w-md">
         <h2 class="font-syne font-bold text-2xl sm:text-3xl mb-1" id="step-title">Qui êtes-vous ?</h2>
         <p class="text-muted text-sm mb-5" id="step-sub">Renseignez vos informations personnelles</p>
