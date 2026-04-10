@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'gemini_api_key' => env('GEMINI_API_KEY'),
+
+    'admin_password' => env('ADMIN_PASSWORD'),
+
 ];
