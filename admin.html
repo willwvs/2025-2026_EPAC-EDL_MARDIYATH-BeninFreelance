@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Admin — vérification prestataires</title>
+</head>
+<body style="font-family:Arial;padding:24px;max-width:900px">
+  <div id="login-block">
+    <h2>Admin — connexion</h2>
+    <p style="color:#666;font-size:14px">Espace séparé de l’application (mot de passe dans <code>.env</code>).</p>
+    <p id="login-err" style="color:#b00020;display:none"></p>
+    <label>Mot de passe<br><input id="admin-pw" type="password" style="width:100%;max-width:320px;padding:8px;margin-top:4px" /></label><br /><br />
+    <button type="button" onclick="doLogin()">Entrer</button>
+  </div>
+
+  <div id="panel" style="display:none">
+    <h2>Admin — dossiers prestataires</h2>
+    <p><button type="button" onclick="doLogout()">Déconnexion</button></p>
+    <div id="list-wrap">
+      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:14px;width:100%">
+        <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Statut</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <hr />
+    <div id="detail" style="display:none">
+      <p><button type="button" onclick="closeDetail()">← Liste</button></p>
+      <h3 id="d-title"></h3>
+      <p id="d-infos"></p>
+      <p><strong>Motif (comité / validation) :</strong><br /><span id="d-motif"></span></p>
+      <p>
+        <a id="d-cv" href="#" target="_blank">Voir CV</a> ·
+        <a id="d-id" href="#" target="_blank">Voir pièce d’identité</a>
+      </p>
+      <hr />
+      <h4>Actions manuelles</h4>
+      <button type="button" onclick="doValider()">Valider</button>
+      <input id="ref-motif" type="text" placeholder="Motif (générique)" style="width:240px;padding:6px;margin-left:8px" />
+      <button type="button" onclick="doRefuser()">Refuser</button>
+    </div>
+  </div>
+
+  <script>
+    let csrf = '';
+    let currentId = null;
+
+    async function getCsrf() {
+      const r = await fetch('/csrf-token', { headers: { Accept: 'application/json' } });
+      const d = await r.json();
+      csrf = d.token;
+    }
+
+    async function api(path, opts) {
+      opts = opts || {};
+      opts.headers = opts.headers || {};
+      opts.headers['Accept'] = 'application/json';
+      if (csrf) opts.headers['X-CSRF-TOKEN'] = csrf;
+      if (opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(opts.body);
+      }
+      return fetch(path, opts);
+    }
+
+    async function boot() {
+      await getCsrf();
+      const r = await api('/admin/api/session');
+      const d = await r.json();
+      if (d.authenticated) showPanel(); else showLogin();
+    }
+
+    function showLogin() {
+      document.getElementById('login-block').style.display = 'block';
+      document.getElementById('panel').style.display = 'none';
+    }
+
+    async function showPanel() {
+      await getCsrf();
+      document.getElementById('login-block').style.display = 'none';
+      document.getElementById('panel').style.display = 'block';
+      document.getElementById('detail').style.display = 'none';
+      document.getElementById('list-wrap').style.display = 'block';
+      await loadList();
+      const q = new URLSearchParams(location.search).get('id');
+      if (q) openDetail(parseInt(q, 10));
+    }
+
+    async function doLogin() {
+      document.getElementById('login-err').style.display = 'none';
+      await getCsrf();
+      const pw = document.getElementById('admin-pw').value;
+      const r = await api('/admin/login', { method: 'POST', body: { password: pw } });
+      const d = await r.json();
+      if (!r.ok || !d.ok) {
+        document.getElementById('login-err').textContent = d.message || 'Connexion refusée';
+        document.getElementById('login-err').style.display = 'block';
+        return;
+      }
+      await showPanel();
+    }
+
+    async function doLogout() {
+      await getCsrf();
+      await api('/admin/logout', { method: 'POST' });
+      location.href = '/admin';
+    }
+
+    async function loadList() {
+      const r = await api('/admin/api/prestataires');
+      if (r.status === 401 || r.status === 403) { showLogin(); return; }
+      const d = await r.json();
+      const tb = document.getElementById('rows');
+      tb.innerHTML = '';
+      (d.rows || []).forEach(function (x) {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + x.id + '</td>' +
+          '<td>' + escapeHtml(x.nom_complet) + '</td>' +
+          '<td>' + escapeHtml(x.email) + '</td>' +
+          '<td>' + escapeHtml(x.statut) + '</td>' +
+          '<td><button type="button">Détail</button></td>';
+        tr.querySelector('button').onclick = function () { openDetail(x.id); };
+        tb.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    async function openDetail(id) {
+      currentId = id;
+      await getCsrf();
+      const r = await api('/admin/api/prestataires/' + id);
+      if (!r.ok) return;
+      const d = await r.json();
+      const p = d.prestataire;
+      document.getElementById('list-wrap').style.display = 'none';
+      document.getElementById('detail').style.display = 'block';
+      document.getElementById('d-title').textContent = 'Prestataire #' + p.id;
+      document.getElementById('d-infos').innerHTML =
+        '<strong>Nom :</strong> ' + escapeHtml(p.prenom + ' ' + p.nom) + '<br />' +
+        '<strong>Email :</strong> ' + escapeHtml(p.email) + '<br />' +
+        '<strong>Statut :</strong> ' + escapeHtml(p.statut_verification || '');
+      document.getElementById('d-motif').textContent = p.motif_refus_ia || '(vide)';
+      document.getElementById('d-cv').href = d.urls.cv;
+      document.getElementById('d-id').href = d.urls.identite;
+      history.replaceState(null, '', '/admin?id=' + id);
+    }
+
+    function closeDetail() {
+      document.getElementById('detail').style.display = 'none';
+      document.getElementById('list-wrap').style.display = 'block';
+      currentId = null;
+      history.replaceState(null, '', '/admin');
+    }
+
+    async function doValider() {
+      if (!currentId) return;
+      await getCsrf();
+      await api('/admin/api/prestataires/' + currentId + '/valider', { method: 'POST', body: {} });
+      await openDetail(currentId);
+    }
+
+    async function doRefuser() {
+      if (!currentId) return;
+      await getCsrf();
+      const motif = document.getElementById('ref-motif').value || 'Dossier refusé par l’administrateur.';
+      await api('/admin/api/prestataires/' + currentId + '/refuser', { method: 'POST', body: { motif: motif } });
+      await openDetail(currentId);
+    }
+
+    boot();
+  </script>
+</body>
+</html>

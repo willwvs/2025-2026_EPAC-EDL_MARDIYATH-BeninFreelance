@@ -1,0 +1,130 @@
+SPRINT 1 - RESTANT A FAIRE (CHECKLIST OPERATOIRE)
+
+Contexte:
+- Objectif Sprint 1 (CDC): BDD operationnelle, inscription/connexion, gestion de session, profil prestataire, verification IA.
+- Cette liste priorise ce qui manque encore pour livrer un Sprint 1 presentable et conforme.
+
+==================================================
+1) ENVIRONNEMENT ET BASE DE DONNEES
+==================================================
+[ ] Installer et lancer XAMPP (Apache + MySQL)
+[ ] Creer la base db_marketplace dans phpMyAdmin
+[ ] Importer database/db_marketplace.sql sans erreur
+[ ] Verifier la presence des tables: clients, prestataires, services, messages, avis
+[ ] Uniformiser le nom de colonne mot_de_passe -> password (strategie a valider equipe)
+[ ] Verifier les contraintes et index apres modification (UNIQUE email, FK, index localite/note/categorie)
+
+Livrable attendu:
+- Base chargee localement et exploitable par Laravel.
+
+==================================================
+2) INITIALISATION LARAVEL
+==================================================
+[ ] Creer le projet Laravel 12
+[ ] Configurer .env (DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD)
+[ ] Verifier connexion DB depuis Laravel (test route/commande)
+[ ] Definir la strategie d'authentification avec 2 profils: client et prestataire
+[ ] Mettre en place la gestion de session (login, logout, protections de pages)
+
+Livrable attendu:
+- Application Laravel connectee a db_marketplace avec auth fonctionnelle de base.
+
+==================================================
+3) MODULE AUTHENTIFICATION (L5)
+==================================================
+[ ] Inscription client (creation compte en base)
+[ ] Inscription prestataire (creation compte en base + statut_verification=en_attente)
+[ ] Hash des mots de passe (BCRYPT / Hash::make)
+[ ] Connexion client (session active, redirection dashboard client)
+[ ] Connexion prestataire:
+    - si statut=en_attente -> page "verification en cours"
+    - si statut=refuse -> page "verification refusee" + option resoumission
+    - si statut=valide -> popup felicitation puis dashboard prestataire
+[ ] Deconnexion (session detruite)
+[ ] Bloquer les pages protegees si non connecte
+
+Livrable attendu:
+- Flux inscription/connexion/deconnexion complet pour les 2 roles.
+
+==================================================
+4) VERIFICATION IA PRESTATAIRE (SPRINT 1)
+==================================================
+[ ] Upload CV et piece d'identite cote serveur
+[ ] Validation fichiers (formats/poids/type MIME reel)
+[ ] Renommage fichier en identifiant unique
+[ ] Stockage et sauvegarde des chemins en base (chemin_cv, chemin_identite)
+[ ] Appel serveur vers API Gemini (jamais expose cote frontend)
+[ ] Enregistrement resultat IA (decision + motif generique)
+[ ] Mise a jour statut_verification selon resultat IA
+[ ] Delai/metier: afficher "revenez sous 24h max" tant que verification en attente
+
+Livrable attendu:
+- Verification automatisee exploitable et traces de decision en base.
+
+==================================================
+5) ADMIN MINIMAL POUR VALIDATION DOSSIERS
+==================================================
+[ ] Page admin: liste des prestataires en attente/valide/refuse
+[ ] Page admin detail dossier: infos profil, CV/ID, retour IA
+[ ] Actions admin: Valider / Refuser manuellement (override possible)
+[ ] Journaliser qui a pris la decision (si possible dans Sprint 1)
+
+Note:
+- Le CDC place l'interface admin complete en Sprint 4.
+- Pour Sprint 1, un module admin minimal de validation est pertinent et defendable.
+
+Livrable attendu:
+- Admin peut confirmer ou corriger la decision IA.
+
+==================================================
+6) PAGES FIGMA A PRODUIRE (RESTANT SPRINT 1)
+==================================================
+Pages principales a designer:
+[ ] Verification en cours (prestataire bloque)
+[ ] Verification refusee (motif generique + resoumettre dossier)
+[ ] Admin - liste des demandes de verification
+[ ] Admin - detail dossier + avis IA + boutons valider/refuser
+[ ] Dashboard prestataire minimal (etat post-validation)
+[ ] Dashboard client minimal (etat post-login)
+
+Etats/UI a designer:
+[ ] Popup "Felicitations, compte valide"
+[ ] Etat "connexion avant fin de verification"
+
+Estimation:
+- 6 pages principales (+ 2 etats UI) pour cloturer la conception Sprint 1.
+
+==================================================
+7) CRITERES D'ACCEPTATION SPRINT 1 (A VERIFIER)
+==================================================
+[ ] Le script SQL fonctionne sans erreur
+[ ] L'inscription client et prestataire fonctionne
+[ ] Les mots de passe ne sont jamais stockes en clair
+[ ] Le login/logout/session fonctionne
+[ ] Les pages protegees refusent l'acces non authentifie
+[ ] La verification IA est integree cote serveur
+[ ] Le prestataire en attente ne peut pas publier
+[ ] L'admin peut valider/refuser un dossier
+
+Definition of Done Sprint 1:
+- "Un client peut creer son compte et se connecter."
+- "Un prestataire peut creer son compte, soumettre ses documents et etre traite par IA/admin."
+- "La decision de verification conditionne reellement l'acces prestataire."
+
+==================================================
+8) ORGANISATION RAPIDE (RECOMMANDEE)
+==================================================
+Priorite P1:
+1. Setup XAMPP + import SQL
+2. Setup Laravel + connexion DB
+3. Auth client/prestataire + sessions
+
+Priorite P2:
+4. Upload documents + verification IA serveur
+5. Admin minimal de validation
+
+Priorite P3:
+6. Ecrans Figma restants + finitions UX
+
+==================================================
+Fin du document.

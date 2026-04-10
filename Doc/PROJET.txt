@@ -1,0 +1,302 @@
+
+        RÉPUBLIQUE DU BÉNIN
+     ************
+UNIVERSITÉ D’ABOMEY CALAVI
+       ***********
+  ÉCOLE POLYTECHNIQUE D ’ABOMEY-CALAVI
+       ************
+   DÉPARTEMENT DE GÉNIE INFORMATIQUE ET TÉLÉCOMMUNICATIONS (GIT)
+
+
+
+
+
+
+Filière : GIT3
+ Présentation de (Groupe 5) :	           		              Sous la supervision de :
+ 1- AKODODJA Stéphania                                                             Pr DJARA Tahirou 
+2- AKOETE Justin		                                    
+3- BOCOVO Fried                                                                     Sous l’encadrement de :
+4- FAGNON Powell                                                                   Dr. ASSOUMA Abdoul Kamal
+5- MAMAM Mardiyath
+6- SANNI SEIDOU Aliou
+7- WANVOESSO Will				
+
+
+
+
+
+
+SOMMAIRE
+I.  Présentation générale du projet
+II.  Expression des besoins
+III.  Contraintes
+IV.  Architecture et spécifications techniques
+V.  Livrables attendus
+VI.  Planning et jalons
+VII.  Budget
+VIII.  Critères de sélection
+IX.  Annexes
+
+
+
+
+
+
+
+I. PRÉSENTATION GÉNÉRALE DU PROJET
+1.1 Contexte
+          Au Bénin, l'accès aux services professionnels reste largement informel. Les particuliers et entreprises qui cherchent un plombier, un électricien, un développeur web ou un graphiste n'ont aucune plateforme centralisée pour les trouver, comparer leurs profils et les contacter en toute confiance. De leur côté, les prestataires — qu'il s'agisse d'artisans qualifiés ou de freelances du numérique — manquent de visibilité et dépendent presque exclusivement du bouche-à-oreille pour trouver des clients.
+Avec la progression de l'accès à Internet et l'adoption croissante des smartphones au Bénin, les conditions sont réunies pour proposer une solution digitale locale, adaptée aux réalités du marché béninois. Ce projet s'inscrit dans cette dynamique de digitalisation de l'économie locale, en s'appuyant sur les technologies web pour créer un pont entre l'offre et la demande de services.
+
+1.2 Objectifs
+Objectif général
+              Concevoir et développer une plateforme web permettant de mettre en relation des prestataires de services locaux avec des clients au Bénin, de manière simple, rapide et fiable.
+Objectifs spécifiques
+? Permettre aux prestataires de créer un profil en ligne et de publier leurs services avec description, tarif et délai d'exécution
+? Offrir aux clients un moteur de recherche pour trouver un prestataire selon la catégorie de service, la localité et la note minimale
+? Faciliter la prise de contact directe entre clients et prestataires via une messagerie interne
+? Instaurer un système d'évaluation et d'avis permettant de renforcer la confiance entre les deux parties
+? Proposer un modèle économique adapté au contexte béninois, viable et accessible pour les prestataires locaux
+? Valoriser les compétences locales et contribuer à la création d'opportunités économiques numériques
+1.3 Périmètre du projet
+Fonctionnalités incluses
+? Inscription et authentification des utilisateurs (prestataires et clients)
+? Création et gestion du profil prestataire (photo, biographie, catégories, localité)
+? Publication, modification et suppression de services
+? Moteur de recherche avec filtres (catégorie, localité, note minimale)
+? Fiche publique de chaque prestataire avec ses services et ses avis
+? Messagerie interne entre clients et prestataires
+? Système d'évaluation (note de 1 à 5 étoiles + commentaire)
+? Calcul et affichage automatique de la note moyenne du prestataire
+? Interface d'administration pour la modération des comptes et des avis
+? Modèle économique : abonnement mensuel pour les prestataires et commission sur mise en relation
+Fonctionnalités exclues du périmètre académique
+? Paiement en ligne intégré (Mobile Money, carte bancaire)
+? Application mobile native (Android / iOS)
+? Géolocalisation avancée avec cartographie
+? Déploiement en production sur un serveur en ligne
+? Système de facturation automatisée
+1.4 Parties prenantes
+Partie prenanteRôleClientsRecherchent et contactent des prestataires de services via la plateformePrestatairesPublient leurs services et gèrent leur profil pour attirer des clientsAdministrateurModère les comptes, valide les inscriptions et gère les catégoriesÉquipe de développementConçoit, développe et maintient la plateformeEncadreurs académiques (EPAC)Supervisent et évaluent le projet dans le cadre du cours EDL–SGBDLP1.5 Modèle économique
+Abonnement mensuel pour les prestataires
+           L'inscription de base est gratuite et permet de créer un profil et de publier jusqu'à 2 services. Pour publier davantage de services et bénéficier d'une meilleure visibilité dans les résultats de recherche, le prestataire souscrit à un abonnement mensuel.
+OffrePrix mensuelServices publiablesAvantagesGratuit0 FCFA2 servicesProfil de base, visible dans la rechercheStarter3 500 FCFA10 servicesProfil mis en avant, badge vérifiéPro6 000 FCFAIllimitéPriorité dans les résultats, statistiques de vuesCommission sur mise en relation
+             Lorsqu'un client marque une prestation comme effectuée, la plateforme prélève une commission de 5 % sur le montant déclaré de la prestation. Ce taux est volontairement bas pour rester attractif face à l'informalité du marché local.
+Pourquoi ce modèle est adapté au Bénin
+             Les tarifs ont été calibrés pour rester accessibles aux artisans et freelances locaux dont les revenus sont irréguliers. Le plan gratuit permet à chacun de rejoindre la plateforme sans barrière financière, tandis que les plans payants sont débloqués progressivement selon les ambitions du prestataire.
+
+II. EXPRESSION DES BESOINS
+2.1 Besoins fonctionnels
+Gestion des utilisateurs
+? Le système doit permettre à un visiteur de s'inscrire en tant que prestataire ou en tant que client
+? Le système doit permettre à tout utilisateur inscrit de se connecter et de se déconnecter
+? Le système doit gérer trois rôles distincts : client, prestataire et administrateur, avec des droits d'accès différenciés
+? Un prestataire doit pouvoir modifier ses informations personnelles (nom, téléphone, localité, biographie, photo de profil) depuis son tableau de bord
+Gestion des services
+? Un prestataire doit pouvoir publier un service avec un titre, une description, une catégorie, un prix indicatif en FCFA, un délai d'exécution estimé et des photos illustratives facultatives
+? Un prestataire doit pouvoir modifier ou supprimer ses services existants
+? Un prestataire ne peut publier plus de 2 services en plan gratuit
+? Chaque service doit être visible publiquement sur la fiche du prestataire
+Recherche et découverte
+? Le système doit proposer un moteur de recherche permettant de filtrer les prestataires par catégorie de service, par localité et par note minimale
+? Les résultats doivent être triés par note moyenne décroissante
+? Les résultats doivent être paginés, avec 20 prestataires par page maximum
+Messagerie interne
+? Un client connecté doit pouvoir envoyer un message à un prestataire en lien avec un service précis
+? Un prestataire doit pouvoir consulter les messages reçus depuis son tableau de bord
+? Le système doit indiquer visuellement les messages non lus
+Vérification automatisée du profil prestataire
+Lors de son inscription, le prestataire doit soumettre, en plus de ses informations personnelles, un CV au format PDF ainsi qu'une pièce d'identité valide au format PDF, JPG ou PNG. Son compte est alors placé en statut En attente de vérification pendant une durée maximale de 24 heures. Durant cette période, son profil n'est pas visible sur la plateforme et il ne peut pas publier de services.
+La vérification est assurée par un module d'analyse IA basé sur l'API Gemini (Google), intégré côté serveur en PHP. Ce module analyse automatiquement le dossier soumis selon les indicateurs suivants :
+* Cohérence entre les compétences déclarées dans le profil et le contenu du CV
+* Présence effective d'une expérience ou formation dans la catégorie de service choisie
+* Validité apparente de la pièce d'identité (lisibilité, format reconnu)
+* Absence de signaux d'alerte évidents (document vierge, contenu incohérent, fichier corrompu)
+À l'issue de l'analyse, le module retourne automatiquement l'un des deux statuts suivants : Validé, le profil est activé et le prestataire peut publier ses services ; ou Refusé, le prestataire est notifié avec un motif générique et peut soumettre un nouveau dossier. L'administrateur conserve la possibilité de réviser manuellement toute décision prise par le module IA, notamment en cas de contestation.
+Évaluations et avis
+? Un client connecté doit pouvoir laisser un avis sur un prestataire, composé d'une note entre 1 et 5 étoiles et d'un commentaire facultatif
+? La note moyenne du prestataire doit être recalculée et mise à jour automatiquement après chaque nouvel avis
+? Les avis doivent être affichés sur la fiche publique du prestataire
+Administration
+? L'administrateur doit pouvoir consulter la liste des comptes prestataires et clients
+? L'administrateur doit pouvoir suspendre ou supprimer un compte
+? L'administrateur doit pouvoir modérer les avis signalés comme inappropriés
+? L'administrateur doit pouvoir gérer les catégories de services disponibles sur la plateforme
+2.2 Besoins non fonctionnels
+Performance
+? Les pages de résultats de recherche doivent se charger en moins de 3 secondes pour un volume de 500 prestataires
+? Des index MySQL doivent être définis sur les colonnes localite, categorie et note_moyenne pour accélérer les requêtes de recherche
+? Les images uploadées doivent être compressées automatiquement avant stockage pour réduire leur poids sans perte visible de qualité
+
+
+Sécurité
+? Les mots de passe doivent être chiffrés en base de données via la fonction password_hash() de PHP, avec l'algorithme BCRYPT
+? Les sessions PHP doivent être gérées proprement : démarrage avec session_start(), régénération de l'identifiant après connexion avec session_regenerate_id(), et destruction à la déconnexion avec session_destroy()
+? L'accès aux pages réservées (tableau de bord prestataire, messagerie, administration) doit être protégé par une vérification de session à chaque chargement de page
+? En version de production, les requêtes SQL devront obligatoirement être préparées via PDO pour se protéger contre les injections SQL
+Disponibilité et compatibilité
+? La plateforme doit être accessible depuis tout navigateur web moderne (Chrome, Firefox, Edge) sans installation préalable
+? L'interface doit être responsive, c'est-à-dire correctement affichée sur ordinateur, tablette et smartphone
+Maintenabilité
+? Le code doit suivre l'architecture MVC pour séparer la logique métier, l'accès aux données et l'affichage
+? Le projet doit être versionné avec Git et hébergé sur un dépôt GitHub ou GitLab pour faciliter la collaboration et le suivi des modifications
+Upload de fichiers
+? Seuls les formats JPG, PNG et WEBP sont acceptés pour les photos de profil et photos de services
+? La taille maximale par fichier est limitée à 5 Mo
+? Chaque fichier uploadé doit être renommé avec un identifiant unique (UUID) avant stockage pour éviter les conflits de noms
+? Le type MIME réel du fichier doit être vérifié côté serveur, indépendamment de l'extension
+2.3 Cas d'usage et user stories
+Prestataire
+? En tant que prestataire, je veux créer un compte avec mes informations personnelles et mes compétences, afin d'être visible sur la plateforme
+? En tant que prestataire, je veux publier un service avec une description et un prix indicatif, afin d'attirer des clients potentiels
+? En tant que prestataire, je veux consulter les messages reçus des clients, afin de répondre à leurs demandes et décrocher des missions
+? En tant que prestataire, je veux voir ma note moyenne affichée sur mon profil, afin de rassurer les clients sur la qualité de mon travail
+Client
+? En tant que client, je veux rechercher un prestataire par catégorie et par localité, afin de trouver rapidement quelqu'un près de chez moi
+? En tant que client, je veux consulter le profil complet d'un prestataire avec ses services et ses avis, afin de juger de sa fiabilité avant de le contacter
+? En tant que client, je veux envoyer un message à un prestataire pour un service précis, afin de discuter des détails et du tarif de la prestation
+? En tant que client, je veux laisser un avis après une prestation, afin d'aider les autres clients à faire leur choix
+
+Administrateur
+? En tant qu'administrateur, je veux pouvoir suspendre un compte signalé, afin de protéger la communauté contre les abus
+? En tant qu'administrateur, je veux modérer les avis inappropriés, afin de maintenir la qualité et la fiabilité des évaluations sur la plateforme
+
+III. CONTRAINTES
+3.1 Contraintes techniques
+? Le backend de la plateforme doit être développé en PHP 8.2 ou supérieur
+? La base de données doit être MySQL 8.0 ou supérieur, administrée via phpMyAdmin
+? Le serveur web utilisé en développement est Apache, fourni par XAMPP. D'autres environnements équivalents tels que Laragon ou WampServer sont également acceptés
+? Le framework CSS Tailwind CSS 3.x sera utilisé pour l'interface utilisateur 
+? Le framework PHP Laravel 11.x est retenu pour structurer le projet selon le patron MVC
+? Le déploiement en production sur un serveur en ligne n'est pas prévu dans le cadre académique de ce projet
+? Le versioning du code source doit être assuré avec Git, le dépôt étant hébergé sur GitHub ou GitLab
+? L'appel à l'API Gemini est effectué côté serveur en PHP via cURL, sans exposition de la clé API dans le code frontend
+? Le fichier PDF ou image soumis est converti en base64 avant envoi à l'API pour analyse du contenu
+3.2 Contraintes légales et réglementaires
+? La plateforme collecte des données personnelles (noms, adresses email, numéros de téléphone, photos). Elle est soumise aux dispositions de la loi n° 2009-09 du 22 mai 2009 portant protection des données à caractère personnel en République du Bénin, et aux exigences de l'Autorité de Protection des Données Personnelles (APDP)
+? Les mots de passe des utilisateurs ne doivent en aucun cas être stockés en clair dans la base de données
+? Les utilisateurs doivent être informés, lors de leur inscription, de la collecte et de l'utilisation de leurs données personnelles
+? Tout contenu publié sur la plateforme (services, avis, messages) engage la responsabilité de son auteur. La plateforme se réserve le droit de supprimer tout contenu contraire aux bonnes mœurs ou à la législation en vigueur
+3.3 Contraintes budgétaires
+? Le projet étant académique, le budget de développement est nul. Tous les outils et technologies utilisés sont gratuits et open source : PHP, MySQL, XAMPP, Bootstrap, Laravel, Git
+? En cas de mise en production future, les coûts à prévoir incluent un nom de domaine (environ 5 000 à 10 000 FCFA par an) et un hébergement mutualisé compatible PHP/MySQL (environ 15 000 à 30 000 FCFA par an)
+? Le modèle économique de la plateforme (abonnements et commissions) est conçu pour couvrir ces coûts dès les premiers mois d'exploitation
+3.4 Contraintes de délai
+? Le projet doit être livré dans le cadre du calendrier académique du second semestre de la 3ème année GIT à l'EPAC
+? La réalisation est planifiée sur 5 sprints d'une semaine chacun, selon la méthode Agile Scrum
+? Le Sprint 0 est consacré à la rédaction du cahier des charges, aux diagrammes UML et aux maquettes de l'interface
+? Les Sprints 1 à 4 couvrent le développement progressif des fonctionnalités, des tests et de la présentation finale
+? Tout retard dans la livraison d'un sprint doit être signalé à l'encadreur et compensé lors du sprint suivant
+IV. ARCHITECTURE ET SPÉCIFICATIONS TECHNIQUES
+4.1 Environnement cible
+           La plateforme est une application web accessible depuis tout navigateur moderne sans installation préalable côté client. Elle fonctionne selon le modèle client-serveur classique : le navigateur de l'utilisateur envoie des requêtes HTTP au serveur, qui les traite via PHP, interroge la base de données MySQL, puis retourne les pages HTML générées dynamiquement.
+En phase de développement académique, le serveur est simulé localement sur les machines des développeurs via XAMPP. L'environnement cible en production serait un hébergement mutualisé compatible PHP/MySQL, accessible via un nom de domaine dédié.
+
+EnvironnementDétailDéveloppementXAMPP (Apache + PHP + MySQL) en localNavigateurs supportésChrome, Firefox, Edge (versions récentes)Résolution cibleDesktop (1280px+) et mobile (360px+)Connexion requiseInternet ou réseau local selon l'environnement4.2 Stack technique
+CoucheTechnologieVersionRôleLangage backendPHP8.2+Traitement des requêtes, logique métier, génération des pagesBase de donnéesMySQL8.0+Stockage structuré de toutes les données de la plateformeServeur webApache (XAMPP)—Réception des requêtes HTTP et transmission à PHPFramework PHPLaravel 11.xStructure MVC, routing, authentification, ORM EloquentFramework CSSTailwind CSS 3.x—Mise en page responsive, composants UI prêts à l'emploiLangages frontendHTML5, CSS3—Structure, style et interactions côté navigateurVersioningGit + GitHub / GitLab—Suivi du code source et collaboration entre développeursAdministration BDDphpMyAdmin—Interface graphique pour gérer la base de donnéesGestion de projetTrello/Notion—Suivi des tâches et organisation des sprintsVérification IAAPI Gemini (Google)REST APIAnalyse automatique des CV et pièces d'identité des prestataires à l'inscription
+Pourquoi Laravel plutôt que PHP natif
+Laravel est un framework PHP qui implémente nativement le patron MVC exigé par le cours EDL. Il fournit sans développement supplémentaire : un système de routing, un gestionnaire d'authentification complet, un ORM (Eloquent) pour interagir avec MySQL sans écrire de SQL brut, et une protection CSRF automatique sur tous les formulaires. Ces fonctionnalités réduisent significativement le temps de développement tout en produisant un code structuré, lisible et maintenable.
+4.3 Architecture MVC
+Le projet est structuré selon le patron Modèle-Vue-Contrôleur, conformément aux exigences du chapitre 3 du cours EDL.
+CoucheRôleExemples de fichiersModèle (M)Représente les données et les règles métier. Communique avec MySQL.Prestataire.php, Service.php, Avis.php, Message.phpVue (V)Affiche les données à l'utilisateur sous forme de pages HTML.profil.blade.php, search.blade.php, dashboard.blade.phpContrôleur (C)Reçoit les requêtes HTTP, appelle les modèles et retourne les vues.Prestatai??Controller.php, ServiceController.php, AvisController.phpLe flux d'une requête suit systématiquement ce chemin : le navigateur envoie une requête ? le routeur identifie le contrôleur concerné ? le contrôleur interroge le modèle ? le modèle retourne les données ? le contrôleur passe les données à la vue ? la vue génère le HTML retourné au navigateur.
+4.4 Structure de la base de données
+La base de données comporte cinq tables principales reliées entre elles par des clés étrangères, gérées avec le moteur InnoDB de MySQL pour garantir l'intégrité référentielle.
+Table : prestataires
+ChampTypeContrainteidINTPK, AUTO_INCREMENTnomVARCHAR(100)NOT NULLprenomVARCHAR(100)NOT NULLemailVARCHAR(150)UNIQUE, NOT NULLtelephoneVARCHAR(20)NOT NULLlocaliteVARCHAR(100)NOT NULLphoto_profilVARCHAR(255)NULLABLEbiographieTEXTNULLABLEmot_de_passeVARCHAR(255)NOT NULLnote_moyenneDECIMAL(3,2)DEFAULT 0created_atTIMESTAMPDEFAULT NOW()chemin_cvVARCHAR(255)NULLABLEchemin_identiteVARCHAR(255)NULLABLEstatut_verificationENUM('en_attente', 'valide', 'refuse')DEFAULT 'en_attente'motif_refus_iaTEXTNULLABLETable : services
+ChampTypeContrainteidINTPK, AUTO_INCREMENTprestataire_idINTFK ? prestatairestitreVARCHAR(200)NOT NULLdescriptionTEXTNOT NULLcategorieVARCHAR(100)NOT NULLprix_indicatifDECIMAL(10,2)NULLABLEdelai_executionVARCHAR(100)NULLABLEcreated_atTIMESTAMPDEFAULT NOW()Table : clients
+ChampTypeContrainteidINTPK, AUTO_INCREMENTnomVARCHAR(100)NOT NULLprenomVARCHAR(100)NOT NULLemailVARCHAR(150)UNIQUE, NOT NULLtelephoneVARCHAR(20)NOT NULLlocaliteVARCHAR(100)NOT NULLmot_de_passeVARCHAR(255)NOT NULLcreated_atTIMESTAMPDEFAULT NOW()Table : messages
+ChampTypeContrainteidINTPK, AUTO_INCREMENTclient_idINTFK ? clientsprestataire_idINTFK ? prestatairesservice_idINTFK ? servicescontenuTEXTNOT NULLluBOOLEANDEFAULT FALSEcreated_atTIMESTAMPDEFAULT NOW()Table : avis
+ChampTypeContrainteidINTPK, AUTO_INCREMENTclient_idINTFK ? clientsprestataire_idINTFK ? prestatairesnoteTINYINT(1)CHECK (1 à 5)commentaireTEXTNULLABLEcreated_atTIMESTAMPDEFAULT NOW()Index définis pour les performances
+Colonne indexéeTableRaisonlocaliteprestatairesFiltre le plus fréquent dans la recherchecategorieservicesDeuxième filtre le plus utilisénote_moyenneprestatairesUtilisé pour le tri et le filtre par note minimale
+
+4.5 Routes principales de l'application
+Pages publiques
+URLDescription/Page d'accueil avec présentation et barre de recherche rapide/searchRésultats de recherche filtrés par catégorie, localité et note/prestataire/{id}Fiche publique d'un prestataire avec ses services et avis/service/{id}Détail complet d'un service/register/prestataireFormulaire d'inscription prestataire/register/clientFormulaire d'inscription client/loginFormulaire de connexion commun
+Pages prestataire (accès restreint)
+URLDescription/dashboard/prestataireTableau de bord du prestataire/profil/editModification du profil et de la photo/service/createPublication d'un nouveau service/service/{id}/editModification d'un service existant/service/{id}/deleteSuppression d'un service/messagesConsultation des messages reçusPages client (accès restreint)
+URLDescription/dashboard/clientTableau de bord du client/message/send/{prestataire_id}Formulaire de contact pour un service précis/avis/create/{prestataire_id}Formulaire d'évaluationAdministration
+URLDescription/adminPanneau de gestion globale de la plateforme
+4.6 Intégrations avec des systèmes existants
+Dans le cadre académique actuel, la plateforme ne s'intègre à aucun système externe. Elle est entièrement autonome et fonctionne en environnement local.
+En perspective de mise en production, les intégrations suivantes seraient à prévoir en priorité :
+SystèmeUtilitéPrioritéMTN Mobile Money / Moov MoneyCollecte des abonnements et commissions sans carte bancaireHauteFedaPay / CinetPayPasserelle de paiement en ligne adaptée à l'Afrique de l'OuestHauteSMS API (ex. Africa's Talking)Envoi de notifications par SMS aux utilisateurs sans email actifMoyenneGoogle Maps APIAffichage de la localisation approximative du prestataireBasse
+V. LIVRABLES ATTENDUS
+5.1 Liste des livrables
+#LivrableFormatSprintL1Cahier des charges completDocument PDFSprint 0L2Diagrammes UML (cas d'utilisation, classes, séquence)Document PDF / Draw.ioSprint 0L3Maquettes des interfaces principalesFigma ou papier scannéSprint 0L4Script SQL de création de la base de donnéesFichier .sqlSprint 1L5Module d'inscription, connexion et gestion de sessionCode source PHPSprint 1L6Module de gestion des profils prestataires et upload photoCode source PHPSprint 1L7Module de publication et gestion des servicesCode source PHPSprint 2L8Moteur de recherche avec filtres et paginationCode source PHPSprint 2L9Module de messagerie interneCode source PHPSprint 3L10Système d'évaluation et calcul automatique de la note moyenneCode source PHPSprint 3L11Interface d'administrationCode source PHPSprint 4L12Tests fonctionnels et correctionsRapport de testsSprint 4L13Application finale fonctionnelleCode source complet + BDDSprint 4L14Présentation et soutenance du projetSupport de présentationSprint 4
+5.2 Critères d'acceptation
+L1 — Cahier des charges Le document couvre l'ensemble des sections requises : présentation générale, expression des besoins, contraintes, architecture technique, livrables et planning. Il est relu et validé par l'encadreur avant le démarrage du développement.
+L4 — Script SQL Le script s'exécute sans erreur sur MySQL 8.0. Les cinq tables sont créées avec les bons types, contraintes et clés étrangères. Les index de performance sont définis.
+L5 — Authentification Un visiteur peut s'inscrire en tant que prestataire ou client. Un utilisateur inscrit peut se connecter et se déconnecter. Les mots de passe sont stockés chiffrés en base. L'accès aux pages protégées est refusé aux utilisateurs non connectés.
+L6 — Profil prestataire Un prestataire connecté peut modifier ses informations et uploader une photo de profil. Seuls les formats JPG, PNG et WEBP sont acceptés. Les fichiers dépassant 5 Mo sont rejetés avec un message d'erreur explicite.
+L7 — Gestion des services Un prestataire peut créer, modifier et supprimer ses services. Un prestataire en plan gratuit ne peut pas publier plus de 2 services. Les services sont visibles publiquement sur la fiche du prestataire.
+L8 — Moteur de recherche La recherche retourne des résultats corrects selon les trois filtres (catégorie, localité, note minimale). Les résultats sont triés par note décroissante. La pagination affiche 20 résultats maximum par page.
+L9 — Messagerie Un client connecté peut envoyer un message lié à un service précis. Le prestataire voit les messages reçus dans son tableau de bord. Les messages non lus sont visuellement distincts des messages lus.
+L10 — Évaluations Un client connecté peut soumettre un avis avec une note entre 1 et 5 et un commentaire facultatif. La note moyenne du prestataire est mise à jour automatiquement après chaque avis. Les avis sont affichés sur la fiche publique du prestataire.
+L13 — Application finale L'ensemble des fonctionnalités définies dans le périmètre est opérationnel. L'interface s'affiche correctement sur ordinateur et sur mobile. Aucune erreur PHP bloquante n'apparaît lors d'une navigation normale.
+VI. PLANNING ET JALONS
+6.1 Méthodologie
+Le projet est conduit selon la méthode Agile Scrum, adaptée au contexte académique. Le développement est découpé en sprints d'une semaine chacun. Un tableau Trello est utilisé pour suivre l'avancement des tâches. Le code source est versionné avec Git et hébergé sur un dépôt GitHub ou GitLab partagé entre les membres de l'équipe, conformément au chapitre 5 du cours EDL.
+Chaque sprint démarre par une courte réunion de planification où les tâches sont réparties entre les membres, et se clôture par une revue rapide des livrables produits.
+6.2 Phases et jalons
+PhaseSprintDuréeObjectif principalJalonsConceptionSprint 0Fin mars ? Mi-avril 2026Cahier des charges, UML, maquettes, dépôt GitValidation du CDC par l'encadreurDéveloppement — SocleSprint 1Mi-avril ? Mi-mai 2026BDD, authentification, profils, vérification IABase de données opérationnelle, connexion fonctionnelleDéveloppement — CoreSprint 2Mi-mai ? Mi-juin 2026Services, recherche, paginationMoteur de recherche fonctionnelDéveloppement — InteractionSprint 3Mi-juin ? Mi-juillet 2026Messagerie, évaluations, note moyenneMise en relation client-prestataire opérationnelleFinalisationSprint 4Mi-juillet ? Fin juillet 2026Administration, tests, corrections, soutenanceApplication complète livrée, présentation effectuée
+6.3 Détail des sprints
+Sprint 0 — Conception
+? Rédaction et finalisation du cahier des charges
+? Élaboration des diagrammes UML : diagramme de cas d'utilisation, diagramme de classes, diagramme de séquence pour les interactions principales
+? Réalisation des maquettes des pages clés (accueil, recherche, fiche prestataire, tableau de bord)
+? Création du dépôt Git et configuration de l'environnement de développement (XAMPP, Laravel)
+? Création du tableau Trello et répartition des rôles dans l'équipe
+Sprint 1 — Socle technique
+? Rédaction et exécution du script SQL de création de la base de données
+? Développement du module d'inscription (prestataire et client)
+? Développement du module de connexion et déconnexion avec gestion de session
+? Développement de la modification du profil prestataire avec upload de photo
+? Développement du module de vérification IA, upload CV et pièce d'identité, gestion des statuts
+Sprint 2 — Fonctionnalités principales
+? Développement du module de publication, modification et suppression de services
+? Développement du moteur de recherche avec les trois filtres (catégorie, localité, note minimale)
+? Mise en place de la pagination des résultats (20 par page)
+? Développement de la fiche publique du prestataire
+Sprint 3 — Interactions entre utilisateurs
+? Développement de la messagerie interne entre clients et prestataires
+? Développement du système de dépôt d'avis et de notation
+? Mise en place du calcul automatique et de la mise à jour de la note moyenne
+Sprint 4 — Finalisation et soutenance
+? Développement de l'interface d'administration (gestion des comptes, modération des avis)
+? Campagne de tests fonctionnels sur l'ensemble des modules
+? Correction des anomalies identifiées lors des tests
+? Rédaction du support de présentation
+? Soutenance du projet devant l'encadreur
+VII. BUDGET
+7.1 Enveloppe globale
+Le projet étant réalisé dans un cadre strictement académique à l'EPAC, le budget de développement est nul. L'ensemble des technologies, outils et environnements utilisés sont gratuits et open source. Aucune dépense n'est engagée durant la phase de conception et de développement académique.
+Une estimation budgétaire est néanmoins fournie ci-dessous pour illustrer ce que coûterait une mise en production réelle de la plateforme, dans une perspective entrepreneuriale à court terme.
+
+7.2 Ventilation par poste
+Phase académique (budget réel : 0 FCFA)
+PosteOutil utiliséCoûtDéveloppement backendPHP 8, LaravelGratuitBase de donnéesMySQL 8, phpMyAdminGratuitEnvironnement de développementXAMPPGratuitFramework CSSTailwind CSS 3.xGratuitVersioningGit, GitHub / GitLabGratuitGestion de projetTrelloGratuitMaquettageFigma (plan gratuit)GratuitTotal phase académique0 FCFAPhase de mise en production (estimation annuelle)
+PosteDétailCoût estiméNom de domaineEx. : marketplace-benin.com (1 an)7 000 FCFAHébergement mutualisé PHP/MySQLEx. : Hostinger, InfinityFree, o2switch20 000 FCFA / anCertificat SSLInclus chez la plupart des hébergeursGratuitSMS APIAfrica's Talking — notifications utilisateurs5 000 FCFA / moisIntégration Mobile MoneyFedaPay / CinetPay — frais de mise en service15 000 FCFAMaintenance et mises à jourEstimé à 2h/semaine par un développeurVariableTotal mise en production (1ère année)? 87 000 FCFA
+7.3 Modalités de paiement et projection de revenus
+Dans une logique de viabilité économique, le modèle de revenus de la plateforme est conçu pour couvrir rapidement les coûts de mise en production.
+Source de revenuDétailRevenu mensuel estiméAbonnements Starter (3 500 FCFA)20 prestataires actifs70 000 FCFAAbonnements Pro (6 000 FCFA)10 prestataires actifs60 000 FCFACommissions (5 %)Sur 200 000 FCFA de prestations déclarées10 000 FCFATotal mensuel estimé (démarrage)? 140 000 FCFACes projections sont volontairement conservatrices et basées sur un démarrage modeste avec une trentaine de prestataires actifs. Le seuil de rentabilité est atteint dès le premier mois d'exploitation si ces hypothèses minimales sont réunies.
+Les paiements des abonnements seront collectés via MTN Mobile Money et Moov Money, qui représentent les moyens de paiement digital les plus répandus au Bénin, avant toute intégration d'une passerelle bancaire classique.
+
+VIII. CRITÈRES DE SÉLECTION
+8.1 Contexte d'évaluation
+Ce projet étant réalisé dans un cadre académique, il n'est pas soumis à un appel d'offres au sens commercial du terme. Cependant, il est évalué par les encadreurs de l'EPAC selon des critères précis, assimilables aux critères d'évaluation d'un livrable professionnel. Les critères ci-dessous reflètent à la fois les exigences académiques du cours EDL–SGBDLP et les standards attendus d'un projet web réel.
+
+8.2 Critères d'évaluation et pondération
+#CritèreDescriptionPondérationC1Complétude fonctionnelleToutes les fonctionnalités définies dans le périmètre sont implémentées et opérationnelles30 %C2Qualité du code et architectureRespect du patron MVC, lisibilité du code, séparation des responsabilités, nommage cohérent20 %C3Qualité de la base de donnéesNormalisation des tables, respect des formes normales, contraintes d'intégrité, index définis15 %C4SécuritéChiffrement des mots de passe, gestion correcte des sessions, protection des accès restreints10 %C5Interface utilisateurErgonomie, responsive design, clarté de la navigation, cohérence visuelle10 %C6DocumentationQualité du cahier des charges, diagrammes UML, commentaires dans le code10 %C7Gestion de projetUtilisation effective de Git (historique de commits) et de Trello (suivi des sprints)5 %C8Présentation et soutenanceClarté de l'exposé, maîtrise du projet, réponses aux questions de l'encadreur—Total100 %8.3 Conditions éliminatoires
+Indépendamment de la pondération, les conditions suivantes entraînent une non-validation du projet :
+? Application non fonctionnelle au moment de la soutenance
+? Absence de base de données opérationnelle
+? Mots de passe stockés en clair dans la base de données
+? Absence totale de versioning Git
+? Plagiat avéré du code source
+IX. ANNEXES
+Annexe A — Glossaire
+TermeDéfinitionMVCPatron d'architecture logicielle séparant le code en trois couches : Modèle (données), Vue (affichage), Contrôleur (logique). Facilite la maintenabilité et l'évolution du code.LaravelFramework PHP open source suivant le patron MVC. Il fournit nativement le routing, l'authentification, l'ORM Eloquent et la protection CSRF.ORMObject-Relational Mapping. Outil qui permet d'interagir avec la base de données en utilisant des objets PHP plutôt que des requêtes SQL brutes. Laravel utilise Eloquent comme ORM.BootstrapFramework CSS open source facilitant la création d'interfaces web responsives grâce à un système de grille et des composants prêts à l'emploi.Responsive designApproche de conception web garantissant qu'une interface s'adapte correctement à toutes les tailles d'écran (ordinateur, tablette, smartphone).MySQLSystème de gestion de bases de données relationnelles open source. Stocke les données sous forme de tables reliées entre elles par des clés étrangères.InnoDBMoteur de stockage de MySQL garantissant l'intégrité référentielle via les clés étrangères et supportant les transactions.Clé primaire (PK)Identifiant unique d'une ligne dans une table. Aucune deux lignes ne peuvent partager la même clé primaire.Clé étrangère (FK)Champ d'une table qui référence la clé primaire d'une autre table, créant un lien entre les deux.Hash / BCRYPTAlgorithme de chiffrement irréversible utilisé pour sécuriser les mots de passe avant leur stockage en base de données.Session PHPMécanisme permettant de mémoriser qu'un utilisateur est connecté tout au long de sa navigation, sans ressaisir ses identifiants à chaque page.UUIDIdentifiant unique universel généré aléatoirement. Utilisé pour renommer les fichiers uploadés et éviter les conflits de noms sur le serveur.MIMEStandard identifiant le type réel d'un fichier indépendamment de son extension. Utilisé pour vérifier qu'un fichier uploadé est bien une image.Index MySQLStructure interne accélérant la recherche dans une table, à la manière de l'index d'un livre. Défini sur les colonnes les plus souvent filtrées.PaginationDivision des résultats d'une requête en plusieurs pages pour éviter de charger et afficher des centaines de résultats en une seule fois.CSRFCross-Site Request Forgery. Attaque forçant un utilisateur connecté à effectuer une action à son insu. Laravel protège automatiquement tous les formulaires contre cette attaque.Injection SQLAttaque consistant à insérer du code SQL malveillant dans un formulaire pour manipuler la base de données. Se prévient via les requêtes préparées (PDO).XSSCross-Site Scripting. Attaque injectant du code JavaScript malveillant dans une page web. Se prévient en échappant les données avant affichage (htmlspecialchars).APDPAutorité de Protection des Données Personnelles du Bénin. Instance régulatrice chargée de veiller à l'application de la loi n° 2009-09 sur la protection des données.OHADAOrganisation pour l'Harmonisation en Afrique du Droit des Affaires. Cadre juridique commun à 17 pays africains dont le Bénin, régissant notamment les contrats commerciaux.FreelanceProfessionnel indépendant qui propose ses services à des clients sans être lié par un contrat de travail classique.PrestataireToute personne physique proposant un service sur la plateforme, qu'il s'agisse d'un artisan, d'un freelance du numérique ou d'un professionnel qualifié.SprintPériode de travail courte et définie (ici une semaine) durant laquelle l'équipe produit un livrable fonctionnel, selon la méthode Scrum.ScrumMéthode Agile de gestion de projet découpant le développement en sprints courts avec des rôles et rituels définis.Mobile MoneyService de paiement mobile permettant d'effectuer des transactions financières via un téléphone portable, sans compte bancaire. Très répandu au Bénin (MTN, Moov).FedaPayPasserelle de paiement en ligne adaptée à l'Afrique de l'Ouest, acceptant Mobile Money et cartes bancaires.Annexe B — Documents de référence
+DocumentSourceUtilitéLoi n° 2009-09 du 22 mai 2009République du BéninCadre légal sur la protection des données personnellesDocumentation officielle PHP 8php.netRéférence technique backendDocumentation officielle Laravel 11laravel.comRéférence framework PHPDocumentation officielle MySQL 8dev.mysql.comRéférence base de donnéesDocumentation Bootstrap 5.3getbootstrap.comRéférence framework CSSCours EDL — Chapitre 3 (MVC, Scrum)EPAC/UACArchitecture et méthodologie projetCours SGBDLP — Chapitres 3 et 4EPAC/UACModèle relationnel et langage SQLPlateforme ComeUpcomeup.comRéférence modèle économique freelance francophonePlateforme Upworkupwork.comRéférence internationale marketplace de services
+
+

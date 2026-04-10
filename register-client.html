@@ -13,8 +13,8 @@
 
   <!-- Mobile header -->
   <div class="md:hidden flex items-center justify-between px-4 py-4 border-b border-brd bg-surface">
-    <a href="index.html" class="font-syne font-extrabold text-lg">Bénin<span class="text-accent">Freelance</span></a>
-    <a href="index.html" class="text-muted text-xs">← Accueil</a>
+    <a href="/" class="font-syne font-extrabold text-lg">Bénin<span class="text-accent">Freelance</span></a>
+    <a href="/" class="text-muted text-xs">← Accueil</a>
   </div>
 
   <!-- Mobile progress (visible only on mobile) -->
@@ -32,7 +32,7 @@
 
     <!-- LEFT sidebar — hidden mobile -->
     <div class="hidden md:flex md:w-5/12 lg:w-2/5 bg-surface border-r border-brd flex-col justify-between p-8 lg:p-12">
-      <a href="index.html" class="font-syne font-extrabold text-xl">Bénin<span class="text-accent">Freelance</span></a>
+      <a href="/" class="font-syne font-extrabold text-xl">Bénin<span class="text-accent">Freelance</span></a>
       <div>
         <div class="font-syne font-semibold text-lg mb-1">Créer votre compte client</div>
         <div class="text-xs text-muted mb-8">3 étapes simples pour commencer</div>
@@ -54,8 +54,8 @@
         </div>
       </div>
       <div class="text-xs text-muted space-y-1">
-        <p>Déjà un compte ? <a href="login.html" class="text-accent">Se connecter</a></p>
-        <p>Vous êtes prestataire ? <a href="register-prestataire.html" class="text-accent">Compte prestataire</a></p>
+        <p>Déjà un compte ? <a href="/login" class="text-accent">Se connecter</a></p>
+        <p>Vous êtes prestataire ? <a href="/register/prestataire" class="text-accent">Compte prestataire</a></p>
       </div>
     </div>
 
@@ -139,10 +139,10 @@
           <div class="w-16 h-16 rounded-full bg-ok/15 border-2 border-ok/30 flex items-center justify-center text-3xl mx-auto mb-5">✓</div>
           <h3 class="font-syne font-bold text-2xl mb-2">Compte créé !</h3>
           <p class="text-muted text-sm leading-relaxed mb-6">Bienvenue sur BéninFreelance. Vous pouvez maintenant rechercher des prestataires locaux.</p>
-          <a href="login.html" class="inline-block bg-accent text-bg font-syne font-bold px-8 py-3 rounded-xl">Accéder à la plateforme</a>
+          <a href="/login" class="inline-block bg-accent text-bg font-syne font-bold px-8 py-3 rounded-xl">Accéder à la plateforme</a>
         </div>
 
-        <p id="foot" class="text-center text-xs text-muted mt-5">Déjà un compte ? <a href="login.html" class="text-accent">Se connecter</a></p>
+        <p id="foot" class="text-center text-xs text-muted mt-5">Déjà un compte ? <a href="/login" class="text-accent">Se connecter</a></p>
       </div>
     </div>
   </div>
@@ -153,6 +153,12 @@
     const subs=['','Renseignez vos informations personnelles','Précisez votre localisation au Bénin','Choisissez un mot de passe sécurisé'];
     const progs=[0,33,66,100];
     const mobSubs=['','Informations','Localisation','Sécurité'];
+
+    async function getCsrfToken(){
+      const res=await fetch('/csrf-token',{headers:{'Accept':'application/json'}});
+      const data=await res.json();
+      return data.token;
+    }
 
     function goStep(n){
       const err=document.getElementById('err');
@@ -187,13 +193,41 @@
       else if(state==='active'){c.className='w-7 h-7 rounded-full border-2 border-accent text-accent flex items-center justify-center font-syne font-bold text-xs z-10 bg-surface shrink-0';}
     }
 
-    function submit(){
+    async function submit(){
       const pwd=document.getElementById('pwd').value, pwd2=document.getElementById('pwd2').value;
       if(!pwd||!pwd2){showErr('Veuillez remplir les champs de mot de passe.');return;}
       if(pwd.length<8){showErr('Le mot de passe doit faire au moins 8 caractères.');return;}
       if(pwd!==pwd2){showErr('Les mots de passe ne correspondent pas.');return;}
       if(!document.getElementById('cgv').checked){showErr("Veuillez accepter les conditions d'utilisation.");return;}
-      goStep(4);
+
+      const payload={
+        nom:document.getElementById('nom').value.trim(),
+        prenom:document.getElementById('prenom').value.trim(),
+        email:document.getElementById('email').value.trim(),
+        telephone:document.getElementById('tel').value.trim(),
+        localite:document.getElementById('ville').value.trim(),
+        password:pwd,
+        password_confirmation:pwd2
+      };
+
+      try{
+        const csrfToken=await getCsrfToken();
+        const res=await fetch('/register/client',{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Accept':'application/json',
+            'X-CSRF-TOKEN':csrfToken
+          },
+          body:JSON.stringify(payload)
+        });
+
+        const data=await res.json();
+        if(!res.ok){showErr(data.message||'Inscription impossible.');return;}
+        goStep(4);
+      }catch(_){
+        showErr('Erreur reseau. Reessayez.');
+      }
     }
 
     function tpw(id){const p=document.getElementById(id);p.type=p.type==='password'?'text':'password';}

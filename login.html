@@ -15,15 +15,15 @@
 
   <!-- Mobile header -->
   <div class="md:hidden flex items-center justify-between px-4 py-4 border-b border-brd bg-surface">
-    <a href="index.html" class="font-syne font-extrabold text-lg">Bénin<span class="text-accent">Freelance</span></a>
-    <a href="index.html" class="text-muted text-xs">← Accueil</a>
+    <a href="/" class="font-syne font-extrabold text-lg">Bénin<span class="text-accent">Freelance</span></a>
+    <a href="/" class="text-muted text-xs">← Accueil</a>
   </div>
 
   <div class="flex min-h-screen md:min-h-0 md:h-screen">
 
     <!-- LEFT — hidden on mobile -->
     <div class="hidden md:flex md:w-5/12 lg:w-1/2 bg-surface border-r border-brd flex-col justify-between p-8 lg:p-12">
-      <a href="index.html" class="font-syne font-extrabold text-xl">Bénin<span class="text-accent">Freelance</span></a>
+      <a href="/" class="font-syne font-extrabold text-xl">Bénin<span class="text-accent">Freelance</span></a>
       <div>
         <h2 class="font-syne font-bold text-2xl lg:text-3xl leading-snug mb-4">Des talents locaux,<br>une <span class="text-accent">confiance</span> digitale.</h2>
         <p class="text-muted text-sm leading-relaxed mb-8">Rejoignez la première communauté de freelances et de clients au Bénin.</p>
@@ -65,10 +65,7 @@
           <input id="email" type="email" placeholder="votre@email.com" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/>
         </div>
         <div class="mb-5">
-          <div class="flex justify-between items-center mb-1.5">
-            <label class="text-xs text-muted font-medium">Mot de passe</label>
-            <a href="#" class="text-xs text-accent hover:opacity-70">Oublié ?</a>
-          </div>
+          <label class="block text-xs text-muted font-medium mb-1.5">Mot de passe</label>
           <div class="relative">
             <input id="pwd" type="password" placeholder="••••••••" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 pr-10 rounded-xl placeholder-muted transition-colors"/>
             <button type="button" onclick="togglePw()" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm p-1">👁</button>
@@ -77,18 +74,10 @@
 
         <button onclick="handleLogin()" class="w-full bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 hover:-translate-y-px transition-all text-sm sm:text-base">Se connecter</button>
 
-        <div class="flex items-center gap-3 my-5">
-          <div class="flex-1 h-px bg-brd"></div><span class="text-xs text-muted">ou</span><div class="flex-1 h-px bg-brd"></div>
-        </div>
-
-        <button class="w-full bg-surface border border-brd text-tx text-sm font-medium py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-surface2 transition-all">
-          <span class="font-bold">G</span> Continuer avec Google
-        </button>
-
         <p class="text-center text-xs text-muted mt-5">
           Pas encore de compte ?
-          <a href="register-client.html" class="text-accent font-medium">Client</a> ·
-          <a href="register-prestataire.html" class="text-accent font-medium">Prestataire</a>
+          <a href="/register/client" class="text-accent font-medium">Client</a> ·
+          <a href="/register/prestataire" class="text-accent font-medium">Prestataire</a>
         </p>
       </div>
     </div>
@@ -96,6 +85,12 @@
 
   <script>
     let role='client';
+    async function getCsrfToken(){
+      const res=await fetch('/csrf-token',{headers:{'Accept':'application/json'}});
+      const data=await res.json();
+      return data.token;
+    }
+
     function switchRole(r){
       role=r;
       const bc=document.getElementById('btn-c'), bp=document.getElementById('btn-p');
@@ -103,12 +98,30 @@
       else{bp.className='flex-1 py-2 rounded-lg text-sm font-medium bg-accent text-bg transition-all';bc.className='flex-1 py-2 rounded-lg text-sm font-medium text-muted transition-all';}
     }
     function togglePw(){const p=document.getElementById('pwd');p.type=p.type==='password'?'text':'password';}
-    function handleLogin(){
+    async function handleLogin(){
       const e=document.getElementById('email').value.trim(), p=document.getElementById('pwd').value, err=document.getElementById('err');
       if(!e||!p){showErr('Veuillez remplir tous les champs.');return;}
       if(!e.includes('@')){showErr('Adresse email invalide.');return;}
       err.classList.add('hidden');
-      window.location.href=role==='prestataire'?'profil-prestataire.html':'index.html';
+
+      try{
+        const csrfToken=await getCsrfToken();
+        const res=await fetch('/login',{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Accept':'application/json',
+            'X-CSRF-TOKEN':csrfToken
+          },
+          body:JSON.stringify({email:e,password:p,role})
+        });
+
+        const data=await res.json();
+        if(!res.ok){showErr(data.message||'Connexion impossible.');return;}
+        window.location.href=data.redirect||'/';
+      }catch(_){
+        showErr('Erreur reseau. Reessayez.');
+      }
     }
     function showErr(msg){const e=document.getElementById('err');e.textContent=msg;e.classList.remove('hidden');}
   </script>

@@ -50,6 +50,19 @@ Formulaire d'inscription en **4 étapes** avec barre de progression. Elle contie
 
 ---
 
+## Vérification automatique du dossier prestataire
+
+Une fois le formulaire envoyé, le **backend Laravel** (`backend/`) peut analyser le CV et la pièce d’identité via l’**API Gemini** (premier filtre avant un comité d’experts). En résumé :
+
+- **Implémentation** — `backend/app/Support/gemini_verify.php` : requête multimodale (PDF + image), modèle **`gemini-2.5-flash`**, outil **`google_search`** pour le grounding (recherche web), température basse, réponse attendue en JSON (`decision`, `motif_public`).
+- **Configuration** — définir **`GEMINI_API_KEY`** dans `backend/.env` (modèle indiqué dans l’URL d’appel ; reprendre les clés documentées dans `backend/.env.example`).
+- **Comportement si l’API échoue** (ex. **503** / surcharge côté Google) : pas de verdict IA exploitable — le dossier est placé en **en attente** avec un message générique invitant à réessayer plus tard (voir les logs Laravel pour le détail).
+- **Modèles stables** — `gemini-2.5-flash` est le choix GA courant pour la prod ; **`gemini-2.5-flash-lite`** reste compatible avec la même configuration (même style d’appel et outil recherche) si vous voulez tester une autre variante. Les indisponibilités restent possibles sur tous les modèles : des **nouvelles tentatives** (retry / autre moment) restent le bon réflexe.
+
+Pour l’installation et la stack serveur, se reporter au **`backend/README.md`** (Laravel).
+
+---
+
 ## Technologies utilisées
 
 - **Tailwind CSS 3** via CDN — pour tout le style et le responsive
