@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Client — BéninFreelance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { syne: ['Syne', 'sans-serif'] },
+                    colors: {
+                        bg2: "#1C1C27",
+                        bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+                        brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8',
+                        muted: '#7A7A9A', ok: '#2ECC71'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        input {
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #F5A623 !important;
+        }
+
+        .nav-link-mob {
+            transition: all 0.2s ease;
+            position: relative;
+            padding-left: 16px;
+        }
+
+        .nav-link {
+            position: relative;
+            padding-left: 16px;
+        }
+
+        .active-nav {
+            background: #1C1C27;
+        }
+
+        .active-nav::before {
+            content: "";
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            height: 20px;
+            bottom: 6px;
+            width: 3px;
+            background: #F5A623;
+            border-radius: 2px;
+        }
+
+        .active-tab {
+            background: #F5A623;
+            color: #0A0A0F;
+        }
+    </style>
+</head>
+
+<body class="bg-bg text-tx min-h-screen">
+
+    <script>
+        const SIMULATION = true;
+
+        const fakeUser = { nom: 'Awa', prenom: 'D.', initiales: 'AD', photo: null };
+
+        const fakePrestataires = [
+            {
+                id: 1, nom: 'Kossi A.', verifie: true, note: 4.8, avis: 27,
+                metier: 'Électricien & tableaux basse tension',
+                desc: 'Mise aux normes, dépannage urgent, chiffrage clair avant intervention.',
+                tags: ['Cotonou', 'Tableaux BT', 'Délai 48 h'],
+                consulte: false, favori: false
+            },
+            {
+                id: 2, nom: 'Adjowa M.', verifie: true, note: 4.9, avis: 41,
+                metier: 'Développeuse web · Laravel & API',
+                desc: 'Sites vitrine, petits outils internes, maintenance et évolutions.',
+                tags: ['Porto-Novo', 'Laravel', 'Livraison 7 j'],
+                consulte: false, favori: false
+            },
+            {
+                id: 3, nom: 'Roméo T.', verifie: true, note: 4.6, avis: 12,
+                metier: 'Plombier · dépannage & installations sanitaires',
+                desc: 'Fuites, rénovation salle de bain, déplacement rapide en zone Parakou.',
+                tags: ['Parakou', 'Urgences', 'Devis gratuit'],
+                consulte: true, favori: false
+            },
+            {
+                id: 4, nom: 'Fatou K.', verifie: true, note: 4.7, avis: 19,
+                metier: 'Graphiste & UI Designer',
+                desc: 'Logos, affiches, identités visuelles et maquettes web professionnelles.',
+                tags: ['Cotonou', 'Figma', 'Logo'],
+                consulte: false, favori: true
+            },
+            {
+                id: 5, nom: 'Dénis A.', verifie: false, note: 4.3, avis: 8,
+                metier: 'Développeur Mobile · Flutter',
+                desc: 'Applications Android & iOS, intégration API REST, Firebase.',
+                tags: ['Abomey-Calavi', 'Flutter', 'Firebase'],
+                consulte: false, favori: false
+            },
+        ];
+    </script>
+
+    <!-- TOPBAR desktop -->
+
+    <header
+        class="hidden md:flex sticky top-0 z-50 items-center justify-between bg-surface border-b border-brd px-6 h-14">
+        <a href="index.html" class="font-syne font-extrabold text-[19px] shrink-0">
+            Bénin<span class="text-accent">Freelance</span>
+        </a>
+        <div class="flex items-center justify-between flex-1">
+            <!-- Search -->
+            <div class="flex-1 max-w-md mx-8">
+                <div class="flex items-center bg-bg2 border border-brd rounded-xl overflow-hidden h-10">
+                    <input id="search-desk" type="text" placeholder="Catégorie, ville, mot-clé..."
+                        class="flex-1 bg-transparent text-sm text-tx px-4 py-2.5 placeholder-muted transition-colors" />
+                    <button onclick="doSearch()"
+                        class="bg-accent text-bg px-4 py-2.5 rounded-xl m-2 mr-1 h-8 w-8 flex items-center justify-center hover:opacity-85 transition-opacity">
+                        <i class="fa-solid fa-arrow-right text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- User -->
+            <div id="user-desk" class="flex items-center gap-3 shrink-0 ">
+                <div
+                    class="border-2 border-gray-500 flex rounded-3xl gap-4 justify-center items-center p-1 bg-[#1C1C27] ">
+                    <div id="avatar-desk"
+                        class="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center font-syne font-bold text-accent text-xs overflow-hidden">
+                    </div>
+                    <span id="username-desk" class="text-sm font-medium">---</span>
+                </div>
+
+                <button
+                    class="text-xs text-muted hover:text-tx px-3 py-1.5 rounded-lg hover:border-muted transition-all ml-2">Déconnexion</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- TOPBAR mobile -->
+
+    <header class="md:hidden sticky top-0 z-50 bg-surface border-b border-brd px-4 py-3 flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="text-muted hover:text-tx shrink-0">
+            <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <div class="flex-1 flex items-center bg-bg border border-brd rounded-xl overflow-hidden">
+            <input id="search-mob" type="text" placeholder="Catégorie, ville, mot-clé..."
+                class="flex-1 bg-transparent text-sm text-tx px-3 py-2.5 placeholder-muted" />
+            <button onclick="doSearch()"
+                class="bg-accent text-bg px-3 py-2.5 m-2 mr-1 h-8 w-8 items-center justify-center flex rounded-lg hover:opacity-85 transition-opacity">
+                <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- LAYOUT -->
+    <div class="flex min-h-[calc(100vh-56px)]">
+
+        <!-- SIDEBAR desktop -->
+
+        <aside
+            class="hidden md:flex flex-col w-[280px] shrink-0 bg-surface border-r border-brd py-6 px-4 sticky top-14 h-[calc(100vh-56px)]">
+            <p class="text-xs text-muted font-medium mb-4 px-2">Espace client</p>
+            <nav class="flex flex-col gap-1">
+                <a href="#" onclick="setNav(this,'decouverte')"
+                    class="nav-link active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all">
+                    <i class="fa-solid fa-house w-4 text-center ml-2"></i> Accueil
+                </a>
+                <a href="#" onclick="setNav(this,'recherche')"
+                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    <i class="fa-solid fa-magnifying-glass w-4 text-center ml-2"></i> Recherche
+                </a>
+                <a href="#" onclick="setNav(this,'favoris')"
+                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    <i class="fa-solid fa-heart w-4 text-center ml-2"></i> Favoris
+                </a>
+                <a href="#" onclick="setNav(this,'messages')"
+                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    <i class="fa-solid fa-envelope w-4 text-center ml-2"></i> Messages
+                </a>
+                <a href="#" onclick="setNav(this,'compte')"
+                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    <i class="fa-solid fa-user w-4 text-center ml-2"></i> Mon compte
+                </a>
+            </nav>
+        </aside>
+
+        <!-- SIDEBAR mobile (drawer) -->
+
+        <div id="mob-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+        <aside id="mob-sidebar"
+            class="fixed top-0 left-0 h-full w-56 bg-surface border-r border-brd z-50 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col py-6 px-4">
+            <div class="flex items-center justify-between mb-6">
+                <span class="font-syne font-extrabold text-[12px]">Bénin<span
+                        class="text-accent">Freelance</span></span>
+                <button onclick="toggleSidebar()" class="text-muted hover:text-tx"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex items-center gap-3 mb-6 px-2">
+                <div id="avatar-mob"
+                    class="w-9 h-9 rounded-full bg-accent/20 flex items-center justify-center font-syne font-bold text-accent text-xs shrink-0 overflow-hidden">
+                </div>
+                <span id="username-mob" class="text-sm font-medium">--</span>
+            </div>
+            <p class="text-xs text-muted font-medium mb-3 px-2">Espace client</p>
+            <nav class="flex flex-col gap-1">
+                <a href="#" onclick="setNavMob(this,'decouverte')"
+                    class="nav-link-mob active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all">
+                    <i class="fa-solid fa-house w-4 text-center ml-2"></i> Accueil
+                </a>
+                <a href="#" onclick="setNavMob(this,'recherche')"
+                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    <i class="fa-solid fa-magnifying-glass w-4 text-center ml-2"></i> Recherche
+                </a>
+                <a href="#" onclick="setNavMob(this,'favoris')"
+                    class="nav-link-mob  flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    <i class="fa-solid fa-heart w-4 text-center ml-2"></i> Favoris
+                </a>
+                <a href="#" onclick="setNavMob(this,'messages')"
+                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    <i class="fa-solid fa-envelope w-4 text-center ml-2"></i> Messages
+                </a>
+                <a href="#" onclick="setNavMob(this,'compte')"
+                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    <i class="fa-solid fa-user w-4 text-center ml-2"></i> Mon compte
+                </a>
+            </nav>
+            <button
+                class="mt-auto text-xs text-muted border border-brd px-3 py-2 rounded-lg hover:border-muted transition-all">Déconnexion</button>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+
+        <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-full ">
+
+            <div class="mb-6">
+                <h1 id="greeting" class="font-syne font-bold text-2xl sm:text-3xl  mb-1">Bonjour, --</h1>
+
+                <p class="text-muted text-sm">Parcourez les profils et les avis ; le message s'active après ouverture du
+                    profil.</p>
+            </div>
+
+            <div class="flex gap-2 mb-6">
+                <button id="tab-decouverte" onclick="setTab('decouverte')"
+                    class="tab-btn active-tab font-syne font-semibold text-sm px-4 py-2 rounded-full bg-accent text-bg transition-all">Découverte</button>
+                <button id="tab-favoris" onclick="setTab('favoris')"
+                    class="tab-btn font-syne font-semibold text-sm px-4 py-2 rounded-full border border-brd text-muted hover:text-tx transition-all">Favoris</button>
+            </div>
+
+            <div class="flex items-center justify-between mb-4">
+                <span id="count-label" class="text-sm text-muted"></span>
+                <button onclick="openFilters()"
+                    class="text-xs border border-brd text-muted px-3 py-1.5 rounded-lg hover:border-accent hover:text-accent transition-all">
+                    <i class="fa-solid fa-sliders mr-1"></i> Filtres
+                </button>
+            </div>
+
+            <div class="bg-surface border border-brd rounded-xl px-4 py-3 text-sm text-muted mb-5 ">
+                Le message se déverrouille après ouverture du profil — ainsi chaque contact part d'un contexte clair.
+            </div>
+
+            <div id="liste" class="flex flex-col gap-4"></div>
+
+            <div id="empty" class="hidden text-center py-16">
+                <div class="text-4xl mb-3">🔍</div>
+                <p class="text-muted text-sm">Aucun profil trouvé.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- FILTERS MODAL -->
+
+    <div id="filters-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div class="bg-surface border border-brd rounded-xl p-6 w-96 max-w-full mx-4 relative">
+            <h3 class="font-syne font-bold text-lg mb-4">Filtres</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Catégorie</label>
+                    <select id="filter-category" class="w-full bg-bg border border-brd rounded-lg px-3 py-2 text-sm">
+                        <option value="">Toutes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Localité</label>
+                    <select id="filter-locality" class="w-full bg-bg border border-brd rounded-lg px-3 py-2 text-sm">
+                        <option value="">Toutes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Note minimale</label>
+                    <input id="filter-rating" type="number" min="0" max="5" step="0.1" placeholder="0"
+                        class="w-full bg-bg border border-brd rounded-lg px-3 py-2 text-sm">
+                </div>
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="applyFilters()"
+                    class="flex-1 bg-accent text-bg font-syne font-bold text-sm py-2 rounded-lg hover:opacity-85">Appliquer</button>
+                <button onclick="resetFilters()"
+                    class="flex-1 border border-brd text-muted text-sm py-2 rounded-lg hover:border-accent hover:text-accent">Réinitialiser</button>
+            </div>
+            <button onclick="closeFilters()" class="absolute top-4 right-4 text-muted hover:text-tx"><i
+                    class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            SIMULATION ? loadSimulation() : loadFromBackend();
+        });
+
+        // ── SIMULATION  
+        function loadSimulation() {
+            setUserUI(fakeUser.prenom, fakeUser.initiales, fakeUser.photo, fakeUser.nom);
+            renderList(fakePrestataires, 'decouverte');
+        }
+
+
+        async function loadFromBackend() {
+            try {
+                const [userRes, listRes] = await Promise.all([
+                    fetch('/api/client/me', { headers: { 'Accept': 'application/json' } }),
+                    fetch('/api/prestataires', { headers: { 'Accept': 'application/json' } }),
+                ]);
+
+                if (!userRes.ok) { window.location.href = '/login'; return; }
+
+                const user = await userRes.json();
+                const prestataires = await listRes.json();
+
+                setUserUI(user.prenom, user.prenom[0] + user.nom[0], user.photo, user.nom);
+                renderList(prestataires, 'decouverte');
+            } catch (e) {
+                console.error('Erreur backend :', e);
+            }
+        }
+
+        // ── UI  
+        function setUserUI(prenom, initiales, photo, nom) {
+            document.getElementById('greeting').textContent = 'Bonjour, ' + prenom;
+            ['avatar-desk', 'avatar-mob'].forEach(id => {
+                const div = document.getElementById(id);
+                div.innerHTML = '';
+                if (photo) {
+                    const img = document.createElement('img');
+                    img.src = photo;
+                    img.className = 'w-full h-full object-cover rounded-full';
+                    img.alt = 'Avatar';
+                    div.appendChild(img);
+                } else {
+                    div.textContent = initiales;
+                }
+            });
+            ['username-desk', 'username-mob'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = prenom + ' ' + nom;
+            });
+        }
+
+        // ── RENDER  
+        let currentTab = 'decouverte';
+        let allData = [];
+        let currentFilters = { category: '', locality: '', minRating: 0 };
+
+        function renderList(data, tab) {
+            allData = data;
+            currentTab = tab;
+
+            let filtered = tab === 'favoris' ? data.filter(p => p.favori) : data;
+
+            // Apply filters
+            if (currentFilters.category) {
+                filtered = filtered.filter(p => p.metier === currentFilters.category);
+            }
+            if (currentFilters.locality) {
+                filtered = filtered.filter(p => p.tags.includes(currentFilters.locality));
+            }
+            if (currentFilters.minRating > 0) {
+                filtered = filtered.filter(p => p.note >= currentFilters.minRating);
+            }
+            const liste = document.getElementById('liste');
+            const empty = document.getElementById('empty');
+            const count = document.getElementById('count-label');
+
+            count.textContent = filtered.length
+                + ' profil' + (filtered.length > 1 ? 's' : '')
+                + (tab === 'favoris' ? ' en favoris' : ' à proximité');
+
+            if (filtered.length === 0) {
+                liste.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+            liste.innerHTML = filtered.map(p => cardHTML(p)).join('');
+        }
+
+        // ── CARD  
+
+        function cardHTML(p) {
+            const verifiedBadge = p.verifie
+                ? `<span class="text-xs text-ok font-medium">Vérifié</span>`
+                : '';
+            const consultedBadge = p.consulte
+                ? `<span class="text-xs bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full">Profil consulté</span>`
+                : '';
+            const tags = p.tags.map(t =>
+                `<span class="text-xs bg-surface2 border border-brd text-muted px-2 py-0.5 rounded-full">${t}</span>`
+            ).join('');
+
+            const msgDisabled = !p.consulte;
+            const msgBtn = msgDisabled
+                ? `<button disabled title="Ouvrez le profil d'abord"
+         class="w-32 md:w-auto border border-brd text-muted text-sm py-2.5 px-5 rounded-xl cursor-not-allowed opacity-50 font-medium">
+         Message
+       </button>`
+                : `<button onclick="envoyerMessage(${p.id})"
+         class="w-32 md:w-auto border border-brd text-tx text-sm py-2.5 px-5 rounded-xl hover:border-accent hover:text-accent transition-all font-medium">
+         Message
+       </button>`;
+
+            return `
+  <div class="bg-surface border border-brd rou.nav-link-mob {transition: all 0.2s ease;}nded-2xl p-4 sm:p-5 rounded-xl ">
+    
+    <div class="flex flex-col md:flex-row md:items-center gap-4 ">
+
+      <!-- Gauche : avatar + infos -->
+      <div class="flex items-start gap-3 flex-1 min-w-0">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-surface2 border border-brd flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-user text-muted text-lg"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-2 gap-y-1 mb-0.5">
+            <span class="font-syne font-bold text-accent text-base">${p.nom}</span>
+            ${verifiedBadge}
+            <span class="text-xs text-muted">${p.note} · ${p.avis} avis</span>
+            ${consultedBadge}
+          </div>
+          <p class="font-syne font-semibold text-sm text-tx mb-1">${p.metier}</p>
+          <p class="text-xs text-muted leading-relaxed mb-3">${p.desc}</p>
+          <div class="flex flex-wrap gap-1.5">${tags}</div>
+        </div>
+      </div>
+
+      <!-- Droite sur desktop / bas sur mobile : boutons -->
+      <div class="flex  md:flex-col gap-2 md:w-36 shrink-0">
+        <button onclick="voirProfil(${p.id})"
+          class="flex-1 md:flex-none bg-accent text-bg font-syne font-bold text-xs md:text-sm py-2.5 px-4 md:w-auto   rounded-xl hover:opacity-88 transition-opacity text-center">
+          Voir le profil
+        </button>
+        ${msgBtn}
+      </div>
+
+    </div>
+  </div>`;
+        }
+
+        // ── TABS  
+        function setTab(tab) {
+            currentTab = tab;
+            ['decouverte', 'favoris'].forEach(t => {
+                const btn = document.getElementById('tab-' + t);
+                btn.className = t === tab
+                    ? 'tab-btn active-tab font-syne font-semibold text-sm px-4 py-2 rounded-full bg-accent text-bg transition-all'
+                    : 'tab-btn font-syne font-semibold text-sm px-4 py-2 rounded-full border border-brd text-muted hover:text-tx transition-all';
+            });
+            renderList(allData, tab);
+        }
+
+        // ── ACTIONS 
+        function voirProfil(id) {
+            if (SIMULATION) {
+                const p = fakePrestataires.find(x => x.id === id);
+                if (p) { p.consulte = true; renderList(allData, currentTab); }
+            } else {
+                window.location.href = `/prestataire/${id}`;
+            }
+        }
+
+        function envoyerMessage(id) {
+            if (SIMULATION) {
+                alert('Simulation : message vers prestataire #' + id);
+            } else {
+                window.location.href = `/message/send/${id}`;
+            }
+        }
+
+        function doSearch() {
+            const desk = document.getElementById('search-desk');
+            const mob = document.getElementById('search-mob');
+            const q = (desk && document.activeElement !== mob ? desk : mob).value.toLowerCase().trim();
+            if (!q) { renderList(allData, currentTab); return; }
+            const filtered = allData.filter(p =>
+                p.nom.toLowerCase().includes(q) ||
+                p.metier.toLowerCase().includes(q) ||
+                p.tags.some(t => t.toLowerCase().includes(q))
+            );
+            renderList(filtered, currentTab);
+        }
+
+        // ── NAV  ─
+        function setNav(el, section) {
+            document.querySelectorAll('.nav-link').forEach(l => {
+                l.classList.remove('active-nav');
+                l.classList.add('text-muted');
+            });
+            el.classList.add('active-nav');
+            el.classList.remove('text-muted');
+        }
+
+        function setNavMob(el, section) {
+            document.querySelectorAll('.nav-link-mob').forEach(link => {
+                link.classList.remove('active-nav');
+                link.classList.add('text-muted');
+            });
+
+            el.classList.add('active-nav');
+            el.classList.remove('text-muted');
+
+            toggleSidebar();
+        }
+
+        // ── FILTERS
+        function openFilters() {
+            populateFilterOptions();
+            document.getElementById('filters-modal').classList.remove('hidden');
+        }
+
+        function closeFilters() {
+            document.getElementById('filters-modal').classList.add('hidden');
+        }
+
+        function populateFilterOptions() {
+            const categorySelect = document.getElementById('filter-category');
+            const localitySelect = document.getElementById('filter-locality');
+            categorySelect.innerHTML = '<option value="">Toutes</option>';
+            localitySelect.innerHTML = '<option value="">Toutes</option>';
+            const categories = new Set();
+            const localities = new Set();
+            allData.forEach(p => {
+                categories.add(p.metier);
+                p.tags.forEach(tag => {
+                    if (['Cotonou', 'Porto-Novo', 'Parakou', 'Abomey-Calavi'].includes(tag)) {
+                        localities.add(tag);
+                    }
+                });
+            });
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categorySelect.appendChild(option);
+            });
+            localities.forEach(loc => {
+                const option = document.createElement('option');
+                option.value = loc;
+                option.textContent = loc;
+                localitySelect.appendChild(option);
+            });
+            categorySelect.value = currentFilters.category;
+            localitySelect.value = currentFilters.locality;
+            document.getElementById('filter-rating').value = currentFilters.minRating || '';
+        }
+
+        function applyFilters() {
+            currentFilters.category = document.getElementById('filter-category').value;
+            currentFilters.locality = document.getElementById('filter-locality').value;
+            currentFilters.minRating = parseFloat(document.getElementById('filter-rating').value) || 0;
+            closeFilters();
+            renderList(allData, currentTab);
+        }
+
+        function resetFilters() {
+            currentFilters = { category: '', locality: '', minRating: 0 };
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-locality').value = '';
+            document.getElementById('filter-rating').value = '';
+            closeFilters();
+            renderList(allData, currentTab);
+        }
+
+        // ── SIDEBAR MOBILE  
+        function toggleSidebar() {
+            const sb = document.getElementById('mob-sidebar');
+            const ov = document.getElementById('mob-overlay');
+            const isOpen = !sb.classList.contains('-translate-x-full');
+            if (isOpen) {
+                sb.classList.add('-translate-x-full');
+                ov.classList.add('hidden');
+            } else {
+                sb.classList.remove('-translate-x-full');
+                ov.classList.remove('hidden');
+            }
+        }
+
+        ['search-desk', 'search-mob'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+        });
+    </script>
+
+</body>
+
+</html>
