@@ -14,11 +14,15 @@ class EnsureAppAuth
         $authType = $request->session()->get('auth_type');
 
         if (! $authId) {
-            return redirect('/login');
+            return $request->expectsJson()
+                ? response()->json(['ok' => false], 401)
+                : redirect('/login');
         }
 
         if ($type && $authType !== $type) {
-            return redirect('/login');
+            return $request->expectsJson()
+                ? response()->json(['ok' => false], 403)
+                : redirect('/login');
         }
 
         return $next($request);

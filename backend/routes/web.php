@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\PrestataireController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
@@ -53,31 +55,50 @@ Route::get('/index.html', function () {
     return redirect('/');
 });
 
-Route::middleware('app.auth:client')->get('/dashboard/client', function () {
-    return response(
-        File::get(base_path('../profil-client.html')),
-        200,
-        ['Content-Type' => 'text/html']
-    );
+Route::middleware('app.auth:client')->group(function () {
+    Route::get('/dashboard/client', function () {
+        return response(
+            File::get(base_path('../dashboard-client.html')),
+            200,
+            ['Content-Type' => 'text/html']
+        );
+    });
+
+    Route::get('/api/client/me', [ClientController::class, 'me']);
+    Route::patch('/api/client/profile', [ClientController::class, 'updateProfile']);
 });
 
-Route::middleware('app.auth:prestataire')->get('/dashboard/prestataire', function () {
-    return response(
-        File::get(base_path('../profil-prestataire.html')),
-        200,
-        ['Content-Type' => 'text/html']
-    );
+Route::middleware('app.auth:prestataire')->group(function () {
+    Route::get('/dashboard/prestataire', function () {
+        return response(
+            File::get(base_path('../dashboard-prestataire.html')),
+            200,
+            ['Content-Type' => 'text/html']
+        );
+    });
+
+    Route::get('/api/prestataire/me', [PrestataireController::class, 'me']);
+    Route::patch('/api/prestataire/profile', [PrestataireController::class, 'updateProfile']);
+    Route::post('/api/prestataire/photo', [PrestataireController::class, 'uploadPhoto']);
 });
 
-Route::middleware('app.auth:prestataire')->get('/profil-prestataire', function () {
+Route::get('/profil-prestataire', function () {
     return redirect('/dashboard/prestataire');
 });
 
 Route::get('/profil-prestataire.html', function () {
-    return redirect('/profil-prestataire');
+    return redirect('/dashboard/prestataire');
+});
+
+Route::get('/dashboard-prestataire.html', function () {
+    return redirect('/dashboard/prestataire');
 });
 
 Route::get('/profil-client.html', function () {
+    return redirect('/dashboard/client');
+});
+
+Route::get('/dashboard-client.html', function () {
     return redirect('/dashboard/client');
 });
 

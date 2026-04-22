@@ -24,7 +24,7 @@ class AuthController extends Controller
 
         $passwordColumn = $this->passwordColumn('clients');
 
-        DB::table('clients')->insert([
+        $id = DB::table('clients')->insertGetId([
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'email' => $data['email'],
@@ -34,7 +34,18 @@ class AuthController extends Controller
             'created_at' => now(),
         ]);
 
-        return response()->json(['ok' => true, 'message' => 'Compte client cree.']);
+        $request->session()->regenerate();
+        session([
+            'auth_id' => $id,
+            'auth_type' => 'client',
+            'auth_name' => trim($data['prenom'] . ' ' . $data['nom']),
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Compte client cree.',
+            'redirect' => '/dashboard/client',
+        ]);
     }
 
     public function registerPrestataire(Request $request)
