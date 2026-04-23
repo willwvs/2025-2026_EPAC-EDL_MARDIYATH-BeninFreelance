@@ -69,6 +69,126 @@
             background: #F5A623;
             color: #0A0A0F;
         }
+
+        /* Animations personnalisées */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Classes d'animation */
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .animate-slide-down {
+            animation: slideInLeft 1s ease-in;
+        }
+
+        .animate-slide-left {
+            animation: slideInLeft 5s ease-out;
+        }
+
+        .animate-pulse-soft {
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+      
+
+        /* Animation au focus des inputs */
+        input, select {
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1);
+        }
+
+        /* Animation bouton hover */
+        button, .nav-link, .nav-link-mob {
+            transition: all 0.3s ease;
+        }
+
+        button:hover, .nav-link:hover, .nav-link-mob:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Animation des cartes prestataires */
+        .prestataire-card {
+            transition: all 0.3s ease;
+        }
+
+        .prestataire-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Délai pour animations en cascade */
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.1s; }
+        .delay-300 { animation-delay: 0.1s; }
+        .delay-400 { animation-delay: 0.1s; }
+        .delay-500 { animation-delay: 0.1s; }
+        .delay-600 { animation-delay: 0.1s; }
+        .delay-700 { animation-delay: 0.1s; }
+        .delay-800 { animation-delay: 0.1s; }
     </style>
 </head>
 
@@ -121,13 +241,13 @@
     <!-- TOPBAR desktop -->
 
     <header
-        class="hidden md:flex sticky top-0 z-50 items-center justify-between bg-surface border-b border-brd px-6 h-14">
+        class="hidden md:flex sticky top-0 z-50 items-center justify-between bg-surface border-b border-brd px-6 h-14 animate-slide-down">
         <a href="index.html" class="font-syne font-extrabold text-[19px] shrink-0">
             Bénin<span class="text-accent">Freelance</span>
         </a>
         <div class="flex items-center justify-between flex-1">
             <!-- Search -->
-            <div class="flex-1 max-w-md mx-8">
+            <div class="flex-1 max-w-md mx-8 animate-slide-down delay-100">
                 <div class="flex items-center bg-bg2 border border-brd rounded-xl overflow-hidden h-10">
                     <input id="search-desk" type="text" placeholder="Catégorie, ville, mot-clé..."
                         class="flex-1 bg-transparent text-sm text-tx px-4 py-2.5 placeholder-muted transition-colors" />
@@ -138,7 +258,7 @@
                 </div>
             </div>
             <!-- User -->
-            <div id="user-desk" class="flex items-center gap-3 shrink-0 ">
+            <div id="user-desk" class="flex items-center gap-3 shrink-0 animate-slide-left delay-200">
                 <div
                     class="border-2 border-gray-500 flex rounded-3xl gap-4 justify-center items-center p-1 bg-[#1C1C27] ">
                     <div id="avatar-desk"
@@ -155,11 +275,11 @@
 
     <!-- TOPBAR mobile -->
 
-    <header class="md:hidden sticky top-0 z-50 bg-surface border-b border-brd px-4 py-3 flex items-center gap-3">
+    <header class="md:hidden sticky top-0 z-50 bg-surface border-b border-brd px-4 py-3 flex items-center gap-3 animate-slide-down">
         <button onclick="toggleSidebar()" class="text-muted hover:text-tx shrink-0">
             <i class="fa-solid fa-bars text-lg"></i>
         </button>
-        <div class="flex-1 flex items-center bg-bg border border-brd rounded-xl overflow-hidden">
+        <div class="flex-1 flex items-center bg-bg border border-brd rounded-xl overflow-hidden animate-slide-down delay-100">
             <input id="search-mob" type="text" placeholder="Catégorie, ville, mot-clé..."
                 class="flex-1 bg-transparent text-sm text-tx px-3 py-2.5 placeholder-muted" />
             <button onclick="doSearch()"
@@ -175,27 +295,27 @@
         <!-- SIDEBAR desktop -->
 
         <aside
-            class="hidden md:flex flex-col w-[280px] shrink-0 bg-surface border-r border-brd py-6 px-4 sticky top-14 h-[calc(100vh-56px)]">
+            class="hidden md:flex flex-col w-[280px] shrink-0 bg-surface border-r border-brd py-6 px-4 sticky top-14 h-[calc(100vh-56px)] animate-slide-left delay-200">
             <p class="text-xs text-muted font-medium mb-4 px-2">Espace client</p>
             <nav class="flex flex-col gap-1">
                 <a href="#" onclick="setNav(this,'decouverte')"
-                    class="nav-link active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all">
+                    class="nav-link active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all animate-slide-down delay-300">
                     <i class="fa-solid fa-house w-4 text-center ml-2"></i> Accueil
                 </a>
                 <a href="#" onclick="setNav(this,'recherche')"
-                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all animate-slide-down delay-400">
                     <i class="fa-solid fa-magnifying-glass w-4 text-center ml-2"></i> Recherche
                 </a>
                 <a href="#" onclick="setNav(this,'favoris')"
-                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all animate-slide-down delay-500">
                     <i class="fa-solid fa-heart w-4 text-center ml-2"></i> Favoris
                 </a>
                 <a href="#" onclick="setNav(this,'messages')"
-                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all animate-slide-down delay-600">
                     <i class="fa-solid fa-envelope w-4 text-center ml-2"></i> Messages
                 </a>
                 <a href="#" onclick="setNav(this,'compte')"
-                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all animate-slide-down delay-700">
                     <i class="fa-solid fa-user w-4 text-center ml-2"></i> Mon compte
                 </a>
             </nav>
@@ -221,23 +341,23 @@
             <p class="text-xs text-muted font-medium mb-3 px-2">Espace client</p>
             <nav class="flex flex-col gap-1">
                 <a href="#" onclick="setNavMob(this,'decouverte')"
-                    class="nav-link-mob active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all">
+                    class="nav-link-mob active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all animate-slide-down delay-300">
                     <i class="fa-solid fa-house w-4 text-center ml-2"></i> Accueil
                 </a>
                 <a href="#" onclick="setNavMob(this,'recherche')"
-                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all animate-slide-down delay-400">
                     <i class="fa-solid fa-magnifying-glass w-4 text-center ml-2"></i> Recherche
                 </a>
                 <a href="#" onclick="setNavMob(this,'favoris')"
-                    class="nav-link-mob  flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    class="nav-link-mob  flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all animate-slide-down delay-500">
                     <i class="fa-solid fa-heart w-4 text-center ml-2"></i> Favoris
                 </a>
                 <a href="#" onclick="setNavMob(this,'messages')"
-                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all animate-slide-down delay-600">
                     <i class="fa-solid fa-envelope w-4 text-center ml-2"></i> Messages
                 </a>
                 <a href="#" onclick="setNavMob(this,'compte')"
-                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+                    class="nav-link-mob   flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all animate-slide-down delay-700">
                     <i class="fa-solid fa-user w-4 text-center ml-2"></i> Mon compte
                 </a>
             </nav>
@@ -247,23 +367,23 @@
 
         <!-- MAIN CONTENT -->
 
-        <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-full ">
+        <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-full animate-slide-down">
 
-            <div class="mb-6">
+            <div class="mb-6 animate-slide-down delay-100">
                 <h1 id="greeting" class="font-syne font-bold text-2xl sm:text-3xl  mb-1">Bonjour, --</h1>
 
                 <p class="text-muted text-sm">Parcourez les profils et les avis ; le message s'active après ouverture du
                     profil.</p>
             </div>
 
-            <div class="flex gap-2 mb-6">
+            <div class="flex gap-2 mb-6 animate-slide-down delay-200">
                 <button id="tab-decouverte" onclick="setTab('decouverte')"
                     class="tab-btn active-tab font-syne font-semibold text-sm px-4 py-2 rounded-full bg-accent text-bg transition-all">Découverte</button>
                 <button id="tab-favoris" onclick="setTab('favoris')"
                     class="tab-btn font-syne font-semibold text-sm px-4 py-2 rounded-full border border-brd text-muted hover:text-tx transition-all">Favoris</button>
             </div>
 
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-4 animate-slide-down delay-300">
                 <span id="count-label" class="text-sm text-muted"></span>
                 <button onclick="openFilters()"
                     class="text-xs border border-brd text-muted px-3 py-1.5 rounded-lg hover:border-accent hover:text-accent transition-all">
@@ -271,11 +391,11 @@
                 </button>
             </div>
 
-            <div class="bg-surface border border-brd rounded-xl px-4 py-3 text-sm text-muted mb-5 ">
+            <div class="bg-surface border border-brd rounded-xl px-4 py-3 text-sm text-muted mb-5 animate-slide-down delay-400">
                 Le message se déverrouille après ouverture du profil — ainsi chaque contact part d'un contexte clair.
             </div>
 
-            <div id="liste" class="flex flex-col gap-4"></div>
+            <div id="liste" class="flex flex-col gap-4 animate-slide-down delay-500"></div>
 
             <div id="empty" class="hidden text-center py-16">
                 <div class="text-4xl mb-3">🔍</div>
@@ -288,22 +408,22 @@
     <!-- FILTERS MODAL -->
 
     <div id="filters-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-        <div class="bg-surface border border-brd rounded-xl p-6 w-96 max-w-full mx-4 relative">
+        <div class="bg-surface border border-brd rounded-xl p-6 w-96 max-w-full mx-4 relative animate-slide-down">
             <h3 class="font-syne font-bold text-lg mb-4">Filtres</h3>
             <div class="space-y-4">
-                <div>
+                <div class="animate-slide-down delay-100">
                     <label class="block text-sm font-medium mb-1">Catégorie</label>
                     <select id="filter-category" class="w-full bg-bg border border-brd rounded-lg px-3 py-2 text-sm">
                         <option value="">Toutes</option>
                     </select>
                 </div>
-                <div>
+                <div class="animate-slide-down delay-200">
                     <label class="block text-sm font-medium mb-1">Localité</label>
                     <select id="filter-locality" class="w-full bg-bg border border-brd rounded-lg px-3 py-2 text-sm">
                         <option value="">Toutes</option>
                     </select>
                 </div>
-                <div>
+                <div class="animate-slide-down delay-300">
                     <label class="block text-sm font-medium mb-1">Note minimale</label>
                     <input id="filter-rating" type="number" min="0" max="5" step="0.1" placeholder="0"
                         class="w-full bg-bg border border-brd rounded-lg px-3 py-2 text-sm">
@@ -436,7 +556,7 @@
        </button>`;
 
             return `
-  <div class="bg-surface border border-brd rou.nav-link-mob {transition: all 0.2s ease;}nded-2xl p-4 sm:p-5 rounded-xl ">
+  <div class="bg-surface border border-brd rounded-2xl p-4 sm:p-5 prestataire-card animate-fade-in">
     
     <div class="flex flex-col md:flex-row md:items-center gap-4 ">
 
@@ -612,6 +732,53 @@
         ['search-desk', 'search-mob'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+        });
+
+        // ── ANIMATIONS SUPPLÉMENTAIRES
+        // Animation des cartes prestataires au chargement
+        function animateCards() {
+            const cards = document.querySelectorAll('.prestataire-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('animate-slide-down');
+            });
+        }
+
+        // Observer pour animer les nouvelles cartes
+        const observer = new MutationObserver(() => {
+            animateCards();
+        });
+
+        // Observer le conteneur de la liste
+        const listeContainer = document.getElementById('liste');
+        if (listeContainer) {
+            observer.observe(listeContainer, { childList: true });
+        }
+
+        // Animation au focus des inputs
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('animate-pulse-soft');
+            });
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('animate-pulse-soft');
+            });
+        });
+
+        // Animation du modal de filtres
+        function openFiltersAnimated() {
+            openFilters();
+            const modal = document.getElementById('filters-modal');
+            modal.classList.add('animate-slide-down');
+        }
+
+        // Remplacer la fonction openFilters
+        window.openFilters = openFiltersAnimated;
+
+        // Animation initiale au chargement
+        window.addEventListener('load', function() {
+            animateCards();
         });
     </script>
 
