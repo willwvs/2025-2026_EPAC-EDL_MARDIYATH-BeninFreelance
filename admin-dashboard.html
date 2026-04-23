@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Dossiers prestataires · BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne','sans-serif'] },
+          colors: {
+            bg:'#0A0A0F', surface:'#13131A', surface2:'#1C1C27',
+            brd:'#2A2A3D', accent:'#F5A623', tx:'#F0EDE8',
+            muted:'#7A7A9A', ok:'#2ECC71'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    input { outline: none; }
+    input:focus { border-color: #F5A623 !important; }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity:0; } to { opacity:1; }
+    }
+    @keyframes slideLeft {
+      from { opacity:0; transform:translateX(32px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+    .anim-fadeup   { animation: fadeUp  .45s ease both; }
+    .anim-fadein   { animation: fadeIn  .35s ease both; }
+    .anim-slideleft { animation: slideLeft .4s ease both; }
+    .d1{animation-delay:.05s} .d2{animation-delay:.1s}
+    .d3{animation-delay:.15s} .d4{animation-delay:.2s}
+    .d5{animation-delay:.25s}
+
+    /* Nav active */
+    .nav-link { position: relative; }
+    .active-nav { background: #1C1C27; }
+    .active-nav::before {
+      content:""; position:absolute; left:12px; top:8px;
+      height:20px; width:3px; background:#F5A623; border-radius:2px;
+    }
+
+    /* Statut badges */
+    .badge-attente { color:#F5A623; }
+    .badge-valide  { color:#2ECC71; }
+    .badge-refuse  { color:#E74C3C; }
+  </style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+
+
+<script>
+  const SIMULATION = true;
+
+  const fakeDossiers = [
+    {
+      id: 12, nom: 'Kossi Agboho', email: 'k.agboho@example.bj',
+      statut: 'en_attente', motif: '',
+      cv_url: '/uploads/cv/kossi.pdf',
+      identite_url: '/uploads/identites/kossi_id.jpg'
+    },
+    {
+      id: 18, nom: 'Adjowa Mensah', email: 'adjowa.m@example.bj',
+      statut: 'valide', motif: 'Dossier complet et cohérent.',
+      cv_url: '/uploads/cv/adjowa.pdf',
+      identite_url: '/uploads/identites/adjowa_id.jpg'
+    },
+    {
+      id: 21, nom: 'Roméo Tokpan', email: 'r.tokpan@example.bj',
+      statut: 'refuse', motif: 'Pièce d\'identité illisible.',
+      cv_url: '/uploads/cv/romeo.pdf',
+      identite_url: '/uploads/identites/romeo_id.jpg'
+    },
+  ];
+</script>
+
+<!-- TOPBAR -->
+<header class="sticky top-0 z-50 flex items-center justify-between bg-surface border-b border-brd px-4 sm:px-6 h-14 anim-fadein">
+  <div class="flex items-center gap-4">
+    <button onclick="toggleSidebar()" class="md:hidden text-muted hover:text-tx">
+      <i class="fa-solid fa-bars text-lg"></i>
+    </button>
+    <a href="index.html" class="font-syne font-extrabold text-lg hidden md:block">
+      Bénin<span class="text-accent">Freelance</span>
+    </a>
+    <span class="font-syne font-bold text-base sm:text-lg" id="page-title">Admin — dossiers prestataires</span>
+  </div>
+  <button
+    onclick="deconnexion()"
+    class="text-sm text-muted hover:text-tx border border-brd px-3 py-1.5 rounded-lg hover:border-muted transition-all hidden md:block">
+    Déconnexion
+  </button>
+</header>
+
+<div class="flex min-h-[calc(100vh-56px)]">
+
+  <!-- SIDEBAR desktop -->
+  <aside class="hidden md:flex flex-col w-[265px] shrink-0 bg-surface border-r border-brd py-6 px-3 sticky top-14 h-[calc(100vh-56px)] anim-fadein">
+    <p class="text-xs text-muted font-medium mb-4 px-2">Espace administration</p>
+    <nav class="flex flex-col gap-1">
+      <a href="#" class="nav-link active-nav flex items-center gap-2 pl-7 pr-3 py-2 rounded-lg text-sm font-medium transition-all">
+        <i class="fa-solid fa-folder-open w-4 text-center"></i> Vérification dossiers
+      </a>
+    </nav>
+    <button onclick="deconnexion()" class="mt-auto text-xs text-muted border border-brd px-3 py-2 rounded-lg hover:border-muted transition-all">
+      Déconnexion
+    </button>
+  </aside>
+
+  <!-- SIDEBAR mobile drawer -->
+  <div id="mob-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+  <aside id="mob-sidebar" class="fixed top-0 left-0 h-full w-[250px] bg-surface border-r border-brd z-50 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col py-6 px-4">
+    <div class="flex items-center justify-between mb-6">
+      <span class="font-syne font-extrabold text-[12px]">Bénin<span class="text-accent">Freelance</span></span>
+      <button onclick="toggleSidebar()" class="text-muted"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p class="text-xs text-muted font-medium mb-3 px-2">Espace administration</p>
+    <nav class="flex flex-col gap-1">
+      <a href="#" class="nav-link active-nav flex items-center gap-2 pl-7 pr-3 py-2 rounded-lg text-sm font-medium transition-all">
+        <i class="fa-solid fa-folder-open w-4"></i> Vérification dossiers
+      </a>
+    </nav>
+    <button onclick="deconnexion()" class="mt-auto text-xs text-muted border border-brd px-3 py-2 rounded-lg">Déconnexion</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+
+    <div id="list-wrap" class="anim-fadeup d1">
+
+      <!-- TABLE desktop -->
+      <div class="hidden md:block bg-surface border border-brd rounded-2xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-brd">
+              <th class="text-left text-muted font-medium px-5 py-3 w-16">ID</th>
+              <th class="text-left text-muted font-medium px-5 py-3">Nom</th>
+              <th class="text-left text-muted font-medium px-5 py-3">Email</th>
+              <th class="text-left text-muted font-medium px-5 py-3 w-36">Statut</th>
+              <th class="px-5 py-3 w-24"></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- CARDS mobile -->
+      <div class="md:hidden flex flex-col gap-3" id="cards-body"></div>
+
+    </div>
+
+    <!-- DETAIL -->
+    <div id="detail-wrap" class="hidden max-w-lg anim-slideleft">
+      <button onclick="retourListe()" class="text-sm text-muted hover:text-tx mb-4 flex items-center gap-1 transition-colors">
+        <i class="fa-solid fa-arrow-left text-xs"></i> Liste
+      </button>
+
+      <div class="bg-surface border border-brd rounded-2xl px-6 py-6">
+        <h2 id="detail-titre" class="font-syne font-bold text-xl mb-4"></h2>
+
+        <div class="text-sm space-y-1 mb-4">
+          <p><span class="text-muted">Nom :</span> <span id="detail-nom"></span></p>
+          <p><span class="text-muted">Email :</span> <span id="detail-email"></span></p>
+          <p><span class="text-muted">Statut :</span> <span id="detail-statut"></span></p>
+        </div>
+
+        <div class="mb-4">
+          <p class="text-sm font-semibold mb-1">Motif (comité / validation) :</p>
+          <p id="detail-motif" class="text-sm text-muted italic"></p>
+        </div>
+
+        <div class="flex gap-4 mb-6">
+          <a id="lien-cv" href="#" target="_blank" class="text-accent text-sm font-medium hover:opacity-70 transition-opacity">Voir CV</a>
+          <span class="text-muted text-sm">·</span>
+          <a id="lien-id" href="#" target="_blank" class="text-accent text-sm font-medium hover:opacity-70 transition-opacity">Voir pièce d'identité</a>
+        </div>
+
+        <div class="border-t border-brd pt-5">
+          <p class="text-sm font-semibold mb-3">Actions manuelles</p>
+
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button
+              id="btn-valider"
+              onclick="actionDossier('valider')"
+              class="flex-1 bg-accent text-bg font-syne font-bold text-sm py-2.5 rounded-xl hover:opacity-88 transition-opacity"
+            >
+              Valider
+            </button>
+            <input
+              type="text"
+              id="input-motif"
+              placeholder="Motif (générique)"
+              class="flex-[2] bg-surface2 border border-brd text-tx text-sm px-4 py-2.5 rounded-xl placeholder-muted transition-colors"
+            />
+            <button
+              id="btn-refuser"
+              onclick="actionDossier('refuser')"
+              class="flex-1 border border-brd text-tx text-sm py-2.5 rounded-xl hover:border-muted hover:text-muted transition-all"
+            >
+              Refuser
+            </button>
+          </div>
+
+          <!-- Feedback action -->
+          <div id="action-feedback" class="hidden mt-3 text-xs px-3 py-2 rounded-lg"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── INIT 
+document.addEventListener('DOMContentLoaded', () => {
+  SIMULATION ? loadSimulation() : loadFromBackend();
+});
+
+function loadSimulation() {
+  renderList(fakeDossiers);
+}
+
+async function loadFromBackend() {
+  try {
+    const res = await fetch('/api/admin/dossiers', {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (res.status === 401 || res.status === 403) {
+      window.location.href = '/admin/login'; return;
+    }
+    const data = await res.json();
+    renderList(data);
+  } catch (e) {
+    console.error('Erreur backend :', e);
+  }
+}
+
+let allDossiers = [];
+
+function renderList(dossiers) {
+  allDossiers = dossiers;
+
+  // TABLE desktop
+  document.getElementById('table-body').innerHTML = dossiers.map((d, i) => `
+    <tr class="border-b border-brd hover:bg-surface2 transition-colors anim-fadeup" style="animation-delay:${i * 0.07}s">
+      <td class="px-5 py-4 text-muted">${d.id}</td>
+      <td class="px-5 py-4 font-medium">${d.nom}</td>
+      <td class="px-5 py-4 text-muted">${d.email}</td>
+      <td class="px-5 py-4">
+        <span class="${statutClass(d.statut)}">${statutLabel(d.statut)}</span>
+      </td>
+      <td class="px-5 py-4">
+        <button onclick="voirDetail(${d.id})"
+          class="border border-brd text-tx text-xs px-3 py-1.5 rounded-lg hover:border-accent hover:text-accent transition-all">
+          Détail
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  // CARDS mobile
+  document.getElementById('cards-body').innerHTML = dossiers.map((d, i) => `
+    <div class="bg-surface border border-brd rounded-2xl px-4 py-4 anim-fadeup" style="animation-delay:${i * 0.07}s">
+      <p class="text-xs text-muted mb-1">${d.id}</p>
+      <p class="font-syne font-semibold text-base mb-1">${d.nom}</p>
+      <p class="text-muted text-sm mb-2">${d.email}</p>
+      <p class="text-sm mb-3"><span class="${statutClass(d.statut)}">${statutLabel(d.statut)}</span></p>
+      <div class="flex justify-end">
+        <button onclick="voirDetail(${d.id})"
+          class="border border-brd text-tx text-xs px-4 py-2 rounded-lg hover:border-accent hover:text-accent transition-all">
+          Détail
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function statutClass(s) {
+  return s === 'valide' ? 'badge-valide' : s === 'refuse' ? 'badge-refuse' : 'badge-attente';
+}
+function statutLabel(s) {
+  return s === 'valide' ? 'Validé' : s === 'refuse' ? 'Refusé' : 'En attente';
+}
+
+// ── DETAIL  
+function voirDetail(id) {
+  const d = allDossiers.find(x => x.id === id);
+  if (!d) return;
+
+  document.getElementById('list-wrap').classList.add('hidden');
+  const wrap = document.getElementById('detail-wrap');
+  wrap.classList.remove('hidden');
+  wrap.dataset.id = id;
+
+  document.getElementById('detail-titre').textContent  = 'Prestataire #' + d.id;
+  document.getElementById('detail-nom').textContent    = d.nom;
+  document.getElementById('detail-email').textContent  = d.email;
+  document.getElementById('detail-statut').textContent = statutLabel(d.statut);
+  document.getElementById('detail-statut').className   = statutClass(d.statut);
+  document.getElementById('detail-motif').textContent  = d.motif || '(vide)';
+  document.getElementById('lien-cv').href              = d.cv_url || '#';
+  document.getElementById('lien-id').href              = d.identite_url || '#';
+  document.getElementById('input-motif').value         = '';
+  document.getElementById('action-feedback').classList.add('hidden');
+
+  // Désactiver les boutons si déjà traité
+  const valide  = document.getElementById('btn-valider');
+  const refuse  = document.getElementById('btn-refuser');
+  const already = d.statut !== 'en_attente';
+  valide.disabled = already;
+  refuse.disabled = already;
+  if (already) {
+    valide.classList.add('opacity-40','cursor-not-allowed');
+    refuse.classList.add('opacity-40','cursor-not-allowed');
+  } else {
+    valide.classList.remove('opacity-40','cursor-not-allowed');
+    refuse.classList.remove('opacity-40','cursor-not-allowed');
+  }
+
+  // Scroll top sur mobile
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function retourListe() {
+  document.getElementById('detail-wrap').classList.add('hidden');
+  document.getElementById('list-wrap').classList.remove('hidden');
+}
+
+// ── ACTIONS VALIDER / REFUSER 
+async function actionDossier(action) {
+  const id    = parseInt(document.getElementById('detail-wrap').dataset.id);
+  const motif = document.getElementById('input-motif').value.trim();
+  const fb    = document.getElementById('action-feedback');
+
+  if (action === 'refuser' && !motif) {
+    fb.textContent = 'Veuillez saisir un motif avant de refuser.';
+    fb.className   = 'mt-3 text-xs px-3 py-2 rounded-lg bg-red-900/30 border border-red-500/30 text-red-400';
+    fb.classList.remove('hidden');
+    return;
+  }
+
+  if (SIMULATION) {
+    // Mise à jour locale simulation
+    const d = allDossiers.find(x => x.id === id);
+    if (d) {
+      d.statut = action === 'valider' ? 'valide' : 'refuse';
+      d.motif  = motif;
+    }
+    fb.textContent = action === 'valider'
+      ? '✓ Dossier validé avec succès.'
+      : '✓ Dossier refusé.';
+    fb.className = 'mt-3 text-xs px-3 py-2 rounded-lg bg-ok/10 border border-ok/30 text-ok';
+    fb.classList.remove('hidden');
+
+    // Mettre à jour les infos affichées
+    voirDetail(id);
+    renderList(allDossiers);
+  } else {
+    // Appel backend Laravel
+    try {
+      const res = await fetch(`/admin/dossier/${id}/${action}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || ''
+        },
+        body: JSON.stringify({ motif })
+      });
+      if (res.ok) {
+        await loadFromBackend();
+        voirDetail(id);
+      }
+    } catch(e) {
+      console.error('Erreur action :', e);
+    }
+  }
+}
+
+// ── NAV & SIDEBAR 
+function toggleSidebar() {
+  const sb = document.getElementById('mob-sidebar');
+  const ov = document.getElementById('mob-overlay');
+  const isOpen = !sb.classList.contains('-translate-x-full');
+  sb.classList.toggle('-translate-x-full', isOpen);
+  ov.classList.toggle('hidden', isOpen);
+}
+
+function deconnexion() {
+  if (SIMULATION) {
+    window.location.href = 'admin-login.html';
+  } else {
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = '/admin/logout';
+    const t = document.createElement('input');
+    t.type = 'hidden'; t.name = '_token';
+    t.value = document.querySelector('meta[name=csrf-token]')?.content || '';
+    f.appendChild(t); document.body.appendChild(f); f.submit();
+  }
+}
+</script>
+</body>
+</html>

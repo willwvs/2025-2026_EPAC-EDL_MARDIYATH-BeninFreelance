@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tableau de bord — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne','sans-serif'] },
+          colors: {
+            bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+            brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8',
+            muted: '#7A7A9A', ok: '#2ECC71'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes slideRight {
+      from { opacity: 0; transform: translateX(-32px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: scale(.8); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .anim-fadeup   { animation: fadeUp    .55s ease both; }
+    .anim-fadein   { animation: fadeIn    .45s ease both; }
+    .anim-slideright { animation: slideRight .5s ease both; }
+    .anim-countup  { animation: countUp   .4s ease both; }
+
+    /* délais */
+    .d1 { animation-delay: .05s; }
+    .d2 { animation-delay: .15s; }
+    .d3 { animation-delay: .25s; }
+    .d4 { animation-delay: .35s; }
+    .d5 { animation-delay: .45s; }
+    .d6 { animation-delay: .55s; }
+
+    /* ── Nav active ── */
+    .nav-link { position: relative; }
+    .active-nav { background: #1C1C27; }
+    .active-nav::before {
+      content: "";
+      position: absolute; left: 12px; top: 8px;
+      height: 20px; width: 3px;
+      background: #F5A623; border-radius: 2px;
+    }
+
+    /* ── Badge IA border ── */
+    .ia-border { border: 1px solid #F5A623; }
+  </style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+
+
+<script>
+  const SIMULATION = false;
+
+  const fakeData = {
+    prenom           : 'Kossi',
+    plan             : 'gratuit',
+    services_actifs  : 2,
+    services_max     : 2,
+    messages_non_lus : 3,
+    note_moyenne     : 4.8,
+    nb_avis          : 12,
+    statut_verification : 'valide', // 'en_attente' | 'valide' | 'refuse'
+    services: [
+      {
+        id: 1,
+        titre: 'Site vitrine WordPress',
+        description: 'À partir de 150 000 F · délai moyen 7 jours',
+        actif: true
+      },
+      {
+        id: 2,
+        titre: 'Maintenance & support',
+        description: 'Forfait mensuel · réponse sous 24h',
+        actif: true
+      }
+    ]
+  };
+</script>
+
+<!-- TOPBAR desktop -->
+<header class="hidden md:flex sticky top-0 z-50 items-center justify-between bg-surface border-b border-brd px-6 h-14 anim-fadein">
+  <a href="index.html" class="font-syne font-extrabold text-lg shrink-0">
+    Bénin<span class="text-accent">Freelance</span>
+  </a>
+</header>
+
+<!-- TOPBAR mobile -->
+<header class="md:hidden sticky top-0 z-50 bg-surface border-b border-brd px-4 py-3 flex items-center gap-3 anim-fadein">
+  <button onclick="toggleSidebar()" class="text-muted hover:text-tx shrink-0">
+    <i class="fa-solid fa-bars text-lg"></i>
+  </button>
+  <span class="font-syne font-bold text-base flex-1">Tableau de bord</span>
+</header>
+
+<div class="flex min-h-[calc(100vh-56px)]">
+
+  <!-- SIDEBAR desktop -->
+  <aside class="hidden md:flex flex-col w-[270px] shrink-0 bg-surface border-r border-brd py-6 px-3 sticky top-14 h-[calc(100vh-56px)] anim-slideright">
+    <p class="text-xs text-muted font-medium mb-4 px-2">Espace prestataire</p>
+    <nav class="flex flex-col gap-1">
+      <a href="#" onclick="setNav(this)" class="nav-link active-nav flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm font-medium transition-all">
+        <i class="fa-solid fa-gauge w-4 text-center"></i> Tableau de bord
+      </a>
+      <a href="#" onclick="setNav(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+        <i class="fa-solid fa-user w-4 text-center"></i> Mon profil
+      </a>
+      <a href="#" onclick="setNav(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+        <i class="fa-solid fa-briefcase w-4 text-center"></i> Mes services
+      </a>
+      <a href="#" onclick="setNav(this)" id="nav-msg" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+        <i class="fa-solid fa-envelope w-4 text-center"></i>
+        Messagerie
+        <span id="badge-msg" class="hidden ml-auto bg-accent text-bg text-xs font-bold px-1.5 py-0.5 rounded-full"></span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- SIDEBAR mobile drawer -->
+  <div id="mob-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+  <aside id="mob-sidebar" class="fixed top-0 left-0 h-full w-52 bg-surface border-r border-brd z-50 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col py-6 px-4">
+    <div class="flex items-center justify-between mb-6">
+      <span class="font-syne font-extrabold text-[12px]">Bénin<span class="text-accent">Freelance</span></span>
+      <button onclick="toggleSidebar()" class="text-muted"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p class="text-xs text-muted font-medium mb-3 px-2">Espace prestataire</p>
+    <nav class="flex flex-col gap-1">
+      <a href="#" onclick="setNav(this)" class="nav-link active-nav flex items-center gap-3 pl-5 pr-2 py-2 rounded-lg text-sm hover:text-tx  transition-all">
+        <i class="fa-solid fa-gauge w-4"></i> Tableau de bord
+      </a>
+      <a href="#" onclick="setNav(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+        <i class="fa-solid fa-user w-4"></i> Mon profil
+      </a>
+      <a href="#" onclick="setNav(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+        <i class="fa-solid fa-briefcase w-4"></i> Mes services
+      </a>
+      <a href="#" onclick="setNav(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all">
+        <i class="fa-solid fa-envelope w-4"></i> Messagerie
+        <span id="badge-msg-mob" class="hidden ml-auto bg-accent text-bg text-xs font-bold px-1.5 py-0.5 rounded-full"></span>
+      </a>
+    </nav>
+    <button class="mt-auto text-xs text-muted border border-brd px-3 py-2 rounded-lg">Déconnexion</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 px-4 sm:px-6 lg:px-10 py-6 sm:py-8 max-w-full">
+
+    <!-- Header row -->
+    <div class="flex items-start justify-between mb-2 anim-fadeup d1">
+      <h1 class="font-syne font-bold text-2xl sm:text-3xl">Tableau de bord</h1>
+      <button class="hidden md:block border border-brd text-tx text-sm px-4 py-2 rounded-xl hover:border-muted hover:text-muted transition-all">
+        Déconnexion
+      </button>
+    </div>
+
+    <!-- Greeting -->
+    <div class="mb-5 anim-fadeup d2">
+      <h2 id="greeting" class="font-syne font-bold text-2xl sm:text-3xl mb-1">Bonjour, --</h2>
+      <p id="plan-label" class="text-muted text-sm"></p>
+    </div>
+
+    <!-- Bannière statut IA -->
+    <div id="banner-ia" class="hidden ia-border rounded-2xl px-5 py-4 mb-6 anim-fadeup d3">
+      <p id="banner-title" class="font-syne font-bold text-base mb-1"></p>
+      <p id="banner-desc"  class="text-muted text-sm leading-relaxed"></p>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div class="bg-surface2 border border-brd rounded-2xl px-5 py-4 anim-fadeup d3">
+        <p class="text-xs text-muted mb-2">Services actifs</p>
+        <p id="stat-services" class="font-syne font-bold text-3xl mb-1 anim-countup d4">--</p>
+        <p id="stat-services-sub" class="text-xs text-muted"></p>
+      </div>
+      <div class="bg-surface2 border border-brd rounded-2xl px-5 py-4 anim-fadeup d4">
+        <p class="text-xs text-muted mb-2">Messages non lus</p>
+        <p id="stat-messages" class="font-syne font-bold text-3xl mb-1 anim-countup d5">--</p>
+        <p class="text-xs text-muted">Ouvrir la messagerie pour répondre</p>
+      </div>
+      <div class="bg-surface2 border border-brd rounded-2xl px-5 py-4 anim-fadeup d5">
+        <p class="text-xs text-muted mb-2">Note moyenne</p>
+        <p id="stat-note" class="font-syne font-bold text-3xl mb-1 anim-countup d6">--</p>
+        <p id="stat-note-sub" class="text-xs text-muted"></p>
+      </div>
+    </div>
+
+    <!-- Mes services -->
+    <div class="bg-surface2 border border-brd rounded-2xl px-5 py-5 anim-fadeup d6">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="font-syne font-bold text-lg">Mes services</h3>
+        <button id="btn-ajouter" onclick="ajouterService()"
+          class="text-xs border border-brd text-muted px-3 py-1.5 rounded-lg hover:border-accent hover:text-accent transition-all">
+          Ajouter un service
+        </button>
+      </div>
+      <p id="services-count-label" class="text-xs text-muted mb-4"></p>
+      <div id="services-list" class="flex flex-col gap-3"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── INIT 
+document.addEventListener('DOMContentLoaded', () => {
+  SIMULATION ? loadSimulation() : loadFromBackend();
+});
+
+function loadSimulation() {
+  render(fakeData);
+}
+
+// ── BACKEND
+async function loadFromBackend() {
+  try {
+    const res = await fetch('/api/prestataire/dashboard', {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) { window.location.href = '/login'; return; }
+    const data = await res.json();
+    render(data);
+  } catch (e) {
+    console.error('Erreur backend :', e);
+  }
+}
+
+// ── RENDER ───────────────────────────────────────────────────────
+function render(d) {
+  // Greeting
+  document.getElementById('greeting').textContent = 'Bonjour, ' + d.prenom;
+
+  // Plan
+  const planTexts = {
+    gratuit : 'Plan gratuit : jusqu\'à 2 services publiés. Complétez votre profil pour améliorer votre visibilité.',
+    starter : 'Plan Starter : jusqu\'à 10 services publiés.',
+    pro     : 'Plan Pro : services illimités. Priorité dans les résultats.'
+  };
+  document.getElementById('plan-label').textContent = planTexts[d.plan] || '';
+
+  // Bannière statut IA
+  const banner = document.getElementById('banner-ia');
+  const configs = {
+    valide: {
+      title : 'Dossier validé',
+      desc  : 'Votre pièce d\'identité a été analysée. Vous pouvez publier vos services, et recevoir des demandes de prise de contact.',
+      color : 'border-accent bg-accent/5'
+    },
+    en_attente: {
+      title : 'Vérification en cours…',
+      desc  : 'Notre IA Gemini analyse votre dossier. Vous serez notifié sous 24h.',
+      color : 'border-brd bg-surface'
+    },
+    refuse: {
+      title : 'Dossier refusé',
+      desc  : 'Votre dossier n\'a pas pu être validé. Veuillez soumettre de nouveaux documents.',
+      color : 'border-red-500/40 bg-red-900/10'
+    }
+  };
+  const cfg = configs[d.statut_verification];
+  if (cfg) {
+    banner.className = cfg.color + ' rounded-2xl px-5 py-4 mb-6 anim-fadeup d3 border';
+    document.getElementById('banner-title').textContent = cfg.title;
+    document.getElementById('banner-desc').textContent  = cfg.desc;
+    banner.classList.remove('hidden');
+  }
+
+  // Stats
+  document.getElementById('stat-services').textContent     = d.services_actifs + ' / ' + d.services_max;
+  document.getElementById('stat-services-sub').textContent = d.services_actifs >= d.services_max
+    ? 'Limite du plan ' + d.plan + ' atteinte'
+    : d.services_max - d.services_actifs + ' emplacement(s) disponible(s)';
+
+  document.getElementById('stat-messages').textContent = d.messages_non_lus;
+  document.getElementById('stat-note').textContent     = d.note_moyenne + ' / 5';
+  document.getElementById('stat-note-sub').textContent = 'Basée sur ' + d.nb_avis + ' avis';
+
+  // Badge messagerie
+  if (d.messages_non_lus > 0) {
+    ['badge-msg','badge-msg-mob'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = d.messages_non_lus; el.classList.remove('hidden'); }
+    });
+  }
+
+  // Bouton ajouter — désactivé si limite atteinte
+  const btnAjouter = document.getElementById('btn-ajouter');
+  if (d.services_actifs >= d.services_max) {
+    btnAjouter.disabled = true;
+    btnAjouter.classList.add('opacity-40', 'cursor-not-allowed');
+    btnAjouter.title = 'Limite atteinte — passez au plan supérieur';
+  }
+
+  // Label services
+  document.getElementById('services-count-label').textContent =
+    d.services_actifs + ' service' + (d.services_actifs > 1 ? 's' : '') +
+    ' publié' + (d.services_actifs > 1 ? 's' : '') +
+    ' · plan ' + d.plan + ' (' + d.services_actifs + '/' + d.services_max + ')';
+
+  // Liste services
+  const list = document.getElementById('services-list');
+  if (!d.services || d.services.length === 0) {
+    list.innerHTML = `<p class="text-sm text-muted py-4 text-center">Aucun service publié.</p>`;
+    return;
+  }
+  list.innerHTML = d.services.map(s => serviceCard(s)).join('');
+}
+
+function serviceCard(s) {
+  return `
+  <div class="bg-surface border border-brd rounded-xl px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <p class="font-syne font-semibold text-sm text-tx mb-0.5">${s.titre}</p>
+      <p class="text-xs text-muted">${s.description}</p>
+    </div>
+    <div class="flex items-center gap-4 shrink-0">
+      <button onclick="modifierService(${s.id})"
+        class="text-accent text-sm font-medium hover:opacity-70 transition-opacity">Modifier</button>
+      <button onclick="toggleService(${s.id})"
+        class="text-muted text-sm hover:text-tx transition-colors">${s.actif ? 'Désactiver' : 'Activer'}</button>
+    </div>
+  </div>`;
+}
+
+// ── ACTIONS ──────────────────────────────────────────────────────
+function ajouterService() {
+  // En prod : window.location.href = '/service/create';
+  if (SIMULATION) alert('Simulation : redirection vers /service/create');
+  else window.location.href = '/service/create';
+}
+
+function modifierService(id) {
+  if (SIMULATION) alert('Simulation : modifier service #' + id);
+  else window.location.href = '/service/' + id + '/edit';
+}
+
+function toggleService(id) {
+  if (SIMULATION) {
+    const s = fakeData.services.find(x => x.id === id);
+    if (s) { s.actif = !s.actif; render(fakeData); }
+  } else {
+    fetch('/api/service/' + id + '/toggle', { method: 'POST',
+      headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '' }
+    }).then(() => loadFromBackend());
+  }
+}
+
+// ── NAV ──────────────────────────────────────────────────────────
+function setNav(el) {
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.classList.remove('active-nav');
+    l.classList.add('text-muted');
+  });
+  el.classList.add('active-nav');
+  el.classList.remove('text-muted');
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('mob-sidebar');
+  const ov = document.getElementById('mob-overlay');
+  const isOpen = !sb.classList.contains('-translate-x-full');
+  sb.classList.toggle('-translate-x-full', isOpen);
+  ov.classList.toggle('hidden', isOpen);
+}
+</script>
+</body>
+</html>

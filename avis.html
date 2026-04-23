@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Laisser un avis — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne','sans-serif'] },
+          colors: {
+            bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+            brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8',
+            muted: '#7A7A9A', ok: '#2ECC71'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    textarea { outline: none; resize: none; }
+    textarea:focus { border-color: #F5A623 !important; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes starPop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
+    .anim-fadeup { animation: fadeUp .5s ease both; }
+    .anim-fadein { animation: fadeIn .4s ease both; }
+    .star-pop    { animation: starPop .25s ease; }
+
+    .d1 { animation-delay: .05s; }
+    .d2 { animation-delay: .15s; }
+    .d3 { animation-delay: .25s; }
+    .d4 { animation-delay: .35s; }
+    .d5 { animation-delay: .45s; }
+
+    /* ── Étoiles ── */
+    .star {
+      cursor: pointer;
+      color: #2A2A3D;
+      font-size: 1.8rem;
+      transition: color .15s;
+      display: inline-block;
+      line-height: 1;
+    }
+    .star.lit { color: #F5A623; }
+
+    .star-sm {
+      cursor: pointer;
+      color: #2A2A3D;
+      font-size: 1.1rem;
+      transition: color .15s;
+      display: inline-block;
+    }
+    .star-sm.lit { color: #F5A623; }
+  </style>
+</head>
+<body class="bg-bg text-tx min-h-screen flex items-start md:items-center justify-center px-4 py-10">
+
+
+<div class="w-full max-w-xl bg-surface border border-brd rounded-2xl px-6 py-8 sm:px-8 sm:py-10 anim-fadein">
+
+  <!-- Intro -->
+  <p class="text-muted text-sm mb-4 anim-fadeup d1">
+    Votre avis aide les autres clients à choisir. Il sera public après modération.
+  </p>
+
+  <!-- Titre -->
+  <h1 class="font-syne font-extrabold text-2xl sm:text-3xl leading-tight mb-6 anim-fadeup d2">
+    Laisser un avis
+  </h1>
+
+<!-- Card prestataire — données venant du controller Laravel -->
+<div class="bg-surface2 border border-brd rounded-xl px-4 py-3 flex items-center gap-4 mb-6 anim-fadeup d3">
+  <div class="w-11 h-11 rounded-full bg-surface border border-brd flex items-center justify-center shrink-0 overflow-hidden">
+    @if($prestataire->photo_profil)
+      <img src="{{ asset('storage/' . $prestataire->photo_profil) }}" class="w-full h-full object-cover"/>
+    @else
+      <i class="fa-solid fa-user text-muted"></i>
+    @endif
+  </div>
+  <div>
+    <p class="font-syne font-bold text-accent text-sm">
+      {{ $prestataire->prenom }} {{ Str::upper(Str::substr($prestataire->nom, 0, 1)) }}.
+    </p>
+    <p class="text-xs text-muted">
+      {{ $prestataire->categorie }} · {{ $prestataire->localite }}
+    </p>
+  </div>
+</div>
+
+  <!-- FORMULAIRE -->
+  <form
+    action="/avis/create/1"
+    method="POST"
+    id="avis-form"
+    novalidate
+  >
+    <input type="hidden" name="_token" value=""/>
+    <input type="hidden" name="prestataire_id" value="1"/>
+    <input type="hidden" name="note"               id="val-note"     value="0"/>
+    <input type="hidden" name="note_qualite"       id="val-qualite"  value="0"/>
+    <input type="hidden" name="note_delais"        id="val-delais"   value="0"/>
+    <input type="hidden" name="note_communication" id="val-comm"     value="0"/>
+        <div id="js-errors" class="hidden bg-red-900/30 border border-red-500/30 text-red-400 text-xs px-4 py-3 rounded-xl mb-5"></div>
+
+    <!-- NOTE GLOBALE -->
+    <div class="mb-5 anim-fadeup d3">
+      <p class="text-sm text-tx mb-2">Note globale</p>
+      <div id="stars-note" class="flex gap-1">
+        <span class="star" data-group="note" data-val="1">★</span>
+        <span class="star" data-group="note" data-val="2">★</span>
+        <span class="star" data-group="note" data-val="3">★</span>
+        <span class="star" data-group="note" data-val="4">★</span>
+        <span class="star" data-group="note" data-val="5">★</span>
+      </div>
+    </div>
+
+    <!-- CRITÈRES -->
+    <div class="flex flex-col gap-3 mb-5 anim-fadeup d4">
+
+      <!-- Qualité du travail -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+        <span class="text-sm text-tx">Qualité du travail</span>
+        <div id="stars-qualite" class="flex gap-1">
+          <span class="star-sm" data-group="qualite" data-val="1">★</span>
+          <span class="star-sm" data-group="qualite" data-val="2">★</span>
+          <span class="star-sm" data-group="qualite" data-val="3">★</span>
+          <span class="star-sm" data-group="qualite" data-val="4">★</span>
+          <span class="star-sm" data-group="qualite" data-val="5">★</span>
+        </div>
+      </div>
+
+      <!-- Respect des délais -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+        <span class="text-sm text-tx">Respect des délais</span>
+        <div id="stars-delais" class="flex gap-1">
+          <span class="star-sm" data-group="delais" data-val="1">★</span>
+          <span class="star-sm" data-group="delais" data-val="2">★</span>
+          <span class="star-sm" data-group="delais" data-val="3">★</span>
+          <span class="star-sm" data-group="delais" data-val="4">★</span>
+          <span class="star-sm" data-group="delais" data-val="5">★</span>
+        </div>
+      </div>
+
+      <!-- Communication -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+        <span class="text-sm text-tx">Communication</span>
+        <div id="stars-comm" class="flex gap-1">
+          <span class="star-sm" data-group="comm" data-val="1">★</span>
+          <span class="star-sm" data-group="comm" data-val="2">★</span>
+          <span class="star-sm" data-group="comm" data-val="3">★</span>
+          <span class="star-sm" data-group="comm" data-val="4">★</span>
+          <span class="star-sm" data-group="comm" data-val="5">★</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMENTAIRE -->
+    <div class="mb-5 anim-fadeup d4">
+      <label for="commentaire" class="block text-sm text-muted mb-1.5">
+        Votre commentaire <span class="text-xs">(visible publiquement)</span>
+      </label>
+      <textarea
+        id="commentaire"
+        name="commentaire"
+        rows="5"
+        placeholder="Rédigez un avis équilibré : ce qui s'est bien passé, ce qui pourrait s'améliorer..."
+        class="w-full bg-surface2 border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"
+      ></textarea>
+     
+    </div>
+
+    <!-- CONFIRMATION -->
+    <div class="flex items-start gap-3 mb-6 anim-fadeup d5">
+      <input type="checkbox" id="confirme" name="confirme"
+        class="mt-0.5 w-4 h-4 accent-yellow-400 shrink-0"/>
+      <label for="confirme" class="text-sm text-muted leading-relaxed cursor-pointer">
+        Je confirme que la prestation concernée par ce service a été réalisée.
+      </label>
+    </div>
+
+    <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-3 mb-4 anim-fadeup d5">
+      <button
+        type="button"
+        onclick="history.back()"
+        class="w-full sm:w-auto border border-brd text-tx text-sm font-medium px-6 py-3 rounded-xl hover:border-muted hover:text-muted transition-all text-center"
+      >
+        Annuler
+      </button>
+      <button
+        type="submit"
+        class="w-full sm:flex-1 bg-accent text-bg font-syne font-bold text-sm py-3 px-6 rounded-xl hover:opacity-88 hover:-translate-y-0.5 transition-all text-center"
+      >
+        Publier l'avis
+      </button>
+    </div>
+
+    <!-- Mention -->
+    <p class="text-xs text-muted leading-relaxed anim-fadeup d5">
+      Les avis sont relus avant publication. Contenu injurieux ou hors sujet refusé.
+    </p>
+
+  </form>
+</div>
+
+<script>
+// ── ÉTOILES 
+const groupMap = {
+  note    : { selector: '[data-group="note"]',    hidden: 'val-note'    },
+  qualite : { selector: '[data-group="qualite"]', hidden: 'val-qualite' },
+  delais  : { selector: '[data-group="delais"]',  hidden: 'val-delais'  },
+  comm    : { selector: '[data-group="comm"]',    hidden: 'val-comm'    },
+};
+
+// Initialiser les étoiles à 5 pour les critère, 0 pour la note globale
+setStars('qualite', 5);
+setStars('delais', 5);
+setStars('comm', 5);
+setStars('note', 0);
+
+function setStars(group, val) {
+  const stars = document.querySelectorAll(`[data-group="${group}"]`);
+  stars.forEach(s => {
+    const v = parseInt(s.dataset.val);
+    s.classList.toggle('lit', v <= val);
+  });
+  const hidden = document.getElementById(groupMap[group].hidden);
+  if (hidden) hidden.value = val;
+}
+
+// Attacher les événements sur tous les groupes
+Object.keys(groupMap).forEach(group => {
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(star => {
+    star.addEventListener('click', () => {
+      const val = parseInt(star.dataset.val);
+      setStars(group, val);
+      // Animation pop sur la note globale
+      if (group === 'note') {
+        document.querySelectorAll('[data-group="note"]').forEach(s => {
+          if (s.classList.contains('lit')) {
+            s.classList.remove('star-pop');
+            void s.offsetWidth; // reflow
+            s.classList.add('star-pop');
+          }
+        });
+      }
+    });
+
+    // Hover preview
+    star.addEventListener('mouseenter', () => {
+      const val = parseInt(star.dataset.val);
+      document.querySelectorAll(`[data-group="${group}"]`).forEach(s => {
+        s.classList.toggle('lit', parseInt(s.dataset.val) <= val);
+      });
+    });
+
+    star.addEventListener('mouseleave', () => {
+      const current = parseInt(document.getElementById(groupMap[group].hidden).value);
+      setStars(group, current);
+    });
+  });
+});
+
+// ── VALIDATION 
+document.getElementById('avis-form').addEventListener('submit', function(e) {
+  const errors  = [];
+  const note    = parseInt(document.getElementById('val-note').value);
+  const confirme = document.getElementById('confirme').checked;
+
+  if (note < 1)    errors.push('Veuillez attribuer une note globale.');
+  if (!confirme)   errors.push('Veuillez confirmer que la prestation a été réalisée.');
+
+  const errBox = document.getElementById('js-errors');
+  if (errors.length > 0) {
+    e.preventDefault();
+    errBox.innerHTML = errors.map(er => `<p>${er}</p>`).join('');
+    errBox.classList.remove('hidden');
+    errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    errBox.classList.add('hidden');
+  }
+});
+</script>
+
+</body>
+</html>

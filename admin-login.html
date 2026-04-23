@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Connexion · BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne','sans-serif'] },
+          colors: { bg:'#0A0A0F', surface:'#13131A', surface2:'#1C1C27', brd:'#2A2A3D', accent:'#F5A623', tx:'#F0EDE8', muted:'#7A7A9A' }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    input { outline: none; }
+    input:focus { border-color: #F5A623 !important; }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .anim-fadeup { animation: fadeUp .5s ease both; }
+    .d1 { animation-delay:.05s; } .d2 { animation-delay:.15s; }
+    .d3 { animation-delay:.25s; } .d4 { animation-delay:.35s; }
+  </style>
+</head>
+<body class="bg-bg text-tx min-h-screen flex items-center justify-center px-4">
+
+  <div class="w-full max-w-sm bg-surface border border-brd rounded-2xl px-7 py-9 anim-fadeup">
+
+    <h1 class="font-syne font-extrabold text-2xl sm:text-3xl mb-2 anim-fadeup d1">Admin — connexion</h1>
+
+    <p id="err-msg" class="hidden text-red-500 text-sm mb-3 anim-fadeup d1">Connexion refusée</p>
+
+    <p class="text-muted text-sm mb-5 anim-fadeup d2">Espace séparé de l'application</p>
+
+   
+    <form action="/admin/login" method="POST" id="admin-form" novalidate>
+      <input type="hidden" name="_token" value=""/>
+
+      <div class="mb-5 anim-fadeup d3">
+        <label class="block text-sm font-medium mb-1.5">Mot de passe</label>
+        <input
+          type="password"
+          name="password"
+          id="password"
+          placeholder="••••••••••••"
+          autocomplete="current-password"
+          class="w-full bg-surface2 border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-accent text-bg font-syne font-bold text-sm py-3 rounded-xl hover:opacity-88 hover:-translate-y-0.5 transition-all anim-fadeup d4"
+      >
+        Entrer
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('admin-form').addEventListener('submit', function(e) {
+      const pwd = document.getElementById('password').value.trim();
+      const err = document.getElementById('err-msg');
+      if (!pwd) {
+        e.preventDefault();
+        err.textContent = 'Veuillez saisir le mot de passe.';
+        err.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
