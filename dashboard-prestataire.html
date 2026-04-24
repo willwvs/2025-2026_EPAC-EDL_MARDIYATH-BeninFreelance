@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tableau de bord — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne', 'sans-serif'] },
+          colors: {
+            bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+            brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8',
+            muted: '#7A7A9A', ok: '#2ECC71'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    input, select, textarea { outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #F5A623 !important; }
+    select option { background: #13131A; }
+    textarea { resize: vertical; min-height: 120px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideRight { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes countUp { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
+    .anim-fadeup { animation: fadeUp .55s ease both; }
+    .anim-fadein { animation: fadeIn .45s ease both; }
+    .anim-slideright { animation: slideRight .5s ease both; }
+    .anim-countup { animation: countUp .4s ease both; }
+    .d1 { animation-delay: .05s; }
+    .d2 { animation-delay: .15s; }
+    .d3 { animation-delay: .25s; }
+    .d4 { animation-delay: .35s; }
+    .d5 { animation-delay: .45s; }
+    .d6 { animation-delay: .55s; }
+    .nav-link { position: relative; }
+    .active-nav { background: #1C1C27; }
+    .active-nav::before {
+      content: "";
+      position: absolute; left: 12px; top: 8px;
+      height: 20px; width: 3px;
+      background: #F5A623; border-radius: 2px;
+    }
+    .ia-border { border: 1px solid #F5A623; }
+  </style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+
+  <header class="hidden md:flex sticky top-0 z-50 items-center justify-between bg-surface border-b border-brd px-6 h-14 anim-fadein">
+    <a href="/" class="font-syne font-extrabold text-lg shrink-0">Bénin<span class="text-accent">Freelance</span></a>
+  </header>
+
+  <header class="md:hidden sticky top-0 z-50 bg-surface border-b border-brd px-4 py-3 flex items-center gap-3 anim-fadein">
+    <button type="button" onclick="toggleSidebar()" class="text-muted hover:text-tx shrink-0" aria-label="Menu"><i class="fa-solid fa-bars text-lg"></i></button>
+    <span id="mob-title" class="font-syne font-bold text-base flex-1 truncate">Tableau de bord</span>
+  </header>
+
+  <div class="flex min-h-[calc(100vh-56px)]">
+
+    <aside class="hidden md:flex flex-col w-[270px] shrink-0 bg-surface border-r border-brd py-6 px-3 sticky top-14 h-[calc(100vh-56px)] anim-slideright">
+      <p class="text-xs text-muted font-medium mb-4 px-2">Espace prestataire</p>
+      <nav class="flex flex-col gap-1">
+        <button type="button" onclick="desktopNavTableau(this)" class="nav-link active-nav flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm font-medium transition-all text-left w-full">
+          <i class="fa-solid fa-gauge w-4 text-center"></i> Tableau de bord
+        </button>
+        <button type="button" onclick="desktopNavProfil(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all text-left w-full">
+          <i class="fa-solid fa-user w-4 text-center"></i> Mon profil
+        </button>
+        <button type="button" onclick="desktopNavServices(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all text-left w-full">
+          <i class="fa-solid fa-briefcase w-4 text-center"></i> Mes services
+        </button>
+        <button type="button" onclick="desktopNavMessages(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all text-left w-full">
+          <i class="fa-solid fa-envelope w-4 text-center"></i> Messagerie
+          <span id="badge-msg" class="hidden ml-auto bg-accent text-bg text-xs font-bold px-1.5 py-0.5 rounded-full"></span>
+        </button>
+      </nav>
+    </aside>
+
+    <div id="mob-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+    <aside id="mob-sidebar" class="fixed top-0 left-0 h-full w-52 bg-surface border-r border-brd z-50 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col py-6 px-4">
+      <div class="flex items-center justify-between mb-6">
+        <span class="font-syne font-extrabold text-[12px]">Bénin<span class="text-accent">Freelance</span></span>
+        <button type="button" onclick="toggleSidebar()" class="text-muted" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-muted font-medium mb-3 px-2">Espace prestataire</p>
+      <nav class="flex flex-col gap-1">
+        <button type="button" onclick="mobNavTableau(this)" class="nav-link active-nav flex items-center gap-3 pl-5 pr-2 py-2 rounded-lg text-sm text-left w-full"><i class="fa-solid fa-gauge w-4"></i> Tableau de bord</button>
+        <button type="button" onclick="mobNavProfil(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full"><i class="fa-solid fa-user w-4"></i> Mon profil</button>
+        <button type="button" onclick="mobNavServices(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full"><i class="fa-solid fa-briefcase w-4"></i> Mes services</button>
+        <button type="button" onclick="mobNavMessages(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+          <i class="fa-solid fa-envelope w-4"></i> Messagerie
+          <span id="badge-msg-mob" class="hidden ml-auto bg-accent text-bg text-[10px] font-bold px-1.5 py-0.5 rounded-full"></span>
+        </button>
+      </nav>
+      <button type="button" onclick="logout()" class="mt-auto text-xs text-muted border border-brd px-3 py-2 rounded-lg hover:border-muted transition-all">Déconnexion</button>
+    </aside>
+
+    <main class="flex-1 px-4 sm:px-6 lg:px-10 py-6 sm:py-8 max-w-full">
+
+      <div id="msg-ok" class="hidden mb-4 text-sm text-ok border border-ok/30 bg-ok/10 px-3 py-2 rounded-lg"></div>
+      <div id="msg-err" class="hidden mb-4 text-sm text-red-400 border border-red-500/30 bg-red-900/20 px-3 py-2 rounded-lg"></div>
+
+      <div id="view-tableau">
+        <div class="flex items-start justify-between mb-2 anim-fadeup d1">
+          <h1 class="font-syne font-bold text-2xl sm:text-3xl">Tableau de bord</h1>
+          <button type="button" onclick="logout()" class="hidden md:block border border-brd text-tx text-sm px-4 py-2 rounded-xl hover:border-muted hover:text-muted transition-all">Déconnexion</button>
+        </div>
+
+        <div class="mb-5 anim-fadeup d2">
+          <h2 id="greeting" class="font-syne font-bold text-2xl sm:text-3xl mb-1">Bonjour</h2>
+          <p id="plan-label" class="text-muted text-sm leading-relaxed max-w-3xl"></p>
+        </div>
+
+        <div id="banner-ia" class="hidden rounded-2xl px-5 py-4 mb-6 anim-fadeup d3 border">
+          <p id="banner-title" class="font-syne font-bold text-base mb-1"></p>
+          <p id="banner-desc" class="text-muted text-sm leading-relaxed"></p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div class="bg-surface2 border border-brd rounded-2xl px-5 py-4 anim-fadeup d3">
+            <p class="text-xs text-muted mb-2">Services publiés</p>
+            <p id="stat-services" class="font-syne font-bold text-3xl mb-1 anim-countup d4">—</p>
+            <p id="stat-services-sub" class="text-xs text-muted leading-relaxed"></p>
+          </div>
+          <div class="bg-surface2 border border-brd rounded-2xl px-5 py-4 anim-fadeup d4">
+            <p class="text-xs text-muted mb-2">Messages non lus</p>
+            <p id="stat-messages" class="font-syne font-bold text-3xl mb-1 anim-countup d5">—</p>
+            <p class="text-xs text-muted">Demandes reçues</p>
+          </div>
+          <div class="bg-surface2 border border-brd rounded-2xl px-5 py-4 anim-fadeup d5">
+            <p class="text-xs text-muted mb-2">Note moyenne</p>
+            <p id="stat-note" class="font-syne font-bold text-3xl mb-1 anim-countup d6">—</p>
+            <p id="stat-note-sub" class="text-xs text-muted"></p>
+          </div>
+        </div>
+
+        <div class="border border-brd rounded-2xl bg-surface2 px-5 py-5 sm:px-6 anim-fadeup d6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p class="font-syne font-bold text-base text-tx mb-1">Vos offres</p>
+            <p id="services-home-hint" class="text-sm text-muted max-w-xl leading-relaxed"></p>
+          </div>
+          <button type="button" onclick="goServicesFromHome()" class="shrink-0 border border-accent/50 text-accent font-syne font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-accent/10 transition-colors">
+            Gérer mes services
+          </button>
+        </div>
+      </div>
+
+      <div id="view-services" class="hidden max-w-4xl">
+        <div class="flex items-start justify-between mb-6">
+          <h1 class="font-syne font-bold text-2xl sm:text-3xl">Mes services</h1>
+          <button type="button" onclick="logout()" class="hidden md:block border border-brd text-tx text-sm px-4 py-2 rounded-xl hover:border-muted transition-all">Déconnexion</button>
+        </div>
+        <p class="text-muted text-sm mb-6 max-w-2xl">Publiez et modifiez vos offres ici uniquement : titre, catégorie, description, prix et délai visibles par les clients dans la recherche.</p>
+        <p id="services-count-label" class="text-xs text-muted mb-4"></p>
+
+        <div id="service-form-anchor" class="border border-brd rounded-2xl bg-surface2 px-5 py-5 sm:px-6 sm:py-6 mb-6">
+          <form onsubmit="saveService(event)" class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="md:col-span-2">
+                <label class="block text-xs text-muted font-medium mb-1.5" for="s-titre">Titre du service <span class="text-red-400">*</span></label>
+                <input id="s-titre" required maxlength="200" placeholder="Ex. Mise aux normes tableau électrique résidentiel" class="w-full bg-bg border border-brd rounded-xl px-3 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs text-muted font-medium mb-1.5" for="s-categorie">Catégorie <span class="text-red-400">*</span></label>
+                <select id="s-categorie" required class="w-full bg-bg border border-brd rounded-xl px-3 py-2.5 text-sm appearance-none">
+                  <option value="">Choisir</option>
+                  <option>Développement</option>
+                  <option>Design</option>
+                  <option>Électricité</option>
+                  <option>Plomberie</option>
+                  <option>Mobile App</option>
+                  <option>Photographie</option>
+                  <option>Marketing</option>
+                  <option>Maçonnerie</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-muted font-medium mb-1.5" for="s-delai">Délai affiché</label>
+                <select id="s-delai" class="w-full bg-bg border border-brd rounded-xl px-3 py-2.5 text-sm appearance-none">
+                  <option value="">Non précisé</option>
+                  <option>24 h</option>
+                  <option>48 h</option>
+                  <option>3–5 jours</option>
+                  <option>7 jours</option>
+                  <option>Sous 2 semaines</option>
+                  <option>Sur devis</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-muted font-medium mb-1.5" for="s-prix">Prix indicatif (FCFA)</label>
+                <input id="s-prix" type="number" step="0.01" min="0" placeholder="Optionnel" class="w-full bg-bg border border-brd rounded-xl px-3 py-2.5 text-sm" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs text-muted font-medium mb-1.5" for="s-description">Description détaillée <span class="text-red-400">*</span></label>
+                <textarea id="s-description" required maxlength="10000" placeholder="Ce que vous livrez, prérequis, processus, ce qui est inclus ou non…" class="w-full bg-bg border border-brd rounded-xl px-3 py-2.5 text-sm"></textarea>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button type="submit" id="s-submit" class="bg-accent text-bg font-syne font-bold text-sm px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity">Publier</button>
+              <button type="button" onclick="resetServiceForm()" class="border border-brd text-muted text-sm px-4 py-2.5 rounded-xl hover:text-tx transition-colors">Annuler</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="services-list" class="flex flex-col gap-3"></div>
+      </div>
+
+      <div id="view-profil" class="hidden max-w-3xl">
+        <div class="flex items-start justify-between mb-6">
+          <h1 class="font-syne font-bold text-2xl sm:text-3xl">Mon profil</h1>
+          <button type="button" onclick="logout()" class="hidden md:block border border-brd text-tx text-sm px-4 py-2 rounded-xl hover:border-muted transition-all">Déconnexion</button>
+        </div>
+        <p class="text-muted text-sm mb-6">Photo et informations visibles par les clients après validation.</p>
+
+        <div id="cv-block" class="hidden mb-8 rounded-2xl border border-accent/30 bg-surface2 overflow-hidden ring-1 ring-accent/15">
+          <div class="flex items-start gap-3 border-b border-brd bg-surface px-4 py-3 sm:px-5 sm:py-4">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent" aria-hidden="true">
+              <i class="fa-regular fa-file-pdf text-xl"></i>
+            </span>
+            <div class="min-w-0">
+              <h2 class="font-syne font-bold text-base sm:text-lg text-tx leading-tight">Votre curriculum vitæ (CV)</h2>
+              <p class="text-xs text-muted mt-1.5 leading-relaxed">Fichier <strong class="text-tx/90 font-medium">PDF</strong> envoyé à l’inscription pour vérification — ce n’est pas votre biographie éditable ci-dessous. Le cadre gris foncé affiche directement le document.</p>
+            </div>
+          </div>
+          <div class="p-2 sm:p-3 bg-bg">
+            <iframe id="cv-iframe-inline" title="Votre CV au format PDF" class="w-full h-[min(70vh,720px)] min-h-[280px] rounded-lg border border-brd bg-surface"></iframe>
+          </div>
+          <div class="flex flex-col gap-2 border-t border-brd bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-[11px] text-muted leading-relaxed">Certains navigateurs masquent le PDF dans la page : utilisez alors le lien.</p>
+            <a href="/api/prestataire/cv" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-accent hover:underline">
+              Ouvrir le CV dans un nouvel onglet <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-8 mb-8">
+          <div class="shrink-0">
+            <div id="photo-wrap" class="w-28 h-28 rounded-full border-2 border-brd bg-surface2 overflow-hidden flex items-center justify-center">
+              <span id="photo-fallback" class="font-syne font-bold text-2xl text-accent"></span>
+              <img id="photo-img" src="" alt="" class="hidden w-full h-full object-cover" />
+            </div>
+            <label class="mt-3 inline-block text-xs text-accent font-medium cursor-pointer border border-accent/40 rounded-lg px-3 py-2 hover:bg-accent/10">
+              Changer la photo
+              <input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="uploadPhoto(this)" />
+            </label>
+          </div>
+          <form class="flex-1 space-y-4 min-w-0" onsubmit="saveProfile(event)">
+            <div class="grid grid-cols-2 gap-3">
+              <input id="f-nom" required maxlength="100" placeholder="Nom" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+              <input id="f-prenom" required maxlength="100" placeholder="Prénom" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+            </div>
+            <input id="f-email" type="email" required maxlength="150" placeholder="Email" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+            <input id="f-tel" required maxlength="20" placeholder="Téléphone" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+            <select id="f-loc" required class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl appearance-none">
+              <option value="">Sélectionner</option>
+              <option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option>
+              <option>Abomey-Calavi</option><option>Djougou</option><option>Bohicon</option>
+              <option>Kandi</option><option>Lokossa</option><option>Ouidah</option><option>Autre</option>
+            </select>
+            <textarea id="f-bio" maxlength="5000" rows="5" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" placeholder="Biographie"></textarea>
+            <button type="submit" class="bg-accent text-bg font-syne font-bold text-sm py-3 px-6 rounded-xl hover:opacity-88 transition-opacity">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+
+      <div id="view-messages" class="hidden max-w-4xl">
+        <div class="flex items-start justify-between mb-6">
+          <h1 class="font-syne font-bold text-2xl sm:text-3xl">Messagerie</h1>
+          <button type="button" onclick="logout()" class="hidden md:block border border-brd text-tx text-sm px-4 py-2 rounded-xl hover:border-muted transition-all">Déconnexion</button>
+        </div>
+        <p class="text-muted text-sm mb-6 max-w-2xl leading-relaxed">Demandes initiales des clients pour vos services. Vous pouvez les consulter ici.</p>
+        <div id="list-presta-messages" class="space-y-4"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let lastUser = null;
+    let messagesListLoaded = false;
+    let services = [];
+    let editingId = null;
+
+    async function getCsrfToken() {
+      const r = await fetch('/csrf-token', { headers: { Accept: 'application/json' } });
+      return (await r.json()).token;
+    }
+    async function logout() {
+      const t = await getCsrfToken();
+      const r = await fetch('/logout', { method: 'POST', headers: { 'X-CSRF-TOKEN': t, Accept: 'application/json' } });
+      const d = await r.json();
+      window.location.href = d.redirect || '/login';
+    }
+    function initials(prenom, nom) {
+      return ((prenom && prenom[0] ? prenom[0] : '') + (nom && nom[0] ? nom[0] : '')).toUpperCase() || '?';
+    }
+    function hideMessages() {
+      document.getElementById('msg-ok').classList.add('hidden');
+      document.getElementById('msg-err').classList.add('hidden');
+    }
+    function showOk(m) { const e = document.getElementById('msg-ok'); e.textContent = m; e.classList.remove('hidden'); }
+    function showErr(m) { const e = document.getElementById('msg-err'); e.textContent = m; e.classList.remove('hidden'); }
+
+    function setNavActive(el) {
+      const nav = el.closest('nav');
+      if (!nav) return;
+      nav.querySelectorAll('button.nav-link').forEach(function (l) {
+        l.classList.remove('active-nav', 'font-medium');
+        l.classList.add('text-muted');
+      });
+      el.classList.add('active-nav', 'font-medium');
+      el.classList.remove('text-muted');
+    }
+    function showTableau() {
+      document.getElementById('view-tableau').classList.remove('hidden');
+      document.getElementById('view-profil').classList.add('hidden');
+      document.getElementById('view-services').classList.add('hidden');
+      document.getElementById('view-messages').classList.add('hidden');
+      document.getElementById('mob-title').textContent = 'Tableau de bord';
+    }
+    function loadCvIframeIfNeeded() {
+      if (!lastUser || !lastUser.has_cv) return;
+      var f = document.getElementById('cv-iframe-inline');
+      if (!f || f.getAttribute('data-cv-loaded') === '1') return;
+      f.src = '/api/prestataire/cv?t=' + Date.now();
+      f.setAttribute('data-cv-loaded', '1');
+    }
+    function showProfil() {
+      document.getElementById('view-tableau').classList.add('hidden');
+      document.getElementById('view-services').classList.add('hidden');
+      document.getElementById('view-messages').classList.add('hidden');
+      document.getElementById('view-profil').classList.remove('hidden');
+      document.getElementById('mob-title').textContent = 'Mon profil';
+      loadCvIframeIfNeeded();
+    }
+    function showServicesView() {
+      document.getElementById('view-tableau').classList.add('hidden');
+      document.getElementById('view-profil').classList.add('hidden');
+      document.getElementById('view-messages').classList.add('hidden');
+      document.getElementById('view-services').classList.remove('hidden');
+      document.getElementById('mob-title').textContent = 'Mes services';
+    }
+    function showMessages() {
+      document.getElementById('view-tableau').classList.add('hidden');
+      document.getElementById('view-profil').classList.add('hidden');
+      document.getElementById('view-services').classList.add('hidden');
+      document.getElementById('view-messages').classList.remove('hidden');
+      document.getElementById('mob-title').textContent = 'Messagerie';
+      if (!messagesListLoaded) {
+        messagesListLoaded = true;
+        loadPrestataireMessages();
+      }
+    }
+    function desktopNavTableau(el) {
+      setNavActive(el);
+      showTableau();
+    }
+    function desktopNavProfil(el) {
+      setNavActive(el);
+      showProfil();
+    }
+    function desktopNavServices(el) {
+      setNavActive(el);
+      showServicesView();
+    }
+    function desktopNavMessages(el) {
+      setNavActive(el);
+      showMessages();
+    }
+    function mobNavTableau(el) {
+      setNavActive(el);
+      showTableau();
+      toggleSidebar();
+    }
+    function mobNavProfil(el) {
+      setNavActive(el);
+      showProfil();
+      toggleSidebar();
+    }
+    function mobNavServices(el) {
+      setNavActive(el);
+      showServicesView();
+      toggleSidebar();
+    }
+    function mobNavMessages(el) {
+      setNavActive(el);
+      showMessages();
+      toggleSidebar();
+    }
+    function goServicesFromHome() {
+      const d = document.querySelectorAll('aside.hidden.md\\:flex nav button.nav-link');
+      if (d.length >= 3) {
+        desktopNavServices(d[2]);
+        return;
+      }
+      const m = document.querySelectorAll('#mob-sidebar nav button.nav-link');
+      if (m.length >= 3) mobNavServices(m[2]);
+      else showServicesView();
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('mob-sidebar');
+      const ov = document.getElementById('mob-overlay');
+      const isOpen = !sb.classList.contains('-translate-x-full');
+      sb.classList.toggle('-translate-x-full', isOpen);
+      ov.classList.toggle('hidden', isOpen);
+    }
+
+    function renderPhoto(user) {
+      const img = document.getElementById('photo-img');
+      const fb = document.getElementById('photo-fallback');
+      if (user.photo_url) {
+        img.src = user.photo_url + (user.photo_url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+        img.classList.remove('hidden');
+        fb.classList.add('hidden');
+      } else {
+        img.src = '';
+        img.classList.add('hidden');
+        fb.classList.remove('hidden');
+        fb.textContent = initials(user.prenom, user.nom);
+      }
+    }
+
+    function renderDashboard() {
+      const u = lastUser;
+      if (!u) return;
+      document.getElementById('greeting').textContent = 'Bonjour, ' + (u.prenom || '');
+      const plan = u.plan || 'gratuit';
+      const planTexts = {
+        gratuit: 'Plan gratuit : jusqu\'à 2 services publiés. Complétez votre profil pour améliorer votre visibilité.',
+        starter: 'Plan Starter : jusqu\'à 10 services publiés.',
+        pro: 'Plan Pro : services illimités. Priorité dans les résultats.'
+      };
+      document.getElementById('plan-label').textContent = planTexts[plan] || planTexts.gratuit;
+
+      const banner = document.getElementById('banner-ia');
+      const st = u.statut_verification || 'en_attente';
+      const configs = {
+        valide: {
+          title: 'Dossier validé',
+          desc: 'Votre identité a été vérifiée. Vous pouvez publier vos services et apparaître dans la recherche client.',
+          cls: 'border-accent/60 bg-accent/5'
+        },
+        en_attente: {
+          title: 'Vérification en cours',
+          desc: 'Votre dossier est examiné. Vous serez notifié une fois la décision prise.',
+          cls: 'border-brd bg-surface'
+        },
+        refuse: {
+          title: 'Dossier refusé',
+          desc: (u.motif_refus_ia ? String(u.motif_refus_ia) + ' ' : '') + 'Contactez le support ou soumettez un nouveau dossier si besoin.',
+          cls: 'border-red-500/40 bg-red-900/10'
+        }
+      };
+      const cfg = configs[st] || configs.en_attente;
+      banner.className = 'rounded-2xl px-5 py-4 mb-6 anim-fadeup d3 border ' + cfg.cls;
+      document.getElementById('banner-title').textContent = cfg.title;
+      document.getElementById('banner-desc').textContent = cfg.desc;
+      banner.classList.remove('hidden');
+
+      const max = u.services_max != null ? u.services_max : 2;
+      const act = u.services_actifs != null ? u.services_actifs : services.length;
+      document.getElementById('stat-services').textContent = String(act);
+      document.getElementById('stat-services-sub').textContent = act >= max
+        ? 'Limite du plan atteinte — supprimez une offre dans Mes services pour en ajouter une autre.'
+        : (max - act) + ' emplacement(s) restant(s) — publiez depuis Mes services.';
+      const homeHint = document.getElementById('services-home-hint');
+      if (homeHint) {
+        homeHint.textContent = act === 0
+          ? 'Aucun service en ligne pour l’instant. Vous pouvez en publier jusqu’à ' + max + ' (plan actuel). Utilisez l’onglet Mes services.'
+          : 'Vous avez ' + act + ' service' + (act > 1 ? 's' : '') + ' en ligne (plafond : ' + max + '). Création et modification dans Mes services uniquement.';
+      }
+
+      const msg = u.messages_non_lus != null ? u.messages_non_lus : 0;
+      document.getElementById('stat-messages').textContent = msg;
+      ['badge-msg', 'badge-msg-mob'].forEach(function (bid) {
+        const b = document.getElementById(bid);
+        if (!b) return;
+        if (msg > 0) {
+          b.textContent = String(msg);
+          b.classList.remove('hidden');
+        } else {
+          b.classList.add('hidden');
+        }
+      });
+
+      const note = Number(u.note_moyenne || 0).toFixed(1);
+      document.getElementById('stat-note').textContent = note + ' / 5';
+      const nbAvis = u.nb_avis != null ? u.nb_avis : 0;
+      document.getElementById('stat-note-sub').textContent = nbAvis > 0
+        ? 'Basée sur ' + nbAvis + ' avis'
+        : 'Pas encore d\'avis clients';
+
+      const lbl = document.getElementById('services-count-label');
+      if (lbl) {
+        lbl.textContent = act + ' service' + (act > 1 ? 's' : '') + ' · plan ' + plan + ' (' + act + '/' + max + ')';
+      }
+
+      renderServicesList();
+    }
+
+    function serviceCard(s) {
+      const prix = s.prix_indicatif != null ? Number(s.prix_indicatif).toLocaleString('fr-FR') + ' F' : 'Sur devis';
+      const meta = escapeHtml(s.categorie || '') + ' · ' + prix + (s.delai_execution ? ' · ' + escapeHtml(s.delai_execution) : '');
+      const desc = escapeHtml((s.description || '').slice(0, 220)) + ((s.description || '').length > 220 ? '…' : '');
+      return (
+        '<div class="bg-surface border border-brd rounded-xl px-4 py-4 flex flex-col lg:flex-row lg:items-start gap-4">' +
+        '<div class="flex-1 min-w-0">' +
+        '<p class="font-syne font-semibold text-sm text-tx mb-1">' + escapeHtml(s.titre) + '</p>' +
+        '<p class="text-xs text-muted mb-2">' + meta + '</p>' +
+        '<p class="text-xs text-tx/80 leading-relaxed">' + desc + '</p>' +
+        '</div>' +
+        '<div class="flex items-center gap-4 shrink-0 lg:flex-col lg:items-end">' +
+        '<button type="button" class="text-accent text-sm font-medium hover:opacity-70" onclick="editService(' + s.id + ')">Modifier</button>' +
+        '<button type="button" class="text-red-400/90 text-sm hover:text-red-400" onclick="deleteService(' + s.id + ')">Supprimer</button>' +
+        '</div></div>'
+      );
+    }
+
+    function renderServicesList() {
+      const list = document.getElementById('services-list');
+      if (!services.length) {
+        list.innerHTML = '<p class="text-sm text-muted py-6 text-center border border-dashed border-brd rounded-xl">Aucun service publié. Ajoutez votre première offre ci-dessus.</p>';
+        return;
+      }
+      list.innerHTML = services.map(serviceCard).join('');
+    }
+
+    function updateCvBlock(user) {
+      var b = document.getElementById('cv-block');
+      if (!b) return;
+      if (user && user.has_cv) {
+        b.classList.remove('hidden');
+      } else {
+        b.classList.add('hidden');
+        var f = document.getElementById('cv-iframe-inline');
+        if (f) {
+          f.removeAttribute('data-cv-loaded');
+          f.src = 'about:blank';
+        }
+      }
+    }
+
+    function setUserUI(user) {
+      lastUser = user;
+      renderPhoto(user);
+      updateCvBlock(user);
+      renderDashboard();
+    }
+
+    function fillForm(user) {
+      document.getElementById('f-nom').value = user.nom || '';
+      document.getElementById('f-prenom').value = user.prenom || '';
+      document.getElementById('f-email').value = user.email || '';
+      document.getElementById('f-tel').value = user.telephone || '';
+      document.getElementById('f-bio').value = user.biographie || '';
+      const sel = document.getElementById('f-loc');
+      sel.value = user.localite || '';
+      if (sel.value === '' && user.localite) {
+        const o = document.createElement('option');
+        o.value = user.localite;
+        o.textContent = user.localite;
+        sel.appendChild(o);
+        sel.value = user.localite;
+      }
+    }
+
+    async function uploadPhoto(input) {
+      hideMessages();
+      const f = input.files && input.files[0];
+      input.value = '';
+      if (!f) return;
+      try {
+        const t = await getCsrfToken();
+        const fd = new FormData();
+        fd.append('photo', f);
+        const r = await fetch('/api/prestataire/photo', { method: 'POST', headers: { 'X-CSRF-TOKEN': t, Accept: 'application/json' }, body: fd });
+        const d = await r.json();
+        if (!r.ok) {
+          showErr((d.errors && Object.values(d.errors).flat().join(' ')) || d.message || 'Envoi impossible.');
+          return;
+        }
+        if (lastUser) { lastUser.photo_url = d.photo_url; setUserUI(lastUser); }
+        showOk('Photo mise à jour.');
+      } catch (_) { showErr('Réseau indisponible.'); }
+    }
+
+    async function saveProfile(ev) {
+      ev.preventDefault();
+      hideMessages();
+      const body = {
+        nom: document.getElementById('f-nom').value.trim(),
+        prenom: document.getElementById('f-prenom').value.trim(),
+        email: document.getElementById('f-email').value.trim(),
+        telephone: document.getElementById('f-tel').value.trim(),
+        localite: document.getElementById('f-loc').value.trim(),
+        biographie: document.getElementById('f-bio').value.trim() || null
+      };
+      try {
+        const t = await getCsrfToken();
+        const r = await fetch('/api/prestataire/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': t },
+          body: JSON.stringify(body)
+        });
+        const d = await r.json();
+        if (!r.ok) {
+          showErr((d.errors && Object.values(d.errors).flat().join(' ')) || d.message || 'Erreur.');
+          return;
+        }
+        if (lastUser) { Object.assign(lastUser, body); }
+        showOk(d.message || 'Enregistré.');
+      } catch (_) { showErr('Réseau indisponible.'); }
+    }
+
+    function resetServiceForm() {
+      editingId = null;
+      document.getElementById('s-titre').value = '';
+      document.getElementById('s-categorie').value = '';
+      document.getElementById('s-prix').value = '';
+      document.getElementById('s-delai').value = '';
+      document.getElementById('s-description').value = '';
+      document.getElementById('s-submit').textContent = 'Publier';
+    }
+
+    function editService(id) {
+      const s = services.find(function (x) { return Number(x.id) === Number(id); });
+      if (!s) return;
+      editingId = id;
+      document.getElementById('s-submit').textContent = 'Mettre à jour';
+      document.getElementById('s-titre').value = s.titre || '';
+      document.getElementById('s-categorie').value = s.categorie || '';
+      document.getElementById('s-prix').value = s.prix_indicatif != null ? s.prix_indicatif : '';
+      const del = s.delai_execution || '';
+      const sel = document.getElementById('s-delai');
+      let ok = false;
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === del) { ok = true; break; }
+      }
+      sel.value = ok ? del : '';
+      document.getElementById('s-description').value = s.description || '';
+      showServicesView();
+      const anchor = document.getElementById('service-form-anchor');
+      if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function loadServices() {
+      const r = await fetch('/api/prestataire/services', { headers: { Accept: 'application/json' } });
+      if (!r.ok) return;
+      const d = await r.json();
+      services = d.rows || [];
+      if (lastUser) {
+        lastUser.services_actifs = services.length;
+      }
+      renderDashboard();
+    }
+
+    async function saveService(ev) {
+      ev.preventDefault();
+      hideMessages();
+      const max = lastUser && lastUser.services_max != null ? lastUser.services_max : 2;
+      const isNew = editingId === null;
+      if (isNew && services.length >= max) {
+        showErr('Limite de ' + max + ' services atteinte pour votre plan.');
+        return;
+      }
+      const body = {
+        titre: document.getElementById('s-titre').value.trim(),
+        categorie: document.getElementById('s-categorie').value.trim(),
+        prix_indicatif: document.getElementById('s-prix').value.trim() || null,
+        delai_execution: document.getElementById('s-delai').value.trim() || null,
+        description: document.getElementById('s-description').value.trim()
+      };
+      try {
+        const t = await getCsrfToken();
+        const url = isNew ? '/api/prestataire/services' : '/api/prestataire/services/' + editingId;
+        const r = await fetch(url, {
+          method: isNew ? 'POST' : 'PATCH',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': t },
+          body: JSON.stringify(body)
+        });
+        const d = await r.json();
+        if (!r.ok) {
+          showErr((d.errors && Object.values(d.errors).flat().join(' ')) || d.message || 'Erreur.');
+          return;
+        }
+        showOk(isNew ? 'Service publié.' : 'Service mis à jour.');
+        resetServiceForm();
+        await loadServices();
+      } catch (_) { showErr('Réseau indisponible.'); }
+    }
+
+    async function deleteService(id) {
+      if (!confirm('Supprimer ce service ?')) return;
+      hideMessages();
+      try {
+        const t = await getCsrfToken();
+        const r = await fetch('/api/prestataire/services/' + id, { method: 'DELETE', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': t } });
+        const d = await r.json();
+        if (!r.ok) { showErr(d.message || 'Suppression impossible.'); return; }
+        showOk('Service supprimé.');
+        if (Number(editingId) === Number(id)) resetServiceForm();
+        await loadServices();
+      } catch (_) { showErr('Réseau indisponible.'); }
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s === null || s === undefined ? '' : String(s);
+      return d.innerHTML;
+    }
+
+    async function loadPrestataireMessages() {
+      const box = document.getElementById('list-presta-messages');
+      if (!box) return;
+      box.innerHTML = '<p class="text-sm text-muted">Chargement…</p>';
+      try {
+        const r = await fetch('/api/prestataire/messages', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        const d = await r.json();
+        if (!r.ok || !d.ok) {
+          box.innerHTML = '<p class="text-sm text-muted">Impossible de charger les messages.</p>';
+          return;
+        }
+        if (!d.data || d.data.length === 0) {
+          box.innerHTML = '<p class="text-sm text-muted border border-dashed border-brd rounded-xl p-8 text-center">Aucun message pour l’instant.</p>';
+          return;
+        }
+        box.innerHTML = d.data.map(function (m) {
+          const unread = !m.lu;
+          const badge = unread
+            ? '<span class="shrink-0 text-[10px] font-bold uppercase tracking-wide text-accent bg-accent/15 border border-accent/30 rounded px-2 py-0.5">Nouveau</span>'
+            : '<span class="shrink-0 text-[10px] text-muted">Lu</span>';
+          return (
+            '<article class="rounded-xl border border-brd bg-surface2 p-4 sm:p-5">' +
+            '<div class="flex flex-wrap items-start justify-between gap-2 mb-2">' +
+            '<p class="text-xs text-muted">' + escapeHtml(m.created_at || '') + '</p>' +
+            badge +
+            '</div>' +
+            '<p class="font-syne font-bold text-sm text-tx">' + escapeHtml(m.client_label || '') + '</p>' +
+            '<p class="text-xs text-accent mt-0.5">' + escapeHtml(m.service_titre || '') + '</p>' +
+            '<p class="text-sm text-tx/85 mt-3 leading-relaxed whitespace-pre-wrap">' + escapeHtml(m.contenu_excerpt || '') + '</p>' +
+            '</article>'
+          );
+        }).join('');
+      } catch (_) {
+        box.innerHTML = '<p class="text-sm text-muted">Réseau indisponible.</p>';
+      }
+    }
+
+    async function init() {
+      try {
+        const r = await fetch('/api/prestataire/me', { headers: { Accept: 'application/json' } });
+        if (r.status === 401 || r.status === 403) { window.location.href = '/login'; return; }
+        const user = await r.json();
+        if (!user.ok) { window.location.href = '/login'; return; }
+        setUserUI(user);
+        fillForm(user);
+        await loadServices();
+      } catch (_) {
+        window.location.href = '/login';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

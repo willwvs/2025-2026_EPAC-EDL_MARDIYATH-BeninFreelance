@@ -3,7 +3,10 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\MarketplaceController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PrestataireController;
+use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
@@ -64,8 +67,21 @@ Route::middleware('app.auth:client')->group(function () {
         );
     });
 
+    Route::get('/contact/prestataire/{prestataireId}', function () {
+        return response(
+            File::get(base_path('../contact-prestataire.html')),
+            200,
+            ['Content-Type' => 'text/html']
+        );
+    })->whereNumber('prestataireId');
+
     Route::get('/api/client/me', [ClientController::class, 'me']);
     Route::patch('/api/client/profile', [ClientController::class, 'updateProfile']);
+    Route::get('/api/client/prestataires/{id}', [ClientController::class, 'prestataireProfil'])->whereNumber('id');
+    Route::get('/api/client/prestataires/{id}/cv', [ClientController::class, 'prestataireCv'])->whereNumber('id');
+    Route::get('/api/client/contact-context', [MessageController::class, 'contactContext']);
+    Route::get('/api/client/messages', [MessageController::class, 'indexClient']);
+    Route::post('/api/client/messages', [MessageController::class, 'storeFirstContact']);
 });
 
 Route::middleware('app.auth:prestataire')->group(function () {
@@ -78,8 +94,14 @@ Route::middleware('app.auth:prestataire')->group(function () {
     });
 
     Route::get('/api/prestataire/me', [PrestataireController::class, 'me']);
+    Route::get('/api/prestataire/cv', [PrestataireController::class, 'myCv']);
     Route::patch('/api/prestataire/profile', [PrestataireController::class, 'updateProfile']);
     Route::post('/api/prestataire/photo', [PrestataireController::class, 'uploadPhoto']);
+    Route::get('/api/prestataire/services', [ServiceController::class, 'indexMine']);
+    Route::post('/api/prestataire/services', [ServiceController::class, 'store']);
+    Route::patch('/api/prestataire/services/{id}', [ServiceController::class, 'update']);
+    Route::delete('/api/prestataire/services/{id}', [ServiceController::class, 'destroy']);
+    Route::get('/api/prestataire/messages', [MessageController::class, 'indexPrestataire']);
 });
 
 Route::get('/profil-prestataire', function () {
@@ -101,6 +123,22 @@ Route::get('/profil-client.html', function () {
 Route::get('/dashboard-client.html', function () {
     return redirect('/dashboard/client');
 });
+
+Route::get('/prestataires/{id}', function () {
+    return response(
+        File::get(base_path('../prestataire-teaser.html')),
+        200,
+        ['Content-Type' => 'text/html']
+    );
+})->whereNumber('id');
+
+Route::get('/prestataires/{id}/profil', function () {
+    return response(
+        File::get(base_path('../prestataire-public.html')),
+        200,
+        ['Content-Type' => 'text/html']
+    );
+})->whereNumber('id');
 
 Route::get('/assets/{path}', function (string $path) {
     $fullPath = base_path('../assets/' . $path);
@@ -129,6 +167,11 @@ Route::get('/api/profile', function () {
         'name' => session('auth_name'),
     ]);
 });
+
+Route::get('/api/marketplace/meta', [MarketplaceController::class, 'meta']);
+Route::get('/api/marketplace/prestataires', [MarketplaceController::class, 'searchPrestataires']);
+Route::get('/api/prestataires/{id}/teaser', [MarketplaceController::class, 'teaser'])->whereNumber('id');
+Route::get('/api/prestataires/{id}/public', [MarketplaceController::class, 'publicProfile'])->whereNumber('id');
 
 Route::post('/register/client', [AuthController::class, 'registerClient'])->name('register.client');
 Route::post('/register/prestataire', [AuthController::class, 'registerPrestataire'])->name('register.prestataire');

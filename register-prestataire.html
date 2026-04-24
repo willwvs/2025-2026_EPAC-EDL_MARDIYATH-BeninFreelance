@@ -205,7 +205,7 @@
           </div>
           <div class="flex gap-3">
             <button onclick="goStep(3)" class="flex-1 border border-brd text-muted text-sm py-3 rounded-xl hover:border-muted hover:text-tx transition-all">← Retour</button>
-            <button onclick="submit()" class="flex-[2] bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 transition-opacity">Soumettre mon dossier</button>
+            <button type="button" id="btn-dossier" onclick="submit()" class="flex-[2] bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 transition-opacity disabled:opacity-60 disabled:cursor-wait">Soumettre mon dossier</button>
           </div>
         </div>
 
@@ -285,6 +285,10 @@
       if(pwd!==pwd2){showErr('Les mots de passe ne correspondent pas.');return;}
       if(!document.getElementById('cgv').checked){showErr("Veuillez accepter les conditions d'utilisation.");return;}
 
+      const btn=document.getElementById('btn-dossier');
+      const btnLabel=btn.textContent;
+      btn.disabled=true; btn.textContent='Envoi en cours…'; btn.classList.add('animate-pulse');
+
       const cvFile=document.getElementById('fcv').files[0];
       const idFile=document.getElementById('fid').files[0];
       const formData=new FormData();
@@ -310,10 +314,11 @@
         });
 
         const data=await res.json();
-        if(!res.ok){showErr(data.message||'Inscription impossible.');return;}
+        if(!res.ok){showErr(data.message||'Inscription impossible.');btn.disabled=false;btn.textContent=btnLabel;btn.classList.remove('animate-pulse');return;}
         goStep(5);
       }catch(_){
         showErr('Erreur reseau. Reessayez.');
+        btn.disabled=false;btn.textContent=btnLabel;btn.classList.remove('animate-pulse');
       }
     }
 

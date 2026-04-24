@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contacter le prestataire — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne','sans-serif'] },
+          colors: {
+            bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+            brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8',
+            muted: '#7A7A9A', ok: '#2ECC71'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    input, textarea { outline: none; }
+    input:focus, textarea:focus { border-color: #F5A623 !important; box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1); }
+    textarea { resize: vertical; min-height: 120px; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .anim-fade { animation: fadeIn .45s ease both; }
+    .anim-up { animation: slideUp .5s ease both; }
+  </style>
+</head>
+<body class="bg-bg text-tx min-h-screen flex items-start md:items-center justify-center px-4 py-10">
+
+  <div class="w-full max-w-xl bg-surface border border-brd rounded-2xl px-6 py-8 sm:px-8 sm:py-10 anim-up">
+    <p class="text-muted text-sm mb-4">
+      <a href="/dashboard/client" class="text-accent hover:underline">← Retour recherche</a>
+    </p>
+
+    <div id="load-err" class="hidden rounded-xl border border-red-500/30 bg-red-900/20 text-red-300 text-sm px-4 py-3 mb-4"></div>
+
+    <div id="panel-form" class="hidden">
+      <p class="text-muted text-sm mb-4">Votre demande est envoyée au prestataire pour le service indiqué.</p>
+
+      <h1 class="font-syne font-extrabold text-2xl sm:text-3xl leading-tight mb-6">
+        Contacter le prestataire
+      </h1>
+
+      <div class="bg-surface2 border border-brd rounded-xl px-4 py-3 mb-2">
+        <p class="text-xs text-muted mb-1">Prestataire</p>
+        <p id="ctx-presta" class="font-syne font-bold text-sm text-tx"></p>
+      </div>
+      <div class="bg-surface2 border border-brd rounded-xl px-4 py-3 mb-6">
+        <p class="text-xs text-muted mb-1">Service concerné</p>
+        <p id="ctx-svc" class="font-syne font-bold text-accent text-sm"></p>
+      </div>
+
+      <div id="identity-box" class="rounded-xl border border-brd/80 bg-bg/40 px-4 py-3 mb-6 text-sm text-tx/90">
+        <p class="text-xs text-muted mb-1">Vous écrivez en tant que</p>
+        <p id="identity-line" class="font-medium"></p>
+      </div>
+
+      <form id="contact-form" novalidate class="space-y-4">
+        <div id="js-errors" class="hidden bg-red-900/30 border border-red-500/30 text-red-400 text-xs px-4 py-3 rounded-xl"></div>
+        <div id="js-ok" class="hidden border border-ok/30 bg-ok/10 text-ok text-sm px-4 py-3 rounded-xl"></div>
+
+        <div>
+          <label for="objet" class="block text-sm text-tx mb-1.5">Objet <span class="text-muted font-normal">(optionnel)</span></label>
+          <input type="text" id="objet" maxlength="200" placeholder="Ex. : Devis tableau électrique"
+            class="w-full bg-surface2 border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder:text-muted/70"/>
+        </div>
+        <div>
+          <label for="contenu" class="block text-sm text-tx mb-1.5">Message <span class="text-red-400">*</span></label>
+          <textarea id="contenu" rows="6" required minlength="10" maxlength="8000"
+            placeholder="Décrivez votre besoin, le délai souhaité, les contraintes d’accès…"
+            class="w-full bg-surface2 border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder:text-muted/70"></textarea>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-3 pt-2">
+          <a href="/dashboard/client" class="w-full sm:w-auto border border-brd text-tx text-sm font-medium px-6 py-3 rounded-xl hover:border-muted hover:text-muted transition-all text-center">
+            Annuler
+          </a>
+          <button type="submit" id="btn-send" class="w-full sm:flex-1 bg-accent text-bg font-syne font-bold text-sm py-3 px-6 rounded-xl hover:opacity-90 transition-opacity text-center disabled:opacity-50 disabled:cursor-not-allowed">
+            Envoyer la demande
+          </button>
+        </div>
+
+        <p class="text-xs text-muted leading-relaxed pt-2">
+          Les coordonnées de votre compte sont jointes au message pour le prestataire.
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      function escapeHtml(s) {
+        var d = document.createElement('div');
+        d.textContent = s === null || s === undefined ? '' : String(s);
+        return d.innerHTML;
+      }
+      function prestataireIdFromPath() {
+        var m = location.pathname.match(/\/contact\/prestataire\/(\d+)/);
+        return m ? parseInt(m[1], 10) : 0;
+      }
+      function serviceIdFromQuery() {
+        var p = new URLSearchParams(location.search);
+        var v = parseInt(p.get('service') || '0', 10);
+        return v > 0 ? v : 0;
+      }
+      async function getCsrfToken() {
+        var res = await fetch('/csrf-token', { headers: { Accept: 'application/json' } });
+        var j = await res.json();
+        return j.token;
+      }
+      function showErr(id, msg) {
+        var el = document.getElementById(id);
+        el.textContent = msg;
+        el.classList.remove('hidden');
+      }
+      function hideEl(id) {
+        document.getElementById(id).classList.add('hidden');
+      }
+
+      document.getElementById('contact-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        hideEl('js-errors');
+        hideEl('js-ok');
+        var pid = prestataireIdFromPath();
+        var sid = serviceIdFromQuery();
+        var objet = document.getElementById('objet').value.trim();
+        var contenu = document.getElementById('contenu').value.trim();
+        var errs = [];
+        if (!contenu || contenu.length < 10) errs.push('Le message doit faire au moins 10 caractères.');
+        if (errs.length) {
+          document.getElementById('js-errors').innerHTML = errs.map(function (x) { return '<p>' + escapeHtml(x) + '</p>'; }).join('');
+          document.getElementById('js-errors').classList.remove('hidden');
+          return;
+        }
+        var btn = document.getElementById('btn-send');
+        btn.disabled = true;
+        try {
+          var t = await getCsrfToken();
+          var r = await fetch('/api/client/messages', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': t,
+            },
+            body: JSON.stringify({
+              prestataire_id: pid,
+              service_id: sid,
+              objet: objet || null,
+              contenu: contenu,
+            }),
+          });
+          var d = await r.json();
+          if (!r.ok || !d.ok) {
+            document.getElementById('js-errors').innerHTML = '<p>' + escapeHtml(d.message || (d.errors && Object.values(d.errors).flat().join(' ')) || 'Envoi impossible.') + '</p>';
+            document.getElementById('js-errors').classList.remove('hidden');
+            btn.disabled = false;
+            return;
+          }
+          document.getElementById('js-ok').textContent = d.message || 'Message envoyé.';
+          document.getElementById('js-ok').classList.remove('hidden');
+          document.getElementById('contenu').value = '';
+          document.getElementById('objet').value = '';
+          setTimeout(function () { window.location.href = '/dashboard/client'; }, 1600);
+        } catch (_) {
+          document.getElementById('js-errors').innerHTML = '<p>Réseau indisponible.</p>';
+          document.getElementById('js-errors').classList.remove('hidden');
+          btn.disabled = false;
+        }
+      });
+
+      async function boot() {
+        var pid = prestataireIdFromPath();
+        var sid = serviceIdFromQuery();
+        if (pid < 1) {
+          showErr('load-err', 'Lien invalide.');
+          return;
+        }
+        if (sid < 1) {
+          window.location.replace('/prestataires/' + pid);
+          return;
+        }
+        try {
+          var rMe = await fetch('/api/client/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+          if (rMe.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+          var me = await rMe.json();
+          if (!me.ok) {
+            window.location.href = '/login';
+            return;
+          }
+          document.getElementById('identity-line').textContent =
+            (me.prenom || '') + ' ' + (me.nom || '') + ' · ' + (me.email || '');
+        } catch (_) {
+          window.location.href = '/login';
+          return;
+        }
+        try {
+          var url = '/api/client/contact-context?prestataire_id=' + encodeURIComponent(String(pid)) + '&service_id=' + encodeURIComponent(String(sid));
+          var r = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+          var d = await r.json();
+          if (!r.ok || !d.ok) {
+            showErr('load-err', d.message || 'Impossible de charger ce contact.');
+            return;
+          }
+          var pr = d.prestataire;
+          var sv = d.service;
+          document.getElementById('ctx-presta').textContent = (pr.prenom || '') + ' ' + (pr.nom || '') + (pr.localite ? ' · ' + pr.localite : '');
+          var svcLine = (sv.titre || '') + (sv.categorie ? ' — ' + sv.categorie : '');
+          if (sv.delai_execution) svcLine += ' · ' + sv.delai_execution;
+          if (sv.prix_indicatif != null) svcLine += ' · ' + Number(sv.prix_indicatif).toLocaleString('fr-FR') + ' F';
+          document.getElementById('ctx-svc').textContent = svcLine;
+          document.getElementById('panel-form').classList.remove('hidden');
+        } catch (_) {
+          showErr('load-err', 'Réseau indisponible.');
+        }
+      }
+      document.addEventListener('DOMContentLoaded', boot);
+    })();
+  </script>
+</body>
+</html>

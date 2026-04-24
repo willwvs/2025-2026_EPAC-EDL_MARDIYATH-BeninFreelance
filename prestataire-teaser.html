@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <script>tailwind.config={theme:{extend:{fontFamily:{syne:['Syne','sans-serif']},colors:{bg:'#0A0A0F',surface:'#13131A',surface2:'#1C1C27',brd:'#2A2A3D',accent:'#F5A623',tx:'#F0EDE8',muted:'#7A7A9A'}}}};</script>
+  <style>body{font-family:'DM Sans',sans-serif}</style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+  <header class="border-b border-brd bg-surface/80 backdrop-blur-sm sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <a href="/dashboard/client" class="text-xs text-muted hover:text-accent transition-colors">← Retour recherche</a>
+      <span class="text-[11px] text-muted uppercase tracking-wide hidden sm:inline">Aperçu profil</span>
+    </div>
+  </header>
+  <main class="max-w-5xl mx-auto px-4 py-8 sm:py-10">
+    <div id="root"></div>
+  </main>
+  <script>
+    function escapeHtml(s){const d=document.createElement('div');d.textContent=s===null||s===undefined?'':String(s);return d.innerHTML;}
+    function initials(p,n){return ((p&&p[0]?p[0]:'')+(n&&n[0]?n[0]:'')).toUpperCase()||'?';}
+    function abbrev(p,n){const pr=(p||'').trim();const nm=(n||'').trim().split(/\s+/)[0];return pr+(nm?' '+nm[0]+'.':'');}
+    function getId(){const m=location.pathname.match(/\/prestataires\/(\d+)/);return m?m[1]:null;}
+    async function init(){
+      const id=getId();if(!id)return;
+      var isClient=false;
+      try{var rc=await fetch('/api/client/me',{credentials:'same-origin',headers:{Accept:'application/json'}});if(rc.ok){var u=await rc.json();isClient=!!(u&&u.ok);}}catch(_){}
+      const r=await fetch('/api/prestataires/'+id+'/teaser',{headers:{Accept:'application/json'}});
+      const root=document.getElementById('root');
+      if(!r.ok){root.innerHTML='<p class="text-sm text-muted border border-brd rounded-xl p-6 bg-surface">Profil introuvable.</p>';return;}
+      const d=await r.json();const p=d.prestataire;const services=d.services||[];
+      const note=Number(p.note_moyenne||0).toFixed(1).replace('.',',');
+      const avisTxt=p.nb_avis>0?note+' · '+p.nb_avis+' avis':note+' · nouveau';
+      const bioShow=((p.biographie_preview!=null&&p.biographie_preview!=='')?String(p.biographie_preview):(p.biographie||'').trim().slice(0,220)+(p.biographie&&p.biographie.length>220?'…':''))||'';
+      const photo=p.photo_url
+        ?'<img src="'+escapeHtml(p.photo_url)+'" alt="" class="w-full max-w-[200px] sm:max-w-none mx-auto sm:mx-0 aspect-square sm:w-44 sm:h-44 rounded-2xl object-cover border border-brd shadow-lg"/>'
+        :'<div class="w-full max-w-[200px] aspect-square sm:w-44 sm:h-44 mx-auto sm:mx-0 rounded-2xl border border-brd bg-accent/10 flex items-center justify-center font-syne font-bold text-4xl text-accent">'+escapeHtml(initials(p.prenom,p.nom))+'</div>';
+      const svcRows=services.length?services.map(function(s){
+        const prix=s.prix_indicatif!=null?Number(s.prix_indicatif).toLocaleString('fr-FR')+' F':'Sur devis';
+        const msg=isClient&&s.id?'<a href="/contact/prestataire/'+id+'?service='+encodeURIComponent(String(s.id))+'" class="inline-flex mt-3 items-center justify-center rounded-lg border border-accent/50 text-accent text-xs font-bold px-3 py-1.5 hover:bg-accent/10 transition-colors">Message</a>':'';
+        return '<div class="border border-brd rounded-xl p-4 bg-surface hover:border-accent/30 transition-colors">'+
+          '<p class="font-syne font-bold text-sm text-tx">'+escapeHtml(s.titre)+'</p>'+
+          '<p class="text-xs text-muted mt-1">'+escapeHtml(s.categorie||'')+' · '+escapeHtml(prix)+(s.delai_execution?' · '+escapeHtml(s.delai_execution):'')+'</p>'+
+          '<p class="text-sm text-tx/85 mt-2 leading-relaxed">'+escapeHtml(s.description_excerpt||'')+'</p>'+msg+'</div>';
+      }).join(''):'<p class="text-sm text-muted">Aucun service publié pour le moment.</p>';
+      root.innerHTML=
+        '<div class="rounded-2xl border border-brd bg-surface2 overflow-hidden">'+
+        '<div class="grid grid-cols-1 md:grid-cols-[minmax(0,220px)_1fr] gap-0 md:gap-0">'+
+        '<div class="p-6 sm:p-8 bg-surface border-b md:border-b-0 md:border-r border-brd flex flex-col items-center md:items-start">'+photo+
+        '<p class="mt-4 text-xs text-muted text-center md:text-left">'+escapeHtml(p.localite||'')+'</p>'+
+        '<p class="text-sm text-muted mt-1">'+escapeHtml(avisTxt)+'</p>'+
+        '<p class="text-xs text-muted mt-3">'+Number(p.services_count||0)+' service(s) listé(s) publiquement</p></div>'+
+        '<div class="p-6 sm:p-8 min-w-0">'+
+        '<div class="flex flex-wrap items-center gap-2 mb-2">'+
+        '<h1 class="font-syne font-bold text-2xl sm:text-3xl">'+escapeHtml(abbrev(p.prenom,p.nom))+'</h1>'+
+        '<span class="text-[11px] font-bold uppercase text-accent bg-accent/10 border border-accent/25 rounded px-1.5 py-0.5">Vérifié</span></div>'+
+        '<p class="text-sm text-tx/85 leading-relaxed mb-6 whitespace-pre-wrap">'+escapeHtml(bioShow||'Ce prestataire n’a pas encore renseigné de biographie.')+'</p>'+
+        '<h2 class="font-syne font-bold text-lg mb-3">Services</h2>'+
+        '<div class="space-y-3 mb-6">'+svcRows+'</div>'+
+        '<a href="'+escapeHtml(d.profil_complet_url)+'" class="inline-flex items-center justify-center rounded-xl bg-accent text-bg font-syne font-bold text-sm px-6 py-3 hover:opacity-90 transition-opacity">Voir le profil complet</a>'+
+        '</div></div></div>';
+    }
+    document.addEventListener('DOMContentLoaded',init);
+  </script>
+</body>
+</html>

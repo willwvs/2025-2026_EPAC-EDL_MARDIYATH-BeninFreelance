@@ -1,5 +1,5 @@
 /**
- * Commun aux pages profil-client et profil-prestataire (session + déconnexion).
+ * Ancienne aide « profil » (session + déconnexion). Les espaces client / prestataire passent par dashboard-*.html.
  */
 (function () {
   async function initProfile() {

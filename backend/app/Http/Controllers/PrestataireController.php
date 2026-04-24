@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class PrestataireController extends Controller
@@ -22,6 +23,18 @@ class PrestataireController extends Controller
             $photoUrl = '/'.ltrim((string) $row->photo_profil, '/');
         }
 
+        $nbAvis = 0;
+        if (Schema::hasTable('avis')) {
+            $nbAvis = (int) DB::table('avis')->where('prestataire_id', $id)->count();
+        }
+        $messagesNonLus = 0;
+        if (Schema::hasTable('messages')) {
+            $messagesNonLus = (int) DB::table('messages')->where('prestataire_id', $id)->where('lu', 0)->count();
+        }
+        $servicesActifs = (int) DB::table('services')->where('prestataire_id', $id)->count();
+
+        $hasCv = ! empty($row->chemin_cv) && Storage::disk('local')->exists((string) $row->chemin_cv);
+
         return response()->json([
             'ok' => true,
             'nom' => $row->nom,
@@ -31,7 +44,33 @@ class PrestataireController extends Controller
             'localite' => $row->localite,
             'biographie' => $row->biographie,
             'statut_verification' => $row->statut_verification ?? 'en_attente',
+            'motif_refus_ia' => $row->motif_refus_ia ?? null,
             'photo_url' => $photoUrl,
+            'note_moyenne' => (float) ($row->note_moyenne ?? 0),
+            'nb_avis' => $nbAvis,
+            'messages_non_lus' => $messagesNonLus,
+            'services_actifs' => $servicesActifs,
+            'plan' => 'gratuit',
+            'services_max' => 2,
+            'has_cv' => $hasCv,
+            'cv_preview_url' => $hasCv ? '/api/prestataire/cv' : null,
+        ]);
+    }
+
+    /**
+     * CV déposé à l'inscription — lecture réservée au prestataire connecté (prévisualisation navigateur).
+     */
+    public function myCv(Request $request)
+    {
+        $id = (int) $request->session()->get('auth_id');
+        $row = DB::table('prestataires')->where('id', $id)->first();
+        if (! $row || empty($row->chemin_cv) || ! Storage::disk('local')->exists((string) $row->chemin_cv)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->response((string) $row->chemin_cv, 'mon-cv.pdf', [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="mon-cv.pdf"',
         ]);
     }
 

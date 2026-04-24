@@ -1,48 +1,142 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="utf-8" />
-  <title>Admin — vérification prestataires</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne', 'sans-serif'] },
+          colors: {
+            bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+            brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8', muted: '#7A7A9A',
+            ok: '#2ECC71', danger: '#E74C3C', warn: '#F5A623'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    input { outline: none; }
+    input:focus { border-color: #F5A623 !important; }
+  </style>
 </head>
-<body style="font-family:Arial;padding:24px;max-width:900px">
-  <div id="login-block">
-    <h2>Admin — connexion</h2>
-    <p style="color:#666;font-size:14px">Espace séparé de l’application (mot de passe dans <code>.env</code>).</p>
-    <p id="login-err" style="color:#b00020;display:none"></p>
-    <label>Mot de passe<br><input id="admin-pw" type="password" style="width:100%;max-width:320px;padding:8px;margin-top:4px" /></label><br /><br />
-    <button type="button" onclick="doLogin()">Entrer</button>
+
+<body class="bg-bg text-tx min-h-screen">
+
+  <!-- Vue connexion (Figma : admin.html — Connexion — Desktop) -->
+  <div id="login-block" class="min-h-screen flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md border border-brd bg-surface rounded-2xl p-8 sm:p-10 shadow-xl shadow-black/20">
+      <h1 class="font-syne font-bold text-2xl sm:text-[24px] mb-2">Admin — connexion</h1>
+      <p class="text-muted text-sm mb-1">Espace séparé de l'application</p>
+      <p class="text-muted text-xs mb-6">Mot de passe défini dans <code class="text-accent/90">.env</code> (<span class="opacity-80">ADMIN_PASSWORD</span>).</p>
+      <p id="login-err" class="hidden text-sm text-danger mb-4">Connexion refusée</p>
+      <label class="block text-xs font-medium text-muted mb-1.5" for="admin-pw">Mot de passe</label>
+      <input id="admin-pw" type="password" autocomplete="current-password"
+        class="w-full bg-bg border border-brd rounded-xl px-4 py-3 text-sm text-tx placeholder-muted mb-6" />
+      <button type="button" onclick="doLogin()"
+        class="w-full bg-accent text-bg font-bold text-[15px] py-3 rounded-xl hover:opacity-90 transition-opacity">
+        Entrer
+      </button>
+    </div>
   </div>
 
-  <div id="panel" style="display:none">
-    <h2>Admin — dossiers prestataires</h2>
-    <p><button type="button" onclick="doLogout()">Déconnexion</button></p>
-    <div id="list-wrap">
-      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;font-size:14px;width:100%">
-        <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Statut</th><th></th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-    <hr />
-    <div id="detail" style="display:none">
-      <p><button type="button" onclick="closeDetail()">← Liste</button></p>
-      <h3 id="d-title"></h3>
-      <p id="d-infos"></p>
-      <p><strong>Motif (comité / validation) :</strong><br /><span id="d-motif"></span></p>
-      <p>
-        <a id="d-cv" href="#" target="_blank">Voir CV</a> ·
-        <a id="d-id" href="#" target="_blank">Voir pièce d’identité</a>
-      </p>
-      <hr />
-      <h4>Actions manuelles</h4>
-      <button type="button" onclick="doValider()">Valider</button>
-      <input id="ref-motif" type="text" placeholder="Motif (générique)" style="width:240px;padding:6px;margin-left:8px" />
-      <button type="button" onclick="doRefuser()">Refuser</button>
+  <!-- Vue panneau (Figma : admin.html — Panneau global — Desktop) -->
+  <div id="panel" class="hidden min-h-screen flex flex-col md:flex-row">
+
+    <aside class="hidden md:flex flex-col w-[280px] shrink-0 bg-surface border-r border-brd py-6 px-4 md:sticky md:top-0 md:h-screen">
+      <a href="/" class="font-syne font-extrabold text-[17px] mb-1">Bénin<span class="text-accent">Freelance</span></a>
+      <p class="text-[11px] text-muted font-medium mb-6 px-0.5">Espace administration</p>
+      <nav>
+        <div class="relative pl-4 py-2 rounded-lg bg-surface2 border-l-[3px] border-accent">
+          <span class="text-sm font-bold text-tx">Vérification dossiers</span>
+        </div>
+      </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="md:hidden flex items-center justify-between px-4 py-3 border-b border-brd bg-surface">
+        <a href="/" class="font-syne font-extrabold text-base">Bénin<span class="text-accent">Freelance</span></a>
+        <span class="text-[10px] text-muted uppercase tracking-wide">Admin</span>
+      </header>
+
+      <main class="flex-1 px-4 sm:px-6 lg:px-10 py-6 sm:py-8 max-w-6xl w-full mx-auto">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+          <h2 class="font-syne font-bold text-xl sm:text-[22px] leading-tight">Admin — dossiers prestataires</h2>
+          <button type="button" onclick="doLogout()"
+            class="shrink-0 text-[13px] font-medium text-muted border border-brd px-4 py-2 rounded-xl hover:border-muted hover:text-tx transition-colors w-fit">
+            Déconnexion
+          </button>
+        </div>
+
+        <div id="list-wrap" class="border border-brd rounded-xl overflow-hidden bg-surface">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead>
+                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                  <th class="px-4 py-3 whitespace-nowrap">ID</th>
+                  <th class="px-4 py-3 whitespace-nowrap">Nom</th>
+                  <th class="px-4 py-3 whitespace-nowrap">Email</th>
+                  <th class="px-4 py-3 whitespace-nowrap">Statut</th>
+                  <th class="px-4 py-3 whitespace-nowrap w-28"></th>
+                </tr>
+              </thead>
+              <tbody id="rows" class="divide-y divide-brd"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="detail" class="hidden mt-8 border border-brd rounded-xl bg-surface p-6 sm:p-8">
+          <button type="button" onclick="closeDetail()"
+            class="text-sm font-medium text-muted hover:text-accent mb-6">← Liste</button>
+
+          <h3 id="d-title" class="font-syne font-bold text-xl sm:text-[22px] mb-4"></h3>
+          <p id="d-infos" class="text-sm text-tx/90 leading-relaxed mb-6 whitespace-pre-line"></p>
+
+          <p class="text-sm font-bold mb-1">Motif (comité / validation) :</p>
+          <p id="d-motif" class="text-sm text-muted mb-6"></p>
+
+          <p class="text-sm font-bold mb-2">
+            <a id="d-cv" href="#" target="_blank" rel="noopener" class="text-accent hover:underline">Voir CV</a>
+            <span class="text-muted font-normal mx-1">·</span>
+            <a id="d-id" href="#" target="_blank" rel="noopener" class="text-accent hover:underline">Voir pièce d'identité</a>
+          </p>
+
+          <hr class="border-brd my-8" />
+
+          <h4 class="text-[15px] font-bold mb-4">Actions manuelles</h4>
+          <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center">
+            <button type="button" onclick="doValider()"
+              class="bg-accent text-bg font-bold text-sm py-2.5 px-5 rounded-xl hover:opacity-90">Valider</button>
+            <input id="ref-motif" type="text" placeholder="Motif (générique)"
+              class="flex-1 min-w-[200px] bg-bg border border-brd rounded-xl px-4 py-2.5 text-sm" />
+            <button type="button" onclick="doRefuser()"
+              class="border border-brd text-tx font-bold text-sm py-2.5 px-5 rounded-xl hover:border-danger hover:text-danger transition-colors">
+              Refuser
+            </button>
+          </div>
+        </div>
+      </main>
     </div>
   </div>
 
   <script>
     let csrf = '';
     let currentId = null;
+
+    function formatStatut(raw) {
+      const s = (raw || '').toLowerCase();
+      if (s === 'en_attente') return { label: 'En attente', cls: 'text-warn border-warn/30 bg-warn/10' };
+      if (s === 'valide') return { label: 'Validé', cls: 'text-ok border-ok/30 bg-ok/10' };
+      if (s === 'refuse') return { label: 'Refusé', cls: 'text-danger border-danger/30 bg-danger/10' };
+      return { label: raw || '—', cls: 'text-muted border-brd bg-surface2' };
+    }
 
     async function getCsrf() {
       const r = await fetch('/csrf-token', { headers: { Accept: 'application/json' } });
@@ -70,30 +164,31 @@
     }
 
     function showLogin() {
-      document.getElementById('login-block').style.display = 'block';
-      document.getElementById('panel').style.display = 'none';
+      document.getElementById('login-block').classList.remove('hidden');
+      document.getElementById('panel').classList.add('hidden');
     }
 
     async function showPanel() {
       await getCsrf();
-      document.getElementById('login-block').style.display = 'none';
-      document.getElementById('panel').style.display = 'block';
-      document.getElementById('detail').style.display = 'none';
-      document.getElementById('list-wrap').style.display = 'block';
+      document.getElementById('login-block').classList.add('hidden');
+      document.getElementById('panel').classList.remove('hidden');
+      document.getElementById('detail').classList.add('hidden');
+      document.getElementById('list-wrap').classList.remove('hidden');
       await loadList();
       const q = new URLSearchParams(location.search).get('id');
       if (q) openDetail(parseInt(q, 10));
     }
 
     async function doLogin() {
-      document.getElementById('login-err').style.display = 'none';
+      const err = document.getElementById('login-err');
+      err.classList.add('hidden');
       await getCsrf();
       const pw = document.getElementById('admin-pw').value;
       const r = await api('/admin/login', { method: 'POST', body: { password: pw } });
       const d = await r.json();
       if (!r.ok || !d.ok) {
-        document.getElementById('login-err').textContent = d.message || 'Connexion refusée';
-        document.getElementById('login-err').style.display = 'block';
+        err.textContent = d.message || 'Connexion refusée';
+        err.classList.remove('hidden');
         return;
       }
       await showPanel();
@@ -112,22 +207,29 @@
       const tb = document.getElementById('rows');
       tb.innerHTML = '';
       (d.rows || []).forEach(function (x) {
+        const st = formatStatut(x.statut);
         const tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface2/50 transition-colors';
         tr.innerHTML =
-          '<td>' + x.id + '</td>' +
-          '<td>' + escapeHtml(x.nom_complet) + '</td>' +
-          '<td>' + escapeHtml(x.email) + '</td>' +
-          '<td>' + escapeHtml(x.statut) + '</td>' +
-          '<td><button type="button">Détail</button></td>';
+          '<td class="px-4 py-3 whitespace-nowrap text-sm">' + x.id + '</td>' +
+          '<td class="px-4 py-3 text-sm">' + escapeHtml(x.nom_complet) + '</td>' +
+          '<td class="px-4 py-3 text-sm text-muted">' + escapeHtml(x.email) + '</td>' +
+          '<td class="px-4 py-3"><span class="inline-block text-xs px-2 py-0.5 rounded-full border ' + st.cls + '">' + escapeHtml(st.label) + '</span></td>' +
+          '<td class="px-4 py-3"><button type="button" class="text-[13px] font-medium text-accent hover:underline">Détail</button></td>';
         tr.querySelector('button').onclick = function () { openDetail(x.id); };
         tb.appendChild(tr);
       });
     }
 
     function escapeHtml(s) {
-      const d = document.createElement('div');
-      d.textContent = s;
-      return d.innerHTML;
+      const el = document.createElement('div');
+      el.textContent = s;
+      return el.innerHTML;
+    }
+
+    function statutLabel(code) {
+      const st = formatStatut(code);
+      return st.label;
     }
 
     async function openDetail(id) {
@@ -137,13 +239,13 @@
       if (!r.ok) return;
       const d = await r.json();
       const p = d.prestataire;
-      document.getElementById('list-wrap').style.display = 'none';
-      document.getElementById('detail').style.display = 'block';
+      document.getElementById('list-wrap').classList.add('hidden');
+      document.getElementById('detail').classList.remove('hidden');
       document.getElementById('d-title').textContent = 'Prestataire #' + p.id;
-      document.getElementById('d-infos').innerHTML =
-        '<strong>Nom :</strong> ' + escapeHtml(p.prenom + ' ' + p.nom) + '<br />' +
-        '<strong>Email :</strong> ' + escapeHtml(p.email) + '<br />' +
-        '<strong>Statut :</strong> ' + escapeHtml(p.statut_verification || '');
+      document.getElementById('d-infos').textContent =
+        'Nom : ' + p.prenom + ' ' + p.nom + '\n' +
+        'Email : ' + p.email + '\n' +
+        'Statut : ' + statutLabel(p.statut_verification);
       document.getElementById('d-motif').textContent = p.motif_refus_ia || '(vide)';
       document.getElementById('d-cv').href = d.urls.cv;
       document.getElementById('d-id').href = d.urls.identite;
@@ -151,8 +253,8 @@
     }
 
     function closeDetail() {
-      document.getElementById('detail').style.display = 'none';
-      document.getElementById('list-wrap').style.display = 'block';
+      document.getElementById('detail').classList.add('hidden');
+      document.getElementById('list-wrap').classList.remove('hidden');
       currentId = null;
       history.replaceState(null, '', '/admin');
     }
@@ -167,7 +269,7 @@
     async function doRefuser() {
       if (!currentId) return;
       await getCsrf();
-      const motif = document.getElementById('ref-motif').value || 'Dossier refusé par l’administrateur.';
+      const motif = document.getElementById('ref-motif').value || 'Dossier refusé par l\'administrateur.';
       await api('/admin/api/prestataires/' + currentId + '/refuser', { method: 'POST', body: { motif: motif } });
       await openDetail(currentId);
     }
@@ -175,4 +277,5 @@
     boot();
   </script>
 </body>
+
 </html>

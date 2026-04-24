@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Espace client — BéninFreelance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { syne: ['Syne', 'sans-serif'] },
+                    colors: {
+                        bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+                        brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8',
+                        muted: '#7A7A9A', ok: '#2ECC71'
+                    }
+                }
+            }
+    };
+    </script>
+    <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    input, select, textarea { outline: none; }
+    input:focus, select:focus { border-color: #F5A623 !important; }
+    select option { background: #13131A; }
+    .nav-sb { position: relative; padding-left: 16px; transition: color 0.15s ease, background 0.15s ease; }
+    .nav-sb.active-nav { background: #1C1C27; }
+    .nav-sb.active-nav::before {
+      content: ""; position: absolute; left: 12px; top: 12px; bottom: 6px; width: 3px;
+      background: #F5A623; border-radius: 2px;
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .anim-up { animation: fadeUp .45s ease both; }
+    #btn-filters[aria-expanded="true"] { border-color: rgba(245, 166, 35, 0.45); color: #F0EDE8; }
+    </style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+
+  <header class="hidden md:flex sticky top-0 z-50 items-center gap-6 bg-surface border-b border-brd px-5 h-14">
+    <a href="/" class="font-syne font-extrabold text-lg shrink-0">Bénin<span class="text-accent">Freelance</span></a>
+    <form id="hdr-search" onsubmit="headerSearch(event)" class="flex-1 flex justify-center max-w-2xl mx-auto">
+      <div class="flex w-full rounded-xl border border-brd bg-bg overflow-hidden focus-within:border-accent/70 transition-colors">
+        <input id="q-global" type="search" autocomplete="off" placeholder="Catégorie, ville, mot-clé…"
+          class="flex-1 min-w-0 bg-transparent text-tx text-[15px] px-4 py-2 placeholder:text-muted" />
+        <button type="submit" class="shrink-0 px-4 text-accent font-bold hover:bg-accent/10 transition-colors" aria-label="Rechercher">→</button>
+                </div>
+    </form>
+    <div class="flex items-center gap-3 shrink-0">
+      <div id="hdr-name" class="text-sm text-muted max-w-[140px] truncate"></div>
+      <div id="avatar-desk" class="w-9 h-9 rounded-full bg-accent/20 flex items-center justify-center font-syne font-bold text-accent text-sm uppercase shrink-0"></div>
+      <button type="button" onclick="logout()" class="text-xs text-muted hover:text-tx px-3 py-1.5 rounded-lg border border-brd hover:border-muted transition-all">Déconnexion</button>
+        </div>
+    </header>
+
+    <header class="md:hidden sticky top-0 z-50 bg-surface border-b border-brd px-4 py-3 flex items-center gap-3">
+    <button type="button" onclick="toggleSidebar()" class="text-muted hover:text-tx shrink-0" aria-label="Menu"><i class="fa-solid fa-bars text-lg"></i></button>
+    <a href="/" class="font-syne font-extrabold text-base flex-1 min-w-0 truncate">Bénin<span class="text-accent">Freelance</span></a>
+    </header>
+
+    <div class="flex min-h-[calc(100vh-56px)]">
+    <aside class="hidden md:flex flex-col w-[260px] shrink-0 bg-surface border-r border-brd py-6 px-3 sticky top-14 h-[calc(100vh-56px)]">
+      <p class="text-[11px] text-muted font-medium mb-4 px-2 uppercase tracking-wide">Espace client</p>
+            <nav class="flex flex-col gap-1">
+        <button type="button" onclick="go('accueil')" data-section="accueil" class="nav-sb active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-left w-full">
+                    <i class="fa-solid fa-house w-4 text-center ml-2"></i> Accueil
+        </button>
+        <span class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted/50 cursor-not-allowed ml-2" title="Bientôt">
+          <i class="fa-solid fa-magnifying-glass w-4 text-center"></i> Recherche
+        </span>
+        <button type="button" onclick="go('compte')" data-section="compte" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+                    <i class="fa-solid fa-user w-4 text-center ml-2"></i> Mon compte
+        </button>
+        <button type="button" onclick="go('messages')" data-section="messages" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+                    <i class="fa-solid fa-envelope w-4 text-center ml-2"></i> Messages
+        </button>
+            </nav>
+        </aside>
+
+        <div id="mob-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+    <aside id="mob-sidebar" class="fixed top-0 left-0 h-full w-64 bg-surface border-r border-brd z-50 transform -translate-x-full transition-transform duration-300 md:hidden flex flex-col py-6 px-4">
+            <div class="flex items-center justify-between mb-6">
+        <span class="font-syne font-extrabold text-sm">Bénin<span class="text-accent">Freelance</span></span>
+        <button type="button" onclick="toggleSidebar()" class="text-muted" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="flex items-center gap-3 mb-6 px-2">
+        <div id="avatar-mob" class="w-9 h-9 rounded-full bg-accent/20 flex items-center justify-center font-syne font-bold text-accent text-sm uppercase shrink-0"></div>
+        <span id="username-mob" class="text-sm font-medium truncate"></span>
+                </div>
+      <p class="text-xs text-muted font-medium mb-3 px-2">Menu</p>
+            <nav class="flex flex-col gap-1">
+        <button type="button" onclick="goMob('accueil')" data-section="accueil" class="nav-sb active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-left w-full">
+                    <i class="fa-solid fa-house w-4 text-center ml-2"></i> Accueil
+        </button>
+        <button type="button" onclick="goMob('compte')" data-section="compte" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+                    <i class="fa-solid fa-user w-4 text-center ml-2"></i> Mon compte
+        </button>
+        <button type="button" onclick="goMob('messages')" data-section="messages" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+                    <i class="fa-solid fa-envelope w-4 text-center ml-2"></i> Messages
+        </button>
+            </nav>
+      <button type="button" onclick="logout()" class="mt-auto text-xs text-muted border border-brd px-3 py-2 rounded-lg">Déconnexion</button>
+        </aside>
+
+    <main class="flex-1 min-w-0">
+      <div id="msg-ok" class="hidden mx-4 sm:mx-6 mt-4 text-sm text-ok border border-ok/30 bg-ok/10 px-3 py-2 rounded-lg max-w-4xl"></div>
+      <div id="msg-err" class="hidden mx-4 sm:mx-6 mt-4 text-sm text-red-400 border border-red-500/30 bg-red-900/20 px-3 py-2 rounded-lg max-w-4xl"></div>
+
+      <section id="view-accueil" class="px-4 sm:px-6 lg:px-10 py-6 sm:py-8 pb-16">
+        <div class="max-w-6xl mx-auto anim-up">
+          <form id="mob-search" class="md:hidden mb-6" onsubmit="headerSearch(event)">
+            <div class="flex rounded-xl border border-brd bg-surface overflow-hidden">
+              <input id="q-global-mob" type="search" placeholder="Catégorie, ville, mot-clé…" class="flex-1 min-w-0 bg-transparent text-tx text-[15px] px-4 py-3 placeholder:text-muted" />
+              <button type="submit" class="px-4 text-accent font-bold">→</button>
+            </div>
+          </form>
+
+          <h1 id="greeting" class="font-syne font-bold text-3xl sm:text-[34px] tracking-tight mb-2">Bonjour</h1>
+          <p class="text-tx/85 text-base sm:text-[17px] leading-relaxed max-w-3xl mb-8">
+            Parcourez les profils et les avis. Le bouton <strong class="text-tx/95 font-medium">Message</strong> ouvre le formulaire pour le service mis en avant sur la carte.
+          </p>
+
+          <div class="flex gap-2 border-b border-brd">
+            <span class="px-1 pb-3 text-sm font-bold text-tx border-b-2 border-accent -mb-px">Découverte</span>
+            </div>
+
+          <div id="filters-backdrop" class="hidden fixed inset-0 z-[55] bg-black/55 md:hidden" aria-hidden="true" onclick="closeFiltersPanel()"></div>
+
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between pt-5 mb-4">
+            <p id="search-meta" class="text-[15px] text-tx/90 font-medium min-w-0 flex-1 leading-snug"></p>
+            <div class="relative shrink-0 self-start sm:self-auto">
+              <button type="button" id="btn-filters" onclick="toggleFiltersPanel(event)" aria-expanded="false" aria-controls="filters-popover"
+                class="inline-flex items-center gap-2 rounded-[10px] border border-brd bg-bg/80 px-3.5 py-2 text-sm font-medium text-muted hover:text-tx hover:border-muted/80 transition-colors">
+                <i class="fa-solid fa-sliders text-[15px] opacity-90" aria-hidden="true"></i>
+                Filtres
+              </button>
+              <div id="filters-popover" role="dialog" aria-labelledby="filters-popover-title"
+                class="hidden fixed left-4 right-4 top-[max(5.5rem,15vh)] z-[60] max-h-[min(72vh,520px)] overflow-y-auto rounded-2xl border border-brd bg-surface2 p-5 shadow-2xl shadow-black/40 md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:max-h-[min(70vh,480px)] md:w-[min(100vw-2rem,22rem)] md:min-w-[280px]">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                  <p id="filters-popover-title" class="text-[13px] font-medium text-tx">Filtres</p>
+                  <button type="button" onclick="closeFiltersPanel()" class="md:hidden text-muted hover:text-tx p-1 rounded-lg border border-transparent hover:border-brd" aria-label="Fermer les filtres">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+                <form id="filter-form" class="space-y-4" onsubmit="applySearch(event)">
+                <div>
+                    <label class="block text-xs text-muted font-medium mb-1.5" for="flt-cat">Catégorie</label>
+                    <select id="flt-cat" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5 appearance-none">
+                      <option value="">Toutes les catégories</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-muted font-medium mb-1.5" for="flt-loc">Ville</label>
+                    <select id="flt-loc" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5 appearance-none">
+                      <option value="">Toutes les villes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-muted font-medium mb-1.5" for="flt-note">Note minimum</label>
+                    <select id="flt-note" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5 appearance-none">
+                      <option value="">Toutes les notes</option>
+                      <option value="4">4,0 et +</option>
+                      <option value="3">3,0 et +</option>
+                      <option value="2">2,0 et +</option>
+                    </select>
+                  </div>
+                  <div class="flex flex-col gap-2 pt-1">
+                    <button type="submit" class="w-full bg-accent text-bg font-syne font-bold text-sm py-2.5 rounded-xl hover:opacity-90 transition-opacity">Appliquer</button>
+                    <button type="button" onclick="resetSearchFromPanel()" class="w-full border border-brd text-muted text-sm py-2.5 rounded-xl hover:text-tx transition-colors">Réinitialiser</button>
+                  </div>
+                </form>
+                </div>
+            </div>
+          </div>
+
+          <p class="text-sm text-muted leading-relaxed border border-brd/80 rounded-xl px-4 py-3 bg-surface/50 mb-6">
+            Ouvrez la fiche pour le détail complet. Sur une carte, Message correspond au dernier service publié par le prestataire.
+          </p>
+
+          <div class="min-w-0">
+            <div id="search-results" class="space-y-4"></div>
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+              <button type="button" onclick="goPage(-1)" class="border border-brd text-muted text-sm px-4 py-2 rounded-xl hover:border-accent hover:text-accent transition-colors">Précédent</button>
+              <span id="search-page" class="text-sm text-muted"></span>
+              <button type="button" onclick="goPage(1)" class="border border-brd text-muted text-sm px-4 py-2 rounded-xl hover:border-accent hover:text-accent transition-colors">Suivant</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-messages" class="hidden px-4 sm:px-6 lg:px-10 py-8 max-w-3xl">
+        <h1 class="font-syne font-bold text-2xl sm:text-3xl mb-1">Messages envoyés</h1>
+        <p class="text-muted text-sm mb-6 max-w-2xl">Demandes que vous avez envoyées aux prestataires.</p>
+        <div id="list-client-messages" class="space-y-4"></div>
+      </section>
+
+      <section id="view-compte" class="hidden px-4 sm:px-6 lg:px-10 py-8 max-w-lg">
+        <h1 class="font-syne font-bold text-2xl sm:text-3xl mb-1">Mon compte</h1>
+        <p class="text-muted text-sm mb-6">L’email doit rester unique sur la plateforme.</p>
+        <form class="space-y-4" onsubmit="saveProfile(event)">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-muted font-medium mb-1.5" for="f-nom">Nom</label>
+              <input id="f-nom" required maxlength="100" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-xs text-muted font-medium mb-1.5" for="f-prenom">Prénom</label>
+              <input id="f-prenom" required maxlength="100" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-muted font-medium mb-1.5" for="f-email">Email</label>
+            <input id="f-email" type="email" required maxlength="150" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-xs text-muted font-medium mb-1.5" for="f-tel">Téléphone</label>
+            <input id="f-tel" required maxlength="20" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-xs text-muted font-medium mb-1.5" for="f-loc">Ville / localité</label>
+            <select id="f-loc" required class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl appearance-none">
+              <option value="">Sélectionner</option>
+              <option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option>
+              <option>Abomey-Calavi</option><option>Djougou</option><option>Bohicon</option>
+              <option>Kandi</option><option>Lokossa</option><option>Ouidah</option><option>Autre</option>
+            </select>
+          </div>
+          <button type="submit" class="bg-accent text-bg font-syne font-bold text-sm py-3 px-6 rounded-xl hover:opacity-88 transition-opacity">Enregistrer</button>
+        </form>
+      </section>
+    </main>
+    </div>
+
+    <script>
+    let searchState = { page: 1, lastPage: 1, total: 0 };
+    let currentFilters = { q: '', categorie: '', localite: '', note_min: '' };
+    let filtersPanelOpen = false;
+
+    function isFiltersPopoverTarget(el) {
+      if (!el) return false;
+      return !!(el.closest('#filters-popover') || el.closest('#btn-filters'));
+    }
+    function setFiltersPanelOpen(open) {
+      filtersPanelOpen = !!open;
+      const pop = document.getElementById('filters-popover');
+      const bd = document.getElementById('filters-backdrop');
+      const btn = document.getElementById('btn-filters');
+      if (!pop || !btn) return;
+      pop.classList.toggle('hidden', !filtersPanelOpen);
+      if (bd) bd.classList.toggle('hidden', !filtersPanelOpen || window.matchMedia('(min-width: 768px)').matches);
+      btn.setAttribute('aria-expanded', filtersPanelOpen ? 'true' : 'false');
+      document.body.style.overflow = filtersPanelOpen && window.matchMedia('(max-width: 767px)').matches ? 'hidden' : '';
+    }
+    function toggleFiltersPanel(ev) {
+      if (ev) ev.stopPropagation();
+      setFiltersPanelOpen(!filtersPanelOpen);
+    }
+    function closeFiltersPanel() {
+      setFiltersPanelOpen(false);
+    }
+    function onDocumentClickCloseFilters(ev) {
+      if (!filtersPanelOpen) return;
+      if (isFiltersPopoverTarget(ev.target)) return;
+      closeFiltersPanel();
+    }
+    function resetSearchFromPanel() {
+      resetSearch();
+      closeFiltersPanel();
+    }
+
+    async function getCsrfToken() {
+      const res = await fetch('/csrf-token', { headers: { Accept: 'application/json' } });
+      return (await res.json()).token;
+    }
+    async function logout() {
+      const t = await getCsrfToken();
+      const r = await fetch('/logout', { method: 'POST', headers: { 'X-CSRF-TOKEN': t, Accept: 'application/json' } });
+      const d = await r.json();
+      window.location.href = d.redirect || '/login';
+    }
+    function initials(prenom, nom) {
+      const a = prenom && prenom[0] ? prenom[0] : '';
+      const b = nom && nom[0] ? nom[0] : '';
+      return (a + b).toUpperCase() || '?';
+    }
+    function abbrevDisplay(prenom, nom) {
+      const p = (prenom || '').trim();
+      const n = (nom || '').trim();
+      const na = n ? n.split(/\s+/)[0] : '';
+      const initial = na ? na[0] + '.' : '';
+      return (p ? p + ' ' : '') + initial;
+    }
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s === null || s === undefined ? '' : String(s);
+      return d.innerHTML;
+    }
+    function hideMessages() {
+      document.getElementById('msg-ok').classList.add('hidden');
+      document.getElementById('msg-err').classList.add('hidden');
+    }
+    function markNav(section) {
+      document.querySelectorAll('.nav-sb[data-section]').forEach(function (el) {
+        const on = el.getAttribute('data-section') === section;
+        el.classList.toggle('active-nav', on);
+        el.classList.toggle('text-muted', !on);
+        el.classList.toggle('font-medium', on);
+        el.classList.toggle('font-bold', on);
+      });
+    }
+    function show(section) {
+      hideMessages();
+      document.getElementById('view-accueil').classList.toggle('hidden', section !== 'accueil');
+      document.getElementById('view-compte').classList.toggle('hidden', section !== 'compte');
+      document.getElementById('view-messages').classList.toggle('hidden', section !== 'messages');
+    }
+    function go(section) { markNav(section); show(section); if (section === 'messages') loadClientMessages(); }
+    function goMob(section) { markNav(section); show(section); toggleSidebar(); if (section === 'messages') loadClientMessages(); }
+    function toggleSidebar() {
+      const sb = document.getElementById('mob-sidebar');
+      const ov = document.getElementById('mob-overlay');
+      const open = !sb.classList.contains('-translate-x-full');
+      if (open) { sb.classList.add('-translate-x-full'); ov.classList.add('hidden'); }
+      else { sb.classList.remove('-translate-x-full'); ov.classList.remove('hidden'); }
+    }
+
+    function setUserUI(user) {
+      const ini = initials(user.prenom, user.nom);
+      document.getElementById('greeting').textContent = 'Bonjour, ' + (user.prenom || '');
+      document.querySelectorAll('#avatar-desk, #avatar-mob').forEach(function (el) {
+        el.textContent = ini;
+        el.title = (user.prenom || '') + ' ' + (user.nom || '');
+      });
+      document.getElementById('username-mob').textContent = (user.prenom || '') + ' ' + (user.nom || '');
+      const hn = document.getElementById('hdr-name');
+      if (hn) hn.textContent = (user.prenom || '') + ' ' + ((user.nom || '').split(/\s+/)[0] || '');
+    }
+
+    function fillForm(user) {
+      document.getElementById('f-nom').value = user.nom || '';
+      document.getElementById('f-prenom').value = user.prenom || '';
+      document.getElementById('f-email').value = user.email || '';
+      document.getElementById('f-tel').value = user.telephone || '';
+      const sel = document.getElementById('f-loc');
+      const loc = user.localite || '';
+      let found = false;
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === loc) { sel.selectedIndex = i; found = true; break; }
+      }
+      if (!found && loc) {
+        const opt = document.createElement('option');
+        opt.value = loc; opt.textContent = loc;
+        sel.appendChild(opt); sel.value = loc;
+      }
+    }
+
+    async function saveProfile(ev) {
+      ev.preventDefault();
+      hideMessages();
+      const body = {
+        nom: document.getElementById('f-nom').value.trim(),
+        prenom: document.getElementById('f-prenom').value.trim(),
+        email: document.getElementById('f-email').value.trim(),
+        telephone: document.getElementById('f-tel').value.trim(),
+        localite: document.getElementById('f-loc').value.trim(),
+      };
+      try {
+        const t = await getCsrfToken();
+        const r = await fetch('/api/client/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': t },
+          body: JSON.stringify(body),
+        });
+        const d = await r.json();
+        if (!r.ok) {
+          document.getElementById('msg-err').textContent = (d.errors && Object.values(d.errors).flat().join(' ')) || d.message || 'Erreur.';
+          document.getElementById('msg-err').classList.remove('hidden');
+          return;
+        }
+        document.getElementById('msg-ok').textContent = d.message || 'Enregistré.';
+        document.getElementById('msg-ok').classList.remove('hidden');
+        setUserUI(body);
+      } catch (_) {
+        document.getElementById('msg-err').textContent = 'Réseau indisponible.';
+        document.getElementById('msg-err').classList.remove('hidden');
+      }
+    }
+
+    function fillMetaSelects(categories, localites) {
+      const sc = document.getElementById('flt-cat');
+      const sl = document.getElementById('flt-loc');
+      while (sc.options.length > 1) sc.remove(1);
+      while (sl.options.length > 1) sl.remove(1);
+      categories.forEach(function (c) {
+        const o = document.createElement('option');
+        o.value = c; o.textContent = c;
+        sc.appendChild(o);
+      });
+      localites.forEach(function (c) {
+        const o = document.createElement('option');
+        o.value = c; o.textContent = c;
+        sl.appendChild(o);
+      });
+    }
+
+    function syncFilterInputsFromState() {
+      document.getElementById('flt-cat').value = currentFilters.categorie;
+      document.getElementById('flt-loc').value = currentFilters.localite;
+      document.getElementById('flt-note').value = currentFilters.note_min;
+      const g = document.getElementById('q-global');
+      const gm = document.getElementById('q-global-mob');
+      if (g) g.value = currentFilters.q;
+      if (gm) gm.value = currentFilters.q;
+    }
+
+    function headerSearch(ev) {
+      ev.preventDefault();
+      const g = document.getElementById('q-global');
+      const gm = document.getElementById('q-global-mob');
+      currentFilters.q = ((g && g.value) || (gm && gm.value) || '').trim();
+      if (g && gm) gm.value = g.value;
+      if (g && gm) g.value = currentFilters.q;
+      searchState.page = 1;
+      closeFiltersPanel();
+      loadSearch();
+    }
+
+    function applySearch(ev) {
+      ev.preventDefault();
+      currentFilters.categorie = document.getElementById('flt-cat').value.trim();
+      currentFilters.localite = document.getElementById('flt-loc').value.trim();
+      currentFilters.note_min = document.getElementById('flt-note').value.trim();
+      const g = document.getElementById('q-global');
+      const gm = document.getElementById('q-global-mob');
+      currentFilters.q = (g && g.value ? g.value : (gm && gm.value ? gm.value : '')).trim();
+      searchState.page = 1;
+      loadSearch();
+      closeFiltersPanel();
+    }
+
+    function resetSearch() {
+      currentFilters = { q: '', categorie: '', localite: '', note_min: '' };
+      document.getElementById('flt-cat').value = '';
+      document.getElementById('flt-loc').value = '';
+      document.getElementById('flt-note').value = '';
+      const g = document.getElementById('q-global');
+      const gm = document.getElementById('q-global-mob');
+      if (g) g.value = '';
+      if (gm) gm.value = '';
+      searchState.page = 1;
+      loadSearch();
+    }
+
+    function ratingLine(note, nbAvis) {
+      const n = Number(note || 0).toFixed(1).replace('.', ',');
+      if (nbAvis > 0) return n + ' · ' + nbAvis + ' avis';
+      return n + ' · nouveau sur la plateforme';
+    }
+
+    function resultCard(x) {
+      const name = escapeHtml(abbrevDisplay(x.prenom, x.nom));
+      const headline = escapeHtml(x.headline || 'Prestataire');
+      const snippet = escapeHtml(x.snippet || '');
+      const loc = escapeHtml(x.localite || '');
+      const cat = escapeHtml(x.headline_categorie || '');
+      const delai = escapeHtml(x.headline_delai || '');
+      const prix = x.headline_prix != null ? Number(x.headline_prix).toLocaleString('fr-FR') + ' F' : '';
+      const pills = [];
+      if (loc) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-tx/90">' + loc + '</span>');
+      if (cat) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-tx/90">' + cat + '</span>');
+      if (delai) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-tx/90">' + delai + '</span>');
+      if (prix) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-accent/95">' + escapeHtml(prix) + '</span>');
+      const photo = x.photo_url
+        ? '<img src="' + escapeHtml(x.photo_url) + '" alt="" class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border border-brd shrink-0" loading="lazy" />'
+        : '<div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent/15 border border-brd flex items-center justify-center font-syne font-bold text-accent shrink-0">' + escapeHtml(initials(x.prenom, x.nom)) + '</div>';
+      var sid = x.featured_service_id != null ? Number(x.featured_service_id) : 0;
+      var msgBtn = sid > 0
+        ? '<a href="/contact/prestataire/' + x.id + '?service=' + sid + '" class="inline-flex items-center justify-center rounded-xl border border-accent/50 text-accent font-syne font-bold text-sm px-5 py-2.5 hover:bg-accent/10 transition-colors">Message</a>'
+        : '<button type="button" disabled class="inline-flex items-center justify-center rounded-xl border border-brd text-muted text-sm px-5 py-2.5 cursor-not-allowed" title="Aucun service publié — message indisponible">Message</button>';
+      return (
+        '<article class="rounded-2xl border border-brd bg-surface2 p-4 sm:p-5 flex gap-4 sm:gap-5">' +
+        photo +
+        '<div class="flex-1 min-w-0">' +
+        '<div class="flex flex-wrap items-center gap-2 mb-1">' +
+        '<h2 class="font-bold text-[17px] text-tx">' + name + '</h2>' +
+        '<span class="text-[11px] font-bold uppercase tracking-wide text-accent bg-accent/10 border border-accent/25 rounded px-1.5 py-0.5">Vérifié</span>' +
+        '</div>' +
+        '<p class="text-[13px] text-muted mb-2">' + ratingLine(x.note_moyenne, x.nb_avis) + '</p>' +
+        '<p class="font-syne font-bold text-[15px] text-tx mb-1.5 leading-snug">' + headline + '</p>' +
+        '<p class="text-sm text-tx/80 leading-relaxed mb-3">' + snippet + '</p>' +
+        '<div class="flex flex-wrap gap-2 mb-4">' + pills.join('') + '</div>' +
+        '<div class="flex flex-wrap items-center gap-3">' +
+        '<a href="/prestataires/' + x.id + '" class="inline-flex items-center justify-center rounded-xl bg-accent text-bg font-syne font-bold text-sm px-5 py-2.5 hover:opacity-90 transition-opacity">Voir le profil</a>' +
+        msgBtn +
+        '</div></div></article>'
+      );
+    }
+
+    async function loadClientMessages() {
+      var box = document.getElementById('list-client-messages');
+      if (!box) return;
+      box.innerHTML = '<p class="text-sm text-muted">Chargement…</p>';
+      try {
+        var r = await fetch('/api/client/messages', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        var d = await r.json();
+        if (!r.ok || !d.ok) {
+          box.innerHTML = '<p class="text-sm text-muted">Impossible de charger les messages.</p>';
+          return;
+        }
+        if (!d.data || d.data.length === 0) {
+          box.innerHTML = '<p class="text-sm text-muted border border-dashed border-brd rounded-xl p-8 text-center">Aucun message pour l’instant. Utilisez <strong class="text-tx/90">Message</strong> sur une carte pour contacter un prestataire.</p>';
+          return;
+        }
+        box.innerHTML = d.data.map(function (m) {
+          return (
+            '<article class="rounded-xl border border-brd bg-surface2 p-4 sm:p-5">' +
+            '<p class="text-xs text-muted">' + escapeHtml(m.created_at || '') + '</p>' +
+            '<p class="font-syne font-bold text-sm mt-1 text-tx">' + escapeHtml(m.prestataire_label || '') + '</p>' +
+            '<p class="text-xs text-accent mt-0.5">' + escapeHtml(m.service_titre || '') + '</p>' +
+            '<p class="text-sm text-tx/85 mt-3 leading-relaxed whitespace-pre-wrap">' + escapeHtml(m.contenu_excerpt || '') + '</p>' +
+            '</article>'
+          );
+        }).join('');
+      } catch (_) {
+        box.innerHTML = '<p class="text-sm text-muted">Réseau indisponible.</p>';
+      }
+    }
+
+    async function loadSearch() {
+      const p = new URLSearchParams();
+      if (currentFilters.q) p.set('q', currentFilters.q);
+      if (currentFilters.categorie) p.set('categorie', currentFilters.categorie);
+      if (currentFilters.localite) p.set('localite', currentFilters.localite);
+      if (currentFilters.note_min !== '') p.set('note_min', currentFilters.note_min);
+      p.set('page', String(searchState.page));
+      const r = await fetch('/api/marketplace/prestataires?' + p.toString(), { headers: { Accept: 'application/json' } });
+      const d = await r.json();
+      if (!r.ok || !d.ok) return;
+      searchState.lastPage = d.last_page || 1;
+      searchState.total = d.total || 0;
+      const total = searchState.total;
+      document.getElementById('search-meta').textContent = total === 0
+        ? 'Aucun profil ne correspond à ces critères.'
+        : total + ' profil' + (total > 1 ? 's' : '') + ' proche' + (total > 1 ? 's' : '') + ' de votre recherche';
+      document.getElementById('search-page').textContent = 'Page ' + searchState.page + ' / ' + searchState.lastPage;
+      const box = document.getElementById('search-results');
+      if (!d.data || d.data.length === 0) {
+        box.innerHTML = '<p class="text-sm text-muted border border-dashed border-brd rounded-xl p-8 text-center">Affinez les filtres ou élargissez la recherche (mot-clé).</p>';
+        return;
+      }
+      box.innerHTML = d.data.map(resultCard).join('');
+    }
+
+    function goPage(delta) {
+      const next = searchState.page + delta;
+      if (next < 1 || next > searchState.lastPage) return;
+      searchState.page = next;
+      closeFiltersPanel();
+      loadSearch();
+    }
+
+    async function init() {
+      try {
+        const [rUser, rMeta] = await Promise.all([
+          fetch('/api/client/me', { headers: { Accept: 'application/json' } }),
+          fetch('/api/marketplace/meta', { headers: { Accept: 'application/json' } }),
+        ]);
+        if (rUser.status === 401) { window.location.href = '/login'; return; }
+        const user = await rUser.json();
+        if (!user.ok) { window.location.href = '/login'; return; }
+        setUserUI(user);
+        fillForm(user);
+        let categories = [];
+        let localites = [];
+        try {
+          if (rMeta.ok) {
+            const meta = await rMeta.json();
+            if (meta && meta.ok) {
+              categories = meta.categories || [];
+              localites = meta.localites || [];
+            }
+          }
+        } catch (_) { /* filtres manuels si meta indispo */ }
+        fillMetaSelects(categories, localites);
+        syncFilterInputsFromState();
+        await loadSearch();
+      } catch (_) {
+        window.location.href = '/login';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      document.addEventListener('click', onDocumentClickCloseFilters);
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') closeFiltersPanel();
+      });
+      init();
+        });
+    </script>
+</body>
+</html>
