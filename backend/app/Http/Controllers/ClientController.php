@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Avis;
+use App\Models\Client;
+use App\Models\Prestataire;
+use App\Models\Service;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -13,7 +16,7 @@ class ClientController extends Controller
     public function me(Request $request)
     {
         $id = (int) $request->session()->get('auth_id');
-        $row = DB::table('clients')->where('id', $id)->first();
+        $row = Client::query()->where('id', $id)->first();
         if (! $row) {
             return response()->json(['ok' => false], 404);
         }
@@ -40,7 +43,7 @@ class ClientController extends Controller
             'localite' => 'required|string|max:100',
         ]);
 
-        DB::table('clients')->where('id', $id)->update([
+        Client::query()->where('id', $id)->update([
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'email' => $data['email'],
@@ -62,7 +65,7 @@ class ClientController extends Controller
             return response()->json(['ok' => false, 'reason' => 'auth'], 401);
         }
 
-        $p = DB::table('prestataires')
+        $p = Prestataire::query()
             ->where('id', $id)
             ->where('statut_verification', 'valide')
             ->first();
@@ -70,13 +73,13 @@ class ClientController extends Controller
             return response()->json(['ok' => false], 404);
         }
 
-        $services = DB::table('services')
+        $services = Service::query()
             ->where('prestataire_id', $id)
             ->orderByDesc('id')
             ->get(['id', 'titre', 'description', 'categorie', 'prix_indicatif', 'delai_execution']);
 
         $nbAvis = Schema::hasTable('avis')
-            ? (int) DB::table('avis')->where('prestataire_id', $id)->count()
+            ? (int) Avis::query()->where('prestataire_id', $id)->count()
             : 0;
 
         $hasCv = ! empty($p->chemin_cv) && Storage::disk('local')->exists((string) $p->chemin_cv);
@@ -111,7 +114,7 @@ class ClientController extends Controller
             abort(401);
         }
 
-        $p = DB::table('prestataires')
+        $p = Prestataire::query()
             ->where('id', $id)
             ->where('statut_verification', 'valide')
             ->first();

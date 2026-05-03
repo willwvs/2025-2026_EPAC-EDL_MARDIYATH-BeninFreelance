@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Service;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ServiceController extends Controller
 {
     public function indexMine(Request $request)
     {
         $prestataireId = (int) $request->session()->get('auth_id');
-        $rows = DB::table('services')
+        $rows = Service::query()
             ->where('prestataire_id', $prestataireId)
             ->orderByDesc('id')
             ->get();
@@ -29,7 +29,7 @@ class ServiceController extends Controller
             'delai_execution' => 'nullable|string|max:100',
         ]);
 
-        $existing = (int) DB::table('services')->where('prestataire_id', $prestataireId)->count();
+        $existing = (int) Service::query()->where('prestataire_id', $prestataireId)->count();
         if ($existing >= 2) {
             return response()->json([
                 'ok' => false,
@@ -37,23 +37,22 @@ class ServiceController extends Controller
             ], 422);
         }
 
-        $id = DB::table('services')->insertGetId([
+        $service = Service::create([
             'prestataire_id' => $prestataireId,
             'titre' => $data['titre'],
             'description' => $data['description'],
             'categorie' => $data['categorie'],
             'prix_indicatif' => $data['prix_indicatif'] ?? null,
             'delai_execution' => $data['delai_execution'] ?? null,
-            'created_at' => now(),
         ]);
 
-        return response()->json(['ok' => true, 'id' => $id], 201);
+        return response()->json(['ok' => true, 'id' => $service->id], 201);
     }
 
     public function update(Request $request, int $id)
     {
         $prestataireId = (int) $request->session()->get('auth_id');
-        $owns = DB::table('services')
+        $owns = Service::query()
             ->where('id', $id)
             ->where('prestataire_id', $prestataireId)
             ->exists();
@@ -69,7 +68,7 @@ class ServiceController extends Controller
             'delai_execution' => 'nullable|string|max:100',
         ]);
 
-        DB::table('services')
+        Service::query()
             ->where('id', $id)
             ->where('prestataire_id', $prestataireId)
             ->update([
@@ -86,7 +85,7 @@ class ServiceController extends Controller
     public function destroy(Request $request, int $id)
     {
         $prestataireId = (int) $request->session()->get('auth_id');
-        $deleted = DB::table('services')
+        $deleted = Service::query()
             ->where('id', $id)
             ->where('prestataire_id', $prestataireId)
             ->delete();

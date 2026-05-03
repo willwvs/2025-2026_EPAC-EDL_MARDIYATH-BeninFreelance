@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Modèle Laravel par défaut (migrations `users`). L’auth applicative marketplace
+ * utilise {@see Client} et {@see Prestataire} avec session personnalisée.
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */

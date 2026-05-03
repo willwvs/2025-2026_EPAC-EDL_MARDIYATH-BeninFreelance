@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
+use App\Models\Message;
+use App\Models\Prestataire;
+use App\Models\Service;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class MessageController extends Controller
@@ -16,7 +19,7 @@ class MessageController extends Controller
             return response()->json(['ok' => false, 'message' => 'Paramètres invalides.'], 422);
         }
 
-        $p = DB::table('prestataires')
+        $p = Prestataire::query()
             ->where('id', $prestataireId)
             ->where('statut_verification', 'valide')
             ->first();
@@ -24,7 +27,7 @@ class MessageController extends Controller
             return response()->json(['ok' => false, 'message' => 'Prestataire introuvable.'], 404);
         }
 
-        $svc = DB::table('services')
+        $svc = Service::query()
             ->where('id', $serviceId)
             ->where('prestataire_id', $prestataireId)
             ->first();
@@ -68,7 +71,7 @@ class MessageController extends Controller
         $prestataireId = (int) $data['prestataire_id'];
         $serviceId = (int) $data['service_id'];
 
-        $p = DB::table('prestataires')
+        $p = Prestataire::query()
             ->where('id', $prestataireId)
             ->where('statut_verification', 'valide')
             ->first();
@@ -76,7 +79,7 @@ class MessageController extends Controller
             return response()->json(['ok' => false, 'message' => 'Prestataire introuvable.'], 404);
         }
 
-        $svc = DB::table('services')
+        $svc = Service::query()
             ->where('id', $serviceId)
             ->where('prestataire_id', $prestataireId)
             ->first();
@@ -84,7 +87,7 @@ class MessageController extends Controller
             return response()->json(['ok' => false, 'message' => 'Service invalide.'], 422);
         }
 
-        $exists = DB::table('messages')
+        $exists = Message::query()
             ->where('client_id', $clientId)
             ->where('service_id', $serviceId)
             ->exists();
@@ -95,7 +98,7 @@ class MessageController extends Controller
             ], 409);
         }
 
-        $client = DB::table('clients')->where('id', $clientId)->first();
+        $client = Client::query()->where('id', $clientId)->first();
         if (! $client) {
             return response()->json(['ok' => false], 404);
         }
@@ -124,7 +127,7 @@ class MessageController extends Controller
             $insert['created_at'] = now();
         }
 
-        DB::table('messages')->insert($insert);
+        Message::query()->insert($insert);
 
         return response()->json([
             'ok' => true,
@@ -140,7 +143,8 @@ class MessageController extends Controller
         }
 
         $clientId = (int) $request->session()->get('auth_id');
-        $rows = DB::table('messages as m')
+        $rows = Message::query()
+            ->from('messages as m')
             ->join('prestataires as p', 'p.id', '=', 'm.prestataire_id')
             ->join('services as s', 's.id', '=', 'm.service_id')
             ->where('m.client_id', $clientId)
@@ -179,7 +183,8 @@ class MessageController extends Controller
         }
 
         $prestataireId = (int) $request->session()->get('auth_id');
-        $rows = DB::table('messages as m')
+        $rows = Message::query()
+            ->from('messages as m')
             ->join('clients as c', 'c.id', '=', 'm.client_id')
             ->join('services as s', 's.id', '=', 'm.service_id')
             ->where('m.prestataire_id', $prestataireId)

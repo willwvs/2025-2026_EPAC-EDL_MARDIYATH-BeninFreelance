@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Avis;
+use App\Models\Prestataire;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -10,7 +13,7 @@ class MarketplaceController extends Controller
 {
     public function meta()
     {
-        $categories = DB::table('services')
+        $categories = Service::query()
             ->join('prestataires', 'prestataires.id', '=', 'services.prestataire_id')
             ->where('prestataires.statut_verification', 'valide')
             ->whereNotNull('services.categorie')
@@ -21,7 +24,7 @@ class MarketplaceController extends Controller
             ->values()
             ->all();
 
-        $localites = DB::table('prestataires')
+        $localites = Prestataire::query()
             ->where('statut_verification', 'valide')
             ->whereNotNull('localite')
             ->where('localite', '!=', '')
@@ -43,7 +46,8 @@ class MarketplaceController extends Controller
         $page = max(1, (int) $request->query('page', 1));
         $perPage = 20;
 
-        $query = DB::table('prestataires as p')
+        $query = Prestataire::query()
+            ->from('prestataires', 'p')
             ->where('p.statut_verification', 'valide');
 
         $categorie = trim((string) $request->query('categorie', ''));
@@ -162,7 +166,7 @@ class MarketplaceController extends Controller
 
     public function teaser(int $id)
     {
-        $p = DB::table('prestataires')
+        $p = Prestataire::query()
             ->where('id', $id)
             ->where('statut_verification', 'valide')
             ->first();
@@ -170,7 +174,7 @@ class MarketplaceController extends Controller
             return response()->json(['ok' => false], 404);
         }
 
-        $services = DB::table('services')
+        $services = Service::query()
             ->where('prestataire_id', $id)
             ->orderByDesc('id')
             ->limit(3)
@@ -194,10 +198,10 @@ class MarketplaceController extends Controller
         })->values();
 
         $nbAvis = Schema::hasTable('avis')
-            ? (int) DB::table('avis')->where('prestataire_id', $id)->count()
+            ? (int) Avis::query()->where('prestataire_id', $id)->count()
             : 0;
 
-        $servicesTotal = (int) DB::table('services')->where('prestataire_id', $id)->count();
+        $servicesTotal = (int) Service::query()->where('prestataire_id', $id)->count();
 
         $bioFull = (string) ($p->biographie ?? '');
         $bioPreview = $bioFull !== '' ? mb_substr(preg_replace('/\s+/', ' ', $bioFull), 0, 220) : '';
@@ -225,7 +229,7 @@ class MarketplaceController extends Controller
 
     public function publicProfile(int $id)
     {
-        $p = DB::table('prestataires')
+        $p = Prestataire::query()
             ->where('id', $id)
             ->where('statut_verification', 'valide')
             ->first();
@@ -233,13 +237,13 @@ class MarketplaceController extends Controller
             return response()->json(['ok' => false], 404);
         }
 
-        $services = DB::table('services')
+        $services = Service::query()
             ->where('prestataire_id', $id)
             ->orderByDesc('id')
             ->get(['id', 'titre', 'description', 'categorie', 'prix_indicatif', 'delai_execution']);
 
         $nbAvis = Schema::hasTable('avis')
-            ? (int) DB::table('avis')->where('prestataire_id', $id)->count()
+            ? (int) Avis::query()->where('prestataire_id', $id)->count()
             : 0;
 
         $bio = (string) ($p->biographie ?? '');

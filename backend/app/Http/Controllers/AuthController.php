@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
+use App\Models\Prestataire;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -24,21 +25,21 @@ class AuthController extends Controller
 
         $passwordColumn = $this->passwordColumn('clients');
 
-        $id = DB::table('clients')->insertGetId([
+        $client = Client::create([
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'email' => $data['email'],
             'telephone' => $data['telephone'],
             'localite' => $data['localite'],
             $passwordColumn => Hash::make($data['password']),
-            'created_at' => now(),
         ]);
+        $id = $client->id;
 
         $request->session()->regenerate();
         session([
             'auth_id' => $id,
             'auth_type' => 'client',
-            'auth_name' => trim($data['prenom'] . ' ' . $data['nom']),
+            'auth_name' => trim($data['prenom'].' '.$data['nom']),
         ]);
 
         return response()->json([
@@ -65,13 +66,13 @@ class AuthController extends Controller
         $cvFile = $request->file('cv');
         $idFile = $request->file('piece_identite');
 
-        $cvName = (string) Str::uuid() . '.' . $cvFile->getClientOriginalExtension();
-        $idName = (string) Str::uuid() . '.' . $idFile->getClientOriginalExtension();
+        $cvName = (string) Str::uuid().'.'.$cvFile->getClientOriginalExtension();
+        $idName = (string) Str::uuid().'.'.$idFile->getClientOriginalExtension();
 
         $cvPath = $cvFile->storeAs('verification/cv', $cvName, 'local');
         $idPath = $idFile->storeAs('verification/identite', $idName, 'local');
 
-        $id = DB::table('prestataires')->insertGetId([
+        $prestataire = Prestataire::create([
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'email' => $data['email'],
@@ -81,10 +82,9 @@ class AuthController extends Controller
             'chemin_cv' => $cvPath,
             'chemin_identite' => $idPath,
             'statut_verification' => 'en_attente',
-            'created_at' => now(),
         ]);
-
-        $row = DB::table('prestataires')->where('id', $id)->first();
+        $id = $prestataire->id;
+        $row = Prestataire::find($id);
 
         try {
             $ia = gemini_analyze_prestataire_dossier(
@@ -101,7 +101,7 @@ class AuthController extends Controller
             ];
         }
 
-        DB::table('prestataires')->where('id', $id)->update([
+        Prestataire::where('id', $id)->update([
             'statut_verification' => $ia['statut_verification'],
             'motif_refus_ia' => $ia['motif_refus_ia'],
         ]);
@@ -118,7 +118,7 @@ class AuthController extends Controller
         ]);
 
         if ($data['role'] === 'client') {
-            $user = DB::table('clients')->where('email', $data['email'])->first();
+            $user = Client::where('email', $data['email'])->first();
             if (! $user || ! Hash::check($data['password'], $user->{$this->passwordColumn('clients')})) {
                 return response()->json(['ok' => false, 'message' => 'Identifiants invalides.'], 422);
             }
@@ -127,13 +127,13 @@ class AuthController extends Controller
             session([
                 'auth_id' => $user->id,
                 'auth_type' => 'client',
-                'auth_name' => trim($user->prenom . ' ' . $user->nom),
+                'auth_name' => trim($user->prenom.' '.$user->nom),
             ]);
 
             return response()->json(['ok' => true, 'redirect' => '/dashboard/client']);
         }
 
-        $user = DB::table('prestataires')->where('email', $data['email'])->first();
+        $user = Prestataire::where('email', $data['email'])->first();
         if (! $user || ! Hash::check($data['password'], $user->{$this->passwordColumn('prestataires')})) {
             return response()->json(['ok' => false, 'message' => 'Identifiants invalides.'], 422);
         }
@@ -151,7 +151,7 @@ class AuthController extends Controller
         session([
             'auth_id' => $user->id,
             'auth_type' => 'prestataire',
-            'auth_name' => trim($user->prenom . ' ' . $user->nom),
+            'auth_name' => trim($user->prenom.' '.$user->nom),
         ]);
 
         return response()->json(['ok' => true, 'redirect' => '/dashboard/prestataire']);

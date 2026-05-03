@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Avis;
+use App\Models\Message;
+use App\Models\Prestataire;
+use App\Models\Service;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -13,7 +16,7 @@ class PrestataireController extends Controller
     public function me(Request $request)
     {
         $id = (int) $request->session()->get('auth_id');
-        $row = DB::table('prestataires')->where('id', $id)->first();
+        $row = Prestataire::query()->where('id', $id)->first();
         if (! $row) {
             return response()->json(['ok' => false], 404);
         }
@@ -25,13 +28,13 @@ class PrestataireController extends Controller
 
         $nbAvis = 0;
         if (Schema::hasTable('avis')) {
-            $nbAvis = (int) DB::table('avis')->where('prestataire_id', $id)->count();
+            $nbAvis = (int) Avis::query()->where('prestataire_id', $id)->count();
         }
         $messagesNonLus = 0;
         if (Schema::hasTable('messages')) {
-            $messagesNonLus = (int) DB::table('messages')->where('prestataire_id', $id)->where('lu', 0)->count();
+            $messagesNonLus = (int) Message::query()->where('prestataire_id', $id)->where('lu', 0)->count();
         }
-        $servicesActifs = (int) DB::table('services')->where('prestataire_id', $id)->count();
+        $servicesActifs = (int) Service::query()->where('prestataire_id', $id)->count();
 
         $hasCv = ! empty($row->chemin_cv) && Storage::disk('local')->exists((string) $row->chemin_cv);
 
@@ -63,7 +66,7 @@ class PrestataireController extends Controller
     public function myCv(Request $request)
     {
         $id = (int) $request->session()->get('auth_id');
-        $row = DB::table('prestataires')->where('id', $id)->first();
+        $row = Prestataire::query()->where('id', $id)->first();
         if (! $row || empty($row->chemin_cv) || ! Storage::disk('local')->exists((string) $row->chemin_cv)) {
             abort(404);
         }
@@ -100,7 +103,7 @@ class PrestataireController extends Controller
             $update['updated_at'] = now();
         }
 
-        DB::table('prestataires')->where('id', $id)->update($update);
+        Prestataire::query()->where('id', $id)->update($update);
 
         $request->session()->put('auth_name', trim($data['prenom'].' '.$data['nom']));
 
@@ -131,7 +134,7 @@ class PrestataireController extends Controller
         $relative = 'uploads/prestataires/'.$id.'.'.$ext;
         $file->move($dir, $id.'.'.$ext);
 
-        DB::table('prestataires')->where('id', $id)->update([
+        Prestataire::query()->where('id', $id)->update([
             'photo_profil' => $relative,
         ]);
 
