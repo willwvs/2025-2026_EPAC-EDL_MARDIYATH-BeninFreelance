@@ -315,6 +315,7 @@
 
         const data=await res.json();
         if(!res.ok){showErr(data.message||'Inscription impossible.');btn.disabled=false;btn.textContent=btnLabel;btn.classList.remove('animate-pulse');return;}
+        if(data.redirect){window.location.href=data.redirect;return;}
         goStep(5);
       }catch(_){
         showErr('Erreur reseau. Reessayez.');

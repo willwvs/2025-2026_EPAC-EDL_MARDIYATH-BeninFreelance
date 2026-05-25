@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'app.auth' => EnsureAppAuth::class,
             'admin.auth' => EnsureAdmin::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'api/webhooks/fedapay/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

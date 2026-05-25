@@ -35,11 +35,16 @@
       if(!services||!services.length)return '<p class="text-sm text-muted">Aucun service publié.</p>';
       return services.map(function(s){
         const prix=s.prix_indicatif!=null?Number(s.prix_indicatif).toLocaleString('fr-FR')+' F':'Sur devis';
-        const msg=showMsg&&s.id&&pid?'<div class="mt-4"><a href="/contact/prestataire/'+encodeURIComponent(String(pid))+'?service='+encodeURIComponent(String(s.id))+'" class="inline-flex items-center justify-center rounded-xl border border-accent/50 text-accent font-syne font-bold text-xs px-4 py-2 hover:bg-accent/10 transition-colors">Premier message</a></div>':'';
-        return '<article class="border border-brd rounded-xl p-5 bg-surface2">'+
+        const desc=s.description_excerpt||s.description||'';
+        const img=s.photo_url?'<img src="'+escapeHtml(s.photo_url)+'" alt="" class="w-full h-36 object-cover rounded-lg border border-brd mb-3" loading="lazy"/>':'';
+        const detail=s.detail_url||('/service/'+s.id);
+        const msg=showMsg&&s.id&&pid?'<a href="/contact/prestataire/'+encodeURIComponent(String(pid))+'?service='+encodeURIComponent(String(s.id))+'" class="inline-flex items-center justify-center rounded-xl border border-accent/50 text-accent font-syne font-bold text-xs px-4 py-2 hover:bg-accent/10 transition-colors">Contacter</a>':'';
+        const view='<a href="'+escapeHtml(detail)+'" class="inline-flex items-center justify-center rounded-xl bg-accent/90 text-bg font-syne font-bold text-xs px-4 py-2 hover:opacity-90">Voir le service</a>';
+        const actions='<div class="mt-4 flex flex-wrap gap-2">'+view+(msg||'')+'</div>';
+        return '<article class="border border-brd rounded-xl p-5 bg-surface2">'+img+
           '<h3 class="font-syne font-bold text-base mb-1">'+escapeHtml(s.titre)+'</h3>'+
           '<p class="text-xs text-muted mb-3">'+escapeHtml(s.categorie||'')+(s.delai_execution?' · '+escapeHtml(s.delai_execution):'')+' · '+escapeHtml(prix)+'</p>'+
-          '<p class="text-sm leading-relaxed text-tx/90 whitespace-pre-wrap">'+escapeHtml(s.description||'')+'</p>'+msg+'</article>';
+          '<p class="text-sm leading-relaxed text-tx/90 whitespace-pre-wrap">'+escapeHtml(desc)+'</p>'+actions+'</article>';
       }).join('');
     }
     function layoutHero(p, photoHtml){
@@ -52,6 +57,75 @@
         '<p class="text-sm text-muted mb-2">'+escapeHtml(p.localite||'')+'</p>'+
         '<p class="text-sm text-tx/90 mb-4">'+escapeHtml(rating)+'</p>'+
         '<p class="text-sm leading-relaxed text-tx/85 whitespace-pre-wrap">'+escapeHtml(p.biographie||'')+'</p></div></div>';
+    }
+    function starRow(note){
+      const n=Math.max(0,Math.min(5,Number(note)||0));
+      let html='';
+      for(let i=1;i<=5;i++){
+        html += i<=n
+          ? '<i class="fa-solid fa-star text-accent text-[12px]"></i>'
+          : '<i class="fa-regular fa-star text-muted/60 text-[12px]"></i>';
+      }
+      return html;
+    }
+    function formatDate(d){
+      if(!d)return '';
+      try{
+        const dt=new Date(d);
+        if(isNaN(dt.getTime()))return '';
+        return dt.toLocaleDateString('fr-FR',{year:'numeric',month:'short',day:'numeric'});
+      }catch(e){return '';}
+    }
+    function avisCard(a){
+      const stars=starRow(a.note);
+      const date=formatDate(a.created_at);
+      const tag=a.commande_titre
+        ?'<span class="ml-2 inline-block text-[11px] px-2 py-0.5 rounded-full bg-accent/10 text-accent/90 align-middle">'+escapeHtml(a.commande_titre)+'</span>':'';
+      const body=a.commentaire
+        ?'<p class="text-sm leading-relaxed text-tx/90 mt-2 whitespace-pre-wrap">'+escapeHtml(a.commentaire)+'</p>'
+        :'<p class="text-xs text-muted italic mt-2">Le client n\u2019a pas laissé de commentaire.</p>';
+      return '<article class="border border-brd rounded-xl p-4 bg-surface2">'+
+        '<div class="flex items-center justify-between flex-wrap gap-2">'+
+        '<div class="flex items-center gap-2"><div class="flex items-center gap-0.5">'+stars+'</div>'+
+        '<span class="text-xs text-muted">'+escapeHtml(date)+'</span></div>'+
+        '<div class="text-xs text-tx/80 font-medium">'+escapeHtml(a.auteur||'Client')+tag+'</div></div>'+
+        body+'</article>';
+    }
+    function avisBreakdown(stats){
+      if(!stats||!stats.total)return '';
+      const total=stats.total;
+      const lines=[5,4,3,2,1].map(function(k){
+        const n=Number(stats.breakdown&&stats.breakdown[k]||0);
+        const pct=total>0?Math.round((n/total)*100):0;
+        return '<div class="flex items-center gap-2 text-xs">'+
+          '<span class="w-4 text-tx/80">'+k+'</span>'+
+          '<i class="fa-solid fa-star text-accent text-[10px]"></i>'+
+          '<div class="flex-1 h-1.5 rounded-full bg-brd overflow-hidden"><div class="h-full bg-accent" style="width:'+pct+'%"></div></div>'+
+          '<span class="w-8 text-right text-muted">'+n+'</span></div>';
+      }).join('');
+      const moy=(Number(stats.moyenne||0)).toFixed(1).replace('.',',');
+      return '<div class="rounded-2xl border border-brd bg-surface2 p-5 mb-6">'+
+        '<div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">'+
+        '<div class="text-center sm:text-left"><div class="font-syne font-bold text-3xl text-accent leading-none">'+moy+'</div>'+
+        '<div class="flex items-center gap-0.5 mt-1">'+starRow(Math.round(stats.moyenne||0))+'</div>'+
+        '<div class="text-xs text-muted mt-1">'+total+' avis</div></div>'+
+        '<div class="flex-1 w-full space-y-1.5">'+lines+'</div></div></div>';
+    }
+    async function loadAvisSection(prestataireId, container){
+      try{
+        const r=await fetch('/api/prestataires/'+prestataireId+'/avis',{headers:{Accept:'application/json'}});
+        if(!r.ok)throw new Error('http');
+        const d=await r.json();
+        if(!d.ok)throw new Error('payload');
+        const items=Array.isArray(d.avis)?d.avis:[];
+        if(!items.length){
+          container.innerHTML='<p class="text-sm text-muted">Aucun avis pour le moment. Soyez le premier à laisser un retour après une commande terminée.</p>';
+          return;
+        }
+        container.innerHTML=avisBreakdown(d.stats)+'<div class="space-y-3">'+items.map(avisCard).join('')+'</div>';
+      }catch(_e){
+        container.innerHTML='<p class="text-sm text-muted">Impossible de charger les avis.</p>';
+      }
     }
     function cvEmbedBlock(p){
       if(!p.has_cv||!p.cv_preview_url)return '<p class="text-xs text-muted">CV non disponible.</p>';
@@ -94,7 +168,10 @@
           '<div class="mt-5 pt-2 border-t border-brd/80">'+cvEmbedBlock(p)+'</div></div>';
         root.innerHTML=layoutHero(p,photoHtml(p))+contact+
           '<h2 class="font-syne font-bold text-xl mb-4">Services publiés</h2>'+
-          '<div class="space-y-4">'+serviceBlocks(d.services||[], { prestataireId: id, showMessage: true })+'</div>';
+          '<div class="space-y-4 mb-10">'+serviceBlocks(d.services||[], { prestataireId: id, showMessage: true })+'</div>'+
+          '<h2 class="font-syne font-bold text-xl mb-4">Avis des clients</h2>'+
+          '<div id="avis-section" class="mb-8"><p class="text-sm text-muted">Chargement des avis…</p></div>';
+        loadAvisSection(id, document.getElementById('avis-section'));
         return;
       }
       r=await fetch('/api/prestataires/'+id+'/public',{headers:{Accept:'application/json'}});
@@ -108,7 +185,10 @@
       root.innerHTML=banner+layoutHero(p,photoHtml(p))+
         '<div class="rounded-xl border border-brd bg-surface2 p-4 mb-8 text-sm text-muted">Coordonnées et CV : réservés aux clients connectés.</div>'+
         '<h2 class="font-syne font-bold text-xl mb-4">Services publiés</h2>'+
-        '<div class="space-y-4">'+serviceBlocks(d.services||[], { prestataireId: id, showMessage: false })+'</div>';
+        '<div class="space-y-4 mb-10">'+serviceBlocks(d.services||[], { prestataireId: id, showMessage: false })+'</div>'+
+        '<h2 class="font-syne font-bold text-xl mb-4">Avis des clients</h2>'+
+        '<div id="avis-section" class="mb-8"><p class="text-sm text-muted">Chargement des avis…</p></div>';
+      loadAvisSection(id, document.getElementById('avis-section'));
     }
     document.addEventListener('DOMContentLoaded',init);
   </script>

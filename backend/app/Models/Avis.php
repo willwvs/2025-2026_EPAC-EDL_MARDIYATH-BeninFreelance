@@ -14,6 +14,7 @@ class Avis extends Model
     protected $fillable = [
         'client_id',
         'prestataire_id',
+        'commande_id',
         'note',
         'commentaire',
     ];

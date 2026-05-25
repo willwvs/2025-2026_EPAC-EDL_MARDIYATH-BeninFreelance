@@ -50,7 +50,10 @@ CREATE TABLE `clients` (
   `telephone` varchar(20) NOT NULL,
   `localite` varchar(100) NOT NULL,
   `mot_de_passe` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `email_verify_token` varchar(64) DEFAULT NULL,
+  `email_verify_expires_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -64,7 +67,12 @@ CREATE TABLE `messages` (
   `client_id` int(11) NOT NULL,
   `prestataire_id` int(11) NOT NULL,
   `service_id` int(11) NOT NULL,
+  `expediteur` varchar(20) NOT NULL DEFAULT 'client',
   `contenu` text NOT NULL,
+  `attachment_path` varchar(255) DEFAULT NULL,
+  `attachment_name` varchar(255) DEFAULT NULL,
+  `attachment_mime` varchar(120) DEFAULT NULL,
+  `attachment_size` int unsigned DEFAULT NULL,
   `lu` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -90,7 +98,13 @@ CREATE TABLE `prestataires` (
   `chemin_cv` varchar(255) DEFAULT NULL,
   `chemin_identite` varchar(255) DEFAULT NULL,
   `statut_verification` enum('en_attente','valide','refuse') NOT NULL DEFAULT 'en_attente',
-  `motif_refus_ia` text DEFAULT NULL
+  `motif_refus_ia` text DEFAULT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `email_verify_token` varchar(64) DEFAULT NULL,
+  `email_verify_expires_at` timestamp NULL DEFAULT NULL,
+  `ia_decided_at` timestamp NULL DEFAULT NULL,
+  `admin_decided_at` timestamp NULL DEFAULT NULL,
+  `verification_email_sent_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -107,6 +121,7 @@ CREATE TABLE `services` (
   `categorie` varchar(100) NOT NULL,
   `prix_indicatif` decimal(10,2) DEFAULT NULL,
   `delai_execution` varchar(100) DEFAULT NULL,
+  `photo_path` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

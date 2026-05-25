@@ -2,9 +2,13 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AvisController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\PrestataireController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\File;
@@ -81,7 +85,21 @@ Route::middleware('app.auth:client')->group(function () {
     Route::get('/api/client/prestataires/{id}/cv', [ClientController::class, 'prestataireCv'])->whereNumber('id');
     Route::get('/api/client/contact-context', [MessageController::class, 'contactContext']);
     Route::get('/api/client/messages', [MessageController::class, 'indexClient']);
-    Route::post('/api/client/messages', [MessageController::class, 'storeFirstContact']);
+    Route::get('/api/client/messages/thread', [MessageController::class, 'threadClient']);
+    Route::post('/api/client/messages', [MessageController::class, 'storeClientMessage']);
+    Route::get('/api/client/commandes', [OrderController::class, 'indexClient']);
+    Route::post('/api/client/commandes', [OrderController::class, 'proposer']);
+    Route::get('/api/client/commandes/{id}', [OrderController::class, 'showClient'])->whereNumber('id');
+    Route::post('/api/client/commandes/{id}/payer', [OrderController::class, 'payer'])->whereNumber('id');
+    Route::post('/api/client/commandes/{id}/valider', [OrderController::class, 'valider'])->whereNumber('id');
+    Route::post('/api/client/commandes/{id}/retouche', [OrderController::class, 'retouche'])->whereNumber('id');
+    Route::post('/api/client/commandes/{id}/annuler', [OrderController::class, 'annuler'])->whereNumber('id');
+    Route::post('/api/client/commandes/{id}/litige', [OrderController::class, 'ouvrirLitige'])->whereNumber('id');
+    Route::post('/api/client/commandes/{id}/avis', [AvisController::class, 'storeForCommande'])->whereNumber('id');
+    Route::get('/api/client/commandes/{commandeId}/livraisons/{livraisonId}/fichier', [OrderController::class, 'downloadLivraison'])
+        ->whereNumber(['commandeId', 'livraisonId']);
+    Route::get('/api/client/counters', [OrderController::class, 'countersClient']);
+    Route::get('/api/client/avis', [ClientController::class, 'avisIndex']);
 });
 
 Route::middleware('app.auth:prestataire')->group(function () {
@@ -100,9 +118,27 @@ Route::middleware('app.auth:prestataire')->group(function () {
     Route::get('/api/prestataire/services', [ServiceController::class, 'indexMine']);
     Route::post('/api/prestataire/services', [ServiceController::class, 'store']);
     Route::patch('/api/prestataire/services/{id}', [ServiceController::class, 'update']);
+    Route::post('/api/prestataire/services/{id}/photo', [ServiceController::class, 'uploadPhoto'])->whereNumber('id');
     Route::delete('/api/prestataire/services/{id}', [ServiceController::class, 'destroy']);
     Route::get('/api/prestataire/messages', [MessageController::class, 'indexPrestataire']);
+    Route::get('/api/prestataire/messages/thread', [MessageController::class, 'threadPrestataire']);
+    Route::post('/api/prestataire/messages', [MessageController::class, 'storePrestataireMessage']);
+    Route::get('/api/prestataire/commandes', [OrderController::class, 'indexPrestataire']);
+    Route::get('/api/prestataire/commandes/{id}', [OrderController::class, 'showPrestataire'])->whereNumber('id');
+    Route::post('/api/prestataire/commandes/{id}/accepter', [OrderController::class, 'accepter'])->whereNumber('id');
+    Route::post('/api/prestataire/commandes/{id}/refuser', [OrderController::class, 'refuser'])->whereNumber('id');
+    Route::post('/api/prestataire/commandes/{id}/livrer', [OrderController::class, 'livrer'])->whereNumber('id');
+    Route::get('/api/prestataire/commandes/{commandeId}/livraisons/{livraisonId}/fichier', [OrderController::class, 'downloadLivraison'])
+        ->whereNumber(['commandeId', 'livraisonId']);
+    Route::get('/api/prestataire/counters', [OrderController::class, 'countersPrestataire']);
+    Route::get('/api/prestataire/avis', [PrestataireController::class, 'avisIndex']);
 });
+
+Route::get('/api/messages/{id}/attachment', [MessageController::class, 'attachment'])->whereNumber('id');
+
+Route::post('/api/webhooks/fedapay/payin', [PaymentWebhookController::class, 'payinWebhook']);
+Route::post('/api/webhooks/fedapay/payout', [PaymentWebhookController::class, 'payoutWebhook']);
+Route::get('/payments/return', [PaymentWebhookController::class, 'paymentReturn']);
 
 Route::get('/profil-prestataire', function () {
     return redirect('/dashboard/prestataire');
@@ -168,10 +204,39 @@ Route::get('/api/profile', function () {
     ]);
 });
 
+Route::get('/verify-email', [EmailVerificationController::class, 'verify']);
+
+Route::get('/verify-email/sent', function () {
+    return response(
+        File::get(base_path('../verify-email-sent.html')),
+        200,
+        ['Content-Type' => 'text/html']
+    );
+});
+
+Route::get('/search', function () {
+    return response(
+        File::get(base_path('../search.html')),
+        200,
+        ['Content-Type' => 'text/html']
+    );
+});
+
+Route::get('/service/{id}', function (int $id) {
+    return response(
+        File::get(base_path('../service.html')),
+        200,
+        ['Content-Type' => 'text/html']
+    );
+})->whereNumber('id');
+
 Route::get('/api/marketplace/meta', [MarketplaceController::class, 'meta']);
+Route::get('/api/marketplace/services', [MarketplaceController::class, 'searchServices']);
+Route::get('/api/marketplace/services/{id}', [MarketplaceController::class, 'showService'])->whereNumber('id');
 Route::get('/api/marketplace/prestataires', [MarketplaceController::class, 'searchPrestataires']);
 Route::get('/api/prestataires/{id}/teaser', [MarketplaceController::class, 'teaser'])->whereNumber('id');
 Route::get('/api/prestataires/{id}/public', [MarketplaceController::class, 'publicProfile'])->whereNumber('id');
+Route::get('/api/prestataires/{id}/avis', [MarketplaceController::class, 'publicAvis'])->whereNumber('id');
 
 Route::post('/register/client', [AuthController::class, 'registerClient'])->name('register.client');
 Route::post('/register/prestataire', [AuthController::class, 'registerPrestataire'])->name('register.prestataire');
@@ -198,6 +263,12 @@ Route::prefix('admin')->group(function () {
         Route::post('/api/prestataires/{id}/refuser', [AdminController::class, 'refuseApi']);
         Route::get('/prestataires/{id}/fichiers/{type}', [AdminController::class, 'file'])
             ->where('type', 'cv|identite');
+        Route::get('/api/commandes', [AdminController::class, 'listCommandes']);
+        Route::post('/api/commandes/{id}/rembourser', [AdminController::class, 'rembourserCommande'])->whereNumber('id');
+        Route::get('/api/litiges', [AdminController::class, 'listDisputes']);
+        Route::post('/api/litiges/{id}/resoudre', [AdminController::class, 'resolveDispute'])->whereNumber('id');
+        Route::get('/api/payouts', [AdminController::class, 'listPayouts']);
+        Route::post('/api/payouts/{id}/marquer-paye', [AdminController::class, 'markPayoutPaid'])->whereNumber('id');
     });
 });
 

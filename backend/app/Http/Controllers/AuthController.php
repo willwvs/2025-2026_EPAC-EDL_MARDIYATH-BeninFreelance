@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\Prestataire;
+use App\Support\AccountEmailVerification;
+use App\Support\PrestataireVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -33,19 +35,13 @@ class AuthController extends Controller
             'localite' => $data['localite'],
             $passwordColumn => Hash::make($data['password']),
         ]);
-        $id = $client->id;
 
-        $request->session()->regenerate();
-        session([
-            'auth_id' => $id,
-            'auth_type' => 'client',
-            'auth_name' => trim($data['prenom'].' '.$data['nom']),
-        ]);
+        AccountEmailVerification::sendForClient($client);
 
         return response()->json([
             'ok' => true,
-            'message' => 'Compte client cree.',
-            'redirect' => '/dashboard/client',
+            'message' => 'Compte créé. Consultez votre boîte mail pour confirmer votre adresse.',
+            'redirect' => '/verify-email/sent?role=client',
         ]);
     }
 
@@ -101,12 +97,29 @@ class AuthController extends Controller
             ];
         }
 
-        Prestataire::where('id', $id)->update([
-            'statut_verification' => $ia['statut_verification'],
+        $iaStatut = $ia['statut_verification'];
+        $update = [
+            'statut_verification' => $iaStatut,
             'motif_refus_ia' => $ia['motif_refus_ia'],
-        ]);
+        ];
 
-        return response()->json(['ok' => true, 'message' => 'Dossier prestataire soumis.']);
+        if (
+            Schema::hasColumn('prestataires', 'ia_decided_at')
+            && in_array($iaStatut, ['valide', 'refuse'], true)
+        ) {
+            $update['ia_decided_at'] = now();
+        }
+
+        Prestataire::where('id', $id)->update($update);
+
+        $row = Prestataire::find($id);
+        AccountEmailVerification::sendForPrestataire($row);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Dossier soumis. Confirmez votre e-mail ; vous serez notifié de la décision sur votre dossier.',
+            'redirect' => '/verify-email/sent?role=prestataire',
+        ]);
     }
 
     public function login(Request $request)
@@ -121,6 +134,13 @@ class AuthController extends Controller
             $user = Client::where('email', $data['email'])->first();
             if (! $user || ! Hash::check($data['password'], $user->{$this->passwordColumn('clients')})) {
                 return response()->json(['ok' => false, 'message' => 'Identifiants invalides.'], 422);
+            }
+
+            if (! AccountEmailVerification::isVerified($user, 'clients')) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => 'Confirmez votre adresse e-mail avant de vous connecter (lien envoyé à l’inscription).',
+                ], 403);
             }
 
             $request->session()->regenerate();
@@ -138,12 +158,26 @@ class AuthController extends Controller
             return response()->json(['ok' => false, 'message' => 'Identifiants invalides.'], 422);
         }
 
-        if (($user->statut_verification ?? 'en_attente') !== 'valide') {
+        if (! AccountEmailVerification::isVerified($user, 'prestataires')) {
             return response()->json([
                 'ok' => false,
-                'message' => $user->statut_verification === 'refuse'
-                    ? 'Compte refuse. Merci de resoumettre vos documents.'
-                    : 'Dossier en examen par le comité d’experts. Revenez sous 24 h maximum.',
+                'message' => 'Confirmez votre adresse e-mail avant de vous connecter.',
+            ], 403);
+        }
+
+        $effective = PrestataireVerification::effectiveStatus($user);
+
+        if ($effective === 'refuse') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Compte refusé. '.($user->motif_refus_ia ?: 'Merci de resoumettre vos documents.'),
+            ], 403);
+        }
+
+        if ($effective !== 'valide') {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Dossier en examen par le comité d’experts (délai maximal 24 h après analyse automatique).',
             ], 403);
         }
 

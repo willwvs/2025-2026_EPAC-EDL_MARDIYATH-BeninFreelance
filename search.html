@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rechercher un service — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne', 'sans-serif'] },
+          colors: {
+            bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+            brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8', muted: '#7A7A9A', ok: '#2ECC71'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    input, select { outline: none; }
+    input:focus, select:focus { border-color: #F5A623 !important; }
+    select option { background: #13131A; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+  <header class="sticky top-0 z-50 bg-surface/95 border-b border-brd backdrop-blur-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+      <a href="/" class="font-syne font-extrabold text-lg shrink-0">Bénin<span class="text-accent">Freelance</span></a>
+      <a href="/login" class="text-sm font-semibold text-accent border border-accent/40 px-4 py-2 rounded-lg hover:bg-accent/10 transition-colors shrink-0">Connexion</a>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+    <h1 class="font-syne font-bold text-2xl sm:text-3xl mb-2">Rechercher un service</h1>
+    <p class="text-muted text-sm sm:text-base mb-8 max-w-2xl leading-relaxed">
+      Parcourez les offres publiées par des prestataires vérifiés. Ouvrez une fiche service pour contacter le professionnel.
+      <a href="/dashboard/client" class="text-accent hover:underline">Espace client</a> : découverte des profils.
+    </p>
+
+    <form id="search-form" class="mb-6" onsubmit="applySearch(event)">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input id="flt-q" type="search" autocomplete="off" placeholder="Titre, catégorie, mot-clé…"
+          class="flex-1 bg-surface border border-brd rounded-xl px-4 py-3 text-sm placeholder:text-muted" />
+        <button type="submit" class="bg-accent text-bg font-syne font-bold text-sm px-6 py-3 rounded-xl hover:opacity-90">Rechercher</button>
+      </div>
+    </form>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <aside class="lg:w-64 shrink-0">
+        <form id="filter-form" class="rounded-2xl border border-brd bg-surface2 p-5 space-y-4" onsubmit="applySearch(event)">
+          <p class="text-xs font-medium text-muted uppercase tracking-wide">Filtres</p>
+          <div>
+            <label class="block text-xs text-muted mb-1.5" for="flt-cat">Catégorie</label>
+            <select id="flt-cat" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5"></select>
+          </div>
+          <div>
+            <label class="block text-xs text-muted mb-1.5" for="flt-loc">Ville</label>
+            <select id="flt-loc" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5"></select>
+          </div>
+          <div>
+            <label class="block text-xs text-muted mb-1.5" for="flt-note">Note minimum</label>
+            <select id="flt-note" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5">
+              <option value="">Toutes</option>
+              <option value="4">4,0 et +</option>
+              <option value="3">3,0 et +</option>
+              <option value="2">2,0 et +</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full bg-accent text-bg font-syne font-bold text-sm py-2.5 rounded-xl">Appliquer</button>
+          <button type="button" onclick="resetSearch()" class="w-full border border-brd text-muted text-sm py-2.5 rounded-xl hover:text-tx">Réinitialiser</button>
+        </form>
+      </aside>
+
+      <div class="flex-1 min-w-0">
+        <p id="search-meta" class="text-sm text-muted mb-4"></p>
+        <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <button type="button" onclick="goPage(-1)" class="border border-brd text-muted text-sm px-4 py-2 rounded-xl hover:border-accent hover:text-accent">Précédent</button>
+          <span id="search-page" class="text-sm text-muted"></span>
+          <button type="button" onclick="goPage(1)" class="border border-brd text-muted text-sm px-4 py-2 rounded-xl hover:border-accent hover:text-accent">Suivant</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/assets/js/marketplace.js"></script>
+  <script>
+    const BF = window.BFMarketplace;
+    let filters = { q: '', categorie: '', localite: '', note_min: '' };
+    let page = 1;
+    let lastPage = 1;
+
+    async function loadSearch() {
+      const p = BF.filtersToParams(filters, page);
+      const r = await fetch('/api/marketplace/services?' + p.toString(), { headers: { Accept: 'application/json' } });
+      const d = await r.json();
+      if (!r.ok || !d.ok) return;
+      lastPage = d.last_page || 1;
+      document.getElementById('search-meta').textContent = d.total === 0
+        ? 'Aucun service ne correspond à ces critères.'
+        : d.total + ' service' + (d.total > 1 ? 's' : '') + ' trouvé' + (d.total > 1 ? 's' : '');
+      document.getElementById('search-page').textContent = 'Page ' + page + ' / ' + lastPage;
+      const box = document.getElementById('search-results');
+      box.innerHTML = (!d.data || !d.data.length)
+        ? '<p class="text-sm text-muted border border-dashed border-brd rounded-xl p-8 text-center">Affinez les filtres ou élargissez la recherche.</p>'
+        : d.data.map(function (row) { return BF.serviceBannerCard(row, { showContact: false }); }).join('');
+      BF.pushFiltersToLocation(filters, page);
+    }
+
+    function applySearch(ev) {
+      ev.preventDefault();
+      filters = BF.readFiltersFromForm();
+      page = 1;
+      loadSearch();
+    }
+
+    function resetSearch() {
+      filters = { q: '', categorie: '', localite: '', note_min: '' };
+      page = 1;
+      BF.applyFiltersToForm(filters);
+      loadSearch();
+    }
+
+    function goPage(delta) {
+      const next = page + delta;
+      if (next < 1 || next > lastPage) return;
+      page = next;
+      loadSearch();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function init() {
+      const loc = BF.filtersFromLocation();
+      filters = { q: loc.q, categorie: loc.categorie, localite: loc.localite, note_min: loc.note_min };
+      page = loc.page;
+      BF.applyFiltersToForm(filters);
+      const rMeta = await fetch('/api/marketplace/meta', { headers: { Accept: 'application/json' } });
+      if (rMeta.ok) {
+        const meta = await rMeta.json();
+        if (meta.ok) {
+          BF.fillSelect('flt-cat', meta.categories, 'Toutes les catégories');
+          BF.fillSelect('flt-loc', meta.localites, 'Toutes les villes');
+        }
+      }
+      document.getElementById('flt-note').value = filters.note_min;
+      await loadSearch();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

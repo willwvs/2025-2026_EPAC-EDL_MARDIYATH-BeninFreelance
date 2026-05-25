@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Analyse procédurale du dossier prestataire via Gemini 2.5 Flash + Google Search.
+ * Analyse procédurale du dossier prestataire via Gemini 3 Flash + Google Search.
  * @see https://ai.google.dev/gemini-api/docs/google-search
  *
  * @return array{statut_verification:string, motif_refus_ia:?string, erreur:?string}

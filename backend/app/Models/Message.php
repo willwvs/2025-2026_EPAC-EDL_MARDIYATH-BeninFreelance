@@ -15,7 +15,15 @@ class Message extends Model
         'client_id',
         'prestataire_id',
         'service_id',
+        'commande_id',
+        'expediteur',
+        'kind',
         'contenu',
+        'meta',
+        'attachment_path',
+        'attachment_name',
+        'attachment_mime',
+        'attachment_size',
         'lu',
     ];
 
@@ -24,6 +32,7 @@ class Message extends Model
         return [
             'created_at' => 'datetime',
             'lu' => 'boolean',
+            'meta' => 'array',
         ];
     }
 

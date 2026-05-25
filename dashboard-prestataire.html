@@ -50,7 +50,84 @@
       background: #F5A623; border-radius: 2px;
     }
     .ia-border { border: 1px solid #F5A623; }
+    #view-messages {
+      flex: 1;
+      min-height: 0;
+      height: calc(100dvh - 4rem);
+      max-height: calc(100dvh - 4rem);
+    }
+    #msg-layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+      max-height: 100%;
+      overflow: hidden;
+    }
+    #msg-sidebar {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+    #msg-conv-list { flex: 1 1 0%; min-height: 0; overflow-y: auto; }
+    #msg-chat-panel {
+      display: none;
+      flex: 1 1 0%;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+    @media (min-width: 768px) {
+      #msg-sidebar { width: 100%; max-width: 100%; flex: 1 1 0%; min-width: 0; border-right: none; }
+      #msg-layout:has(#msg-chat-active:not(.hidden)) #msg-sidebar {
+        width: 18rem; max-width: 40%; flex: 0 0 auto; border-right: 1px solid #2A2A3D;
+      }
+    }
+    #msg-layout.msg-list-only #msg-sidebar-header { padding-left: 1.25rem; padding-right: 1.25rem; }
+    @media (min-width: 768px) {
+      #msg-layout.msg-list-only #msg-sidebar-header { padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    #msg-layout.msg-list-only .msg-conv-item { padding-left: 1.25rem; padding-right: 1.25rem; }
+    @media (min-width: 768px) {
+      #msg-layout.msg-list-only .msg-conv-item { padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    #msg-layout.msg-list-only .msg-conv-peer,
+    #msg-layout.msg-list-only .msg-conv-service,
+    #msg-layout.msg-list-only .msg-conv-excerpt { word-break: break-word; }
+    #msg-layout.msg-list-only .msg-conv-excerpt { white-space: pre-wrap; }
+    #msg-layout:not(.msg-list-only) .msg-conv-peer,
+    #msg-layout:not(.msg-list-only) .msg-conv-service { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #msg-layout:not(.msg-list-only) .msg-conv-excerpt {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    #msg-layout:has(#msg-chat-active:not(.hidden)) #msg-chat-panel { display: flex !important; }
+    #msg-layout.msg-chat-open #msg-sidebar { display: none !important; }
+    #msg-layout.msg-chat-open #msg-chat-panel { display: flex !important; }
+    #msg-chat-active { flex: 1 1 0%; min-height: 0; overflow: hidden; }
+    #msg-chat-active:not(.hidden) { display: flex !important; flex-direction: column; }
+    #msg-bubbles {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+    .msg-compose-dock { flex: 0 0 auto; flex-shrink: 0; }
+    #msg-compose-input { resize: none; min-height: 24px; line-height: 1.5; }
+    .msg-composer-card { transition: border-color .15s ease, background .15s ease; }
+    .msg-composer-card:focus-within { border-color: rgba(245,166,35,.55); background: rgba(28,28,39,.95); }
+    .msg-thin-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .msg-thin-scroll::-webkit-scrollbar-thumb { background: rgba(122,122,154,.25); border-radius: 3px; }
+    .msg-thin-scroll::-webkit-scrollbar-track { background: transparent; }
+    .msg-thin-scroll { scrollbar-width: thin; scrollbar-color: rgba(122,122,154,.25) transparent; }
+    #msg-compose-input:focus { border-color: transparent !important; box-shadow: none !important; }
   </style>
+  <script src="/assets/js/messenger.js"></script>
+  <script src="/assets/js/orders.js"></script>
 </head>
 <body class="bg-bg text-tx min-h-screen">
 
@@ -81,6 +158,10 @@
           <i class="fa-solid fa-envelope w-4 text-center"></i> Messagerie
           <span id="badge-msg" class="hidden ml-auto bg-accent text-bg text-xs font-bold px-1.5 py-0.5 rounded-full"></span>
         </button>
+        <button type="button" onclick="desktopNavCommandes(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx transition-all text-left w-full">
+          <i class="fa-solid fa-file-contract w-4 text-center"></i> Commandes
+          <span id="badge-cmd" class="hidden ml-auto bg-accent text-bg text-xs font-bold px-1.5 py-0.5 rounded-full"></span>
+        </button>
       </nav>
     </aside>
 
@@ -99,11 +180,15 @@
           <i class="fa-solid fa-envelope w-4"></i> Messagerie
           <span id="badge-msg-mob" class="hidden ml-auto bg-accent text-bg text-[10px] font-bold px-1.5 py-0.5 rounded-full"></span>
         </button>
+        <button type="button" onclick="mobNavCommandes(this)" class="nav-link flex items-center gap-3 pl-5 pr-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+          <i class="fa-solid fa-file-contract w-4"></i> Commandes
+          <span id="badge-cmd-mob" class="hidden ml-auto bg-accent text-bg text-[10px] font-bold px-1.5 py-0.5 rounded-full"></span>
+        </button>
       </nav>
       <button type="button" onclick="logout()" class="mt-auto text-xs text-muted border border-brd px-3 py-2 rounded-lg hover:border-muted transition-all">Déconnexion</button>
     </aside>
 
-    <main class="flex-1 px-4 sm:px-6 lg:px-10 py-6 sm:py-8 max-w-full">
+    <main class="flex-1 flex flex-col min-h-0 px-4 sm:px-6 lg:px-10 py-6 sm:py-8 max-w-full">
 
       <div id="msg-ok" class="hidden mb-4 text-sm text-ok border border-ok/30 bg-ok/10 px-3 py-2 rounded-lg"></div>
       <div id="msg-err" class="hidden mb-4 text-sm text-red-400 border border-red-500/30 bg-red-900/20 px-3 py-2 rounded-lg"></div>
@@ -151,6 +236,18 @@
             Gérer mes services
           </button>
         </div>
+
+        <section class="mt-6 border border-brd rounded-2xl bg-surface2 px-5 py-5 sm:px-6 anim-fadeup d6">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <p class="font-syne font-bold text-base text-tx">Avis reçus</p>
+              <p class="text-xs text-muted">Vos retours clients (note + commentaire).</p>
+            </div>
+            <button type="button" id="avis-refresh" class="text-xs text-accent hover:underline">Actualiser</button>
+          </div>
+          <div id="avis-summary" class="mb-4"></div>
+          <div id="avis-list" class="space-y-3"></div>
+        </section>
       </div>
 
       <div id="view-services" class="hidden max-w-4xl">
@@ -201,6 +298,11 @@
               <div class="md:col-span-2">
                 <label class="block text-xs text-muted font-medium mb-1.5" for="s-description">Description détaillée <span class="text-red-400">*</span></label>
                 <textarea id="s-description" required maxlength="10000" placeholder="Ce que vous livrez, prérequis, processus, ce qui est inclus ou non…" class="w-full bg-bg border border-brd rounded-xl px-3 py-2.5 text-sm"></textarea>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs text-muted font-medium mb-1.5" for="s-photo">Photo illustrative <span class="text-muted font-normal">(JPG, PNG, WEBP — max. 5 Mo)</span></label>
+                <input id="s-photo" type="file" accept="image/jpeg,image/png,image/webp" class="w-full text-sm text-muted file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-accent file:text-bg file:font-bold file:text-xs" />
+                <p id="s-photo-hint" class="text-[11px] text-muted mt-1.5"></p>
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-2 pt-1">
@@ -266,25 +368,88 @@
               <option>Kandi</option><option>Lokossa</option><option>Ouidah</option><option>Autre</option>
             </select>
             <textarea id="f-bio" maxlength="5000" rows="5" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" placeholder="Biographie"></textarea>
+            <div class="border border-brd/60 rounded-xl p-4 space-y-3">
+              <p class="text-xs font-bold text-tx">Versement Mobile Money (obligatoire pour accepter des commandes)</p>
+              <input id="f-mm-phone" maxlength="20" placeholder="Numéro MTN/Moov (ex. 97000000)" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl" />
+              <select id="f-mm-mode" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl">
+                <option value="">Opérateur</option>
+                <option value="mtn-benin">MTN Bénin</option>
+                <option value="moov-benin">Moov Bénin</option>
+              </select>
+            </div>
             <button type="submit" class="bg-accent text-bg font-syne font-bold text-sm py-3 px-6 rounded-xl hover:opacity-88 transition-opacity">Enregistrer</button>
           </form>
         </div>
       </div>
 
-      <div id="view-messages" class="hidden max-w-4xl">
-        <div class="flex items-start justify-between mb-6">
-          <h1 class="font-syne font-bold text-2xl sm:text-3xl">Messagerie</h1>
-          <button type="button" onclick="logout()" class="hidden md:block border border-brd text-tx text-sm px-4 py-2 rounded-xl hover:border-muted transition-all">Déconnexion</button>
+      <div id="view-commandes" class="hidden flex flex-col flex-1 min-h-0 max-w-5xl w-full h-full">
+        <div class="rounded-2xl border border-brd bg-surface2 overflow-hidden flex-1 min-h-0 h-full flex flex-col md:flex-row">
+          <aside class="md:w-80 shrink-0 border-b md:border-b-0 md:border-r border-brd flex flex-col min-h-0">
+            <div class="px-4 py-4 border-b border-brd">
+              <h1 class="font-syne font-bold text-xl text-tx">Commandes</h1>
+              <p class="text-xs text-muted mt-1">Acceptez, livrez, recevez vos paiements</p>
+            </div>
+            <div id="orders-list" class="flex-1 overflow-y-auto min-h-0"></div>
+          </aside>
+          <div id="orders-detail" class="flex-1 min-h-0 overflow-y-auto bg-bg/40 relative"></div>
         </div>
-        <p class="text-muted text-sm mb-6 max-w-2xl leading-relaxed">Demandes initiales des clients pour vos services. Vous pouvez les consulter ici.</p>
-        <div id="list-presta-messages" class="space-y-4"></div>
+      </div>
+
+      <div id="view-messages" class="hidden flex flex-col flex-1 min-h-0 max-w-5xl w-full h-full">
+        <div id="msg-layout" class="rounded-2xl border border-brd bg-surface2 overflow-hidden flex-1 min-h-0 h-full">
+          <aside id="msg-sidebar" class="bg-surface/30 flex flex-col min-h-0 h-full">
+            <div id="msg-sidebar-header" class="px-4 py-4 border-b border-brd shrink-0 flex items-start justify-between gap-2 w-full">
+              <div>
+                <h1 class="font-syne font-bold text-xl text-tx">Messagerie</h1>
+                <p class="text-xs text-muted mt-1">Répondez aux clients pour vos services</p>
+              </div>
+            </div>
+            <div id="msg-conv-list" class="flex-1 overflow-y-auto min-h-0"></div>
+          </aside>
+          <div id="msg-chat-panel" class="bg-bg/40 flex flex-col min-h-0 h-full">
+            <div id="msg-chat-active" class="hidden flex-1 flex flex-col min-h-0 h-full">
+              <header class="shrink-0 flex items-center gap-3 px-3 py-3 border-b border-brd bg-surface/80">
+                <button type="button" id="msg-btn-back" class="shrink-0 w-9 h-9 rounded-lg border border-brd text-muted hover:text-tx" aria-label="Retour">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div id="msg-chat-header" class="min-w-0 flex-1"></div>
+              </header>
+              <div id="msg-bubbles" class="msg-thin-scroll px-3 sm:px-4 py-4"></div>
+              <div class="msg-compose-dock border-t border-brd/70 bg-surface/40 px-3 sm:px-4 pt-3 pb-3">
+              <form id="msg-compose-form" class="m-0">
+                <input id="msg-file-input" type="file" class="hidden" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" />
+                <div id="msg-emoji-panel" class="hidden mb-2 flex flex-wrap gap-1 rounded-2xl border border-brd bg-surface2 p-2"></div>
+                <div class="msg-composer-card rounded-2xl bg-surface2 border border-brd/60 px-3 pt-2.5 pb-2">
+                  <div id="msg-attachment-preview" class="hidden mb-2"></div>
+                  <textarea id="msg-compose-input" rows="1" maxlength="8000" placeholder="Votre réponse…"
+                    class="msg-thin-scroll block w-full bg-transparent text-[14px] text-tx placeholder:text-muted/80 px-1 py-1 outline-none border-0 max-h-[180px]"></textarea>
+                  <div class="flex items-center justify-between gap-2 mt-1.5">
+                    <div class="flex items-center gap-1">
+                      <button type="button" id="msg-emoji-btn" class="w-8 h-8 rounded-lg text-muted hover:text-tx hover:bg-bg/60 transition-colors flex items-center justify-center" aria-label="Ajouter un emoji">
+                        <i class="fa-regular fa-face-smile text-[14px]"></i>
+                      </button>
+                      <button type="button" id="msg-attach-btn" class="w-8 h-8 rounded-lg text-muted hover:text-tx hover:bg-bg/60 transition-colors flex items-center justify-center" aria-label="Joindre un fichier">
+                        <i class="fa-solid fa-paperclip text-[13px]"></i>
+                      </button>
+                    </div>
+                    <button type="submit" id="msg-send-btn" class="shrink-0 w-9 h-9 rounded-full bg-accent text-bg flex items-center justify-center hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity" aria-label="Envoyer">
+                      <i class="fa-solid fa-arrow-up text-[12px]"></i>
+                    </button>
+                  </div>
+                </div>
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
 
   <script>
     let lastUser = null;
-    let messagesListLoaded = false;
+    let prestaMessenger = null;
+    let prestaOrders = null;
     let services = [];
     let editingId = null;
 
@@ -323,6 +488,7 @@
       document.getElementById('view-profil').classList.add('hidden');
       document.getElementById('view-services').classList.add('hidden');
       document.getElementById('view-messages').classList.add('hidden');
+      document.getElementById('view-commandes').classList.add('hidden');
       document.getElementById('mob-title').textContent = 'Tableau de bord';
     }
     function loadCvIframeIfNeeded() {
@@ -336,6 +502,7 @@
       document.getElementById('view-tableau').classList.add('hidden');
       document.getElementById('view-services').classList.add('hidden');
       document.getElementById('view-messages').classList.add('hidden');
+      document.getElementById('view-commandes').classList.add('hidden');
       document.getElementById('view-profil').classList.remove('hidden');
       document.getElementById('mob-title').textContent = 'Mon profil';
       loadCvIframeIfNeeded();
@@ -344,6 +511,7 @@
       document.getElementById('view-tableau').classList.add('hidden');
       document.getElementById('view-profil').classList.add('hidden');
       document.getElementById('view-messages').classList.add('hidden');
+      document.getElementById('view-commandes').classList.add('hidden');
       document.getElementById('view-services').classList.remove('hidden');
       document.getElementById('mob-title').textContent = 'Mes services';
     }
@@ -351,12 +519,26 @@
       document.getElementById('view-tableau').classList.add('hidden');
       document.getElementById('view-profil').classList.add('hidden');
       document.getElementById('view-services').classList.add('hidden');
+      document.getElementById('view-commandes').classList.add('hidden');
       document.getElementById('view-messages').classList.remove('hidden');
       document.getElementById('mob-title').textContent = 'Messagerie';
-      if (!messagesListLoaded) {
-        messagesListLoaded = true;
-        loadPrestataireMessages();
+      openPrestataireMessages();
+    }
+    function showCommandes() {
+      document.getElementById('view-tableau').classList.add('hidden');
+      document.getElementById('view-profil').classList.add('hidden');
+      document.getElementById('view-services').classList.add('hidden');
+      document.getElementById('view-messages').classList.add('hidden');
+      document.getElementById('view-commandes').classList.remove('hidden');
+      document.getElementById('mob-title').textContent = 'Commandes';
+      openPrestataireOrders();
+    }
+    function openPrestataireOrders() {
+      if (!prestaOrders) {
+        var qs = new URLSearchParams(window.location.search);
+        prestaOrders = BFOrders({ role: 'prestataire', openCommandeId: qs.get('commande_id') });
       }
+      prestaOrders.load();
     }
     function desktopNavTableau(el) {
       setNavActive(el);
@@ -373,6 +555,10 @@
     function desktopNavMessages(el) {
       setNavActive(el);
       showMessages();
+    }
+    function desktopNavCommandes(el) {
+      setNavActive(el);
+      showCommandes();
     }
     function mobNavTableau(el) {
       setNavActive(el);
@@ -392,6 +578,11 @@
     function mobNavMessages(el) {
       setNavActive(el);
       showMessages();
+      toggleSidebar();
+    }
+    function mobNavCommandes(el) {
+      setNavActive(el);
+      showCommandes();
       toggleSidebar();
     }
     function goServicesFromHome() {
@@ -479,17 +670,7 @@
       }
 
       const msg = u.messages_non_lus != null ? u.messages_non_lus : 0;
-      document.getElementById('stat-messages').textContent = msg;
-      ['badge-msg', 'badge-msg-mob'].forEach(function (bid) {
-        const b = document.getElementById(bid);
-        if (!b) return;
-        if (msg > 0) {
-          b.textContent = String(msg);
-          b.classList.remove('hidden');
-        } else {
-          b.classList.add('hidden');
-        }
-      });
+      setUnreadBadges(msg);
 
       const note = Number(u.note_moyenne || 0).toFixed(1);
       document.getElementById('stat-note').textContent = note + ' / 5';
@@ -506,16 +687,132 @@
       renderServicesList();
     }
 
+    function setUnreadBadges(msg) {
+      const count = Number(msg || 0);
+      const statEl = document.getElementById('stat-messages');
+      if (statEl) statEl.textContent = count;
+      ['badge-msg', 'badge-msg-mob'].forEach(function (bid) {
+        const b = document.getElementById(bid);
+        if (!b) return;
+        if (count > 0) {
+          b.textContent = count > 9 ? '9+' : String(count);
+          b.classList.remove('hidden');
+        } else {
+          b.classList.add('hidden');
+        }
+      });
+    }
+    function setCmdBadge(n) {
+      const count = Number(n || 0);
+      ['badge-cmd', 'badge-cmd-mob'].forEach(function (bid) {
+        const b = document.getElementById(bid);
+        if (!b) return;
+        if (count > 0) {
+          b.textContent = count > 9 ? '9+' : String(count);
+          b.classList.remove('hidden');
+        } else {
+          b.classList.add('hidden');
+        }
+      });
+    }
+    async function refreshPrestaCounters() {
+      try {
+        const r = await fetch('/api/prestataire/counters', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!d.ok) return;
+        setUnreadBadges(d.messages_unread);
+        setCmdBadge(d.commandes_action);
+      } catch (_) { /* silencieux */ }
+    }
+
+    function avisStarsHtml(n) {
+      var v = Math.max(0, Math.min(5, Number(n) || 0));
+      var out = '';
+      for (var i = 1; i <= 5; i++) {
+        out += i <= v
+          ? '<i class="fa-solid fa-star text-accent text-[12px]"></i>'
+          : '<i class="fa-regular fa-star text-muted/60 text-[12px]"></i>';
+      }
+      return out;
+    }
+    function avisCardHtml(a) {
+      var d = '';
+      try {
+        var dt = new Date(a.created_at);
+        if (!isNaN(dt.getTime())) d = dt.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' });
+      } catch (e) { /* ignore */ }
+      var body = a.commentaire
+        ? '<p class="text-sm leading-relaxed text-tx/90 mt-2 whitespace-pre-wrap">' + escAvis(a.commentaire) + '</p>'
+        : '<p class="text-xs text-muted italic mt-2">Aucun commentaire laissé.</p>';
+      var tag = a.commande_titre
+        ? '<span class="ml-2 inline-block text-[11px] px-2 py-0.5 rounded-full bg-accent/10 text-accent/90">' + escAvis(a.commande_titre) + '</span>'
+        : '';
+      return '<article class="border border-brd rounded-xl p-4 bg-surface">'
+        + '<div class="flex items-center justify-between flex-wrap gap-2">'
+        + '<div class="flex items-center gap-2"><div class="flex items-center gap-0.5">' + avisStarsHtml(a.note) + '</div>'
+        + '<span class="text-xs text-muted">' + escAvis(d) + '</span></div>'
+        + '<div class="text-xs text-tx/80 font-medium">' + escAvis(a.auteur || 'Client') + tag + '</div>'
+        + '</div>' + body + '</article>';
+    }
+    function escAvis(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+    async function loadMyAvis() {
+      var sum = document.getElementById('avis-summary');
+      var list = document.getElementById('avis-list');
+      if (!list) return;
+      list.innerHTML = '<p class="text-sm text-muted">Chargement…</p>';
+      if (sum) sum.innerHTML = '';
+      try {
+        var r = await fetch('/api/prestataire/avis', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        if (!r.ok) throw new Error('http');
+        var d = await r.json();
+        if (!d.ok) throw new Error('payload');
+        var rows = Array.isArray(d.rows) ? d.rows : [];
+        if (!rows.length) {
+          list.innerHTML = '<p class="text-sm text-muted">Aucun avis pour le moment. Vos premiers avis apparaîtront ici après validation de vos commandes.</p>';
+          return;
+        }
+        if (sum) {
+          var moy = (Number(d.note_moyenne || 0)).toFixed(1).replace('.', ',');
+          sum.innerHTML = '<div class="flex items-center gap-3 text-sm">'
+            + '<span class="font-syne font-bold text-2xl text-accent">' + moy + '</span>'
+            + '<div class="flex items-center gap-0.5">' + avisStarsHtml(Math.round(d.note_moyenne || 0)) + '</div>'
+            + '<span class="text-xs text-muted">' + rows.length + ' avis</span></div>';
+        }
+        list.innerHTML = rows.map(avisCardHtml).join('');
+      } catch (e) {
+        list.innerHTML = '<p class="text-sm text-muted">Impossible de charger les avis.</p>';
+      }
+    }
+    // Bridge "Voir le fil" depuis la section Commandes
+    window.BFOpenThreadForOrder = function (c) {
+      var cmdBtn = document.querySelectorAll('aside.hidden.md\\:flex nav button.nav-link');
+      if (cmdBtn.length >= 4) desktopNavMessages(cmdBtn[3]);
+      setTimeout(function () {
+        if (prestaMessenger && typeof prestaMessenger.openByParams === 'function') {
+          prestaMessenger.openByParams({
+            client_id: c.client_id,
+            service_id: c.service_id,
+          });
+        }
+      }, 100);
+    };
+
     function serviceCard(s) {
       const prix = s.prix_indicatif != null ? Number(s.prix_indicatif).toLocaleString('fr-FR') + ' F' : 'Sur devis';
       const meta = escapeHtml(s.categorie || '') + ' · ' + prix + (s.delai_execution ? ' · ' + escapeHtml(s.delai_execution) : '');
       const desc = escapeHtml((s.description || '').slice(0, 220)) + ((s.description || '').length > 220 ? '…' : '');
+      const thumb = s.photo_url
+        ? '<img src="' + escapeHtml(s.photo_url) + '" alt="" class="w-full lg:w-28 h-28 object-cover rounded-lg border border-brd shrink-0" loading="lazy" />'
+        : '';
       return (
         '<div class="bg-surface border border-brd rounded-xl px-4 py-4 flex flex-col lg:flex-row lg:items-start gap-4">' +
+        thumb +
         '<div class="flex-1 min-w-0">' +
         '<p class="font-syne font-semibold text-sm text-tx mb-1">' + escapeHtml(s.titre) + '</p>' +
         '<p class="text-xs text-muted mb-2">' + meta + '</p>' +
         '<p class="text-xs text-tx/80 leading-relaxed">' + desc + '</p>' +
+        '<a href="/service/' + s.id + '" class="text-xs text-accent hover:underline mt-2 inline-block">Aperçu public</a>' +
         '</div>' +
         '<div class="flex items-center gap-4 shrink-0 lg:flex-col lg:items-end">' +
         '<button type="button" class="text-accent text-sm font-medium hover:opacity-70" onclick="editService(' + s.id + ')">Modifier</button>' +
@@ -561,6 +858,10 @@
       document.getElementById('f-email').value = user.email || '';
       document.getElementById('f-tel').value = user.telephone || '';
       document.getElementById('f-bio').value = user.biographie || '';
+      var mmPhone = document.getElementById('f-mm-phone');
+      var mmMode = document.getElementById('f-mm-mode');
+      if (mmPhone) mmPhone.value = user.mm_phone || '';
+      if (mmMode) mmMode.value = user.mm_mode || '';
       const sel = document.getElementById('f-loc');
       sel.value = user.localite || '';
       if (sel.value === '' && user.localite) {
@@ -601,7 +902,9 @@
         email: document.getElementById('f-email').value.trim(),
         telephone: document.getElementById('f-tel').value.trim(),
         localite: document.getElementById('f-loc').value.trim(),
-        biographie: document.getElementById('f-bio').value.trim() || null
+        biographie: document.getElementById('f-bio').value.trim() || null,
+        mm_phone: (document.getElementById('f-mm-phone') || {}).value ? document.getElementById('f-mm-phone').value.trim() : null,
+        mm_mode: (document.getElementById('f-mm-mode') || {}).value || null,
       };
       try {
         const t = await getCsrfToken();
@@ -627,6 +930,8 @@
       document.getElementById('s-prix').value = '';
       document.getElementById('s-delai').value = '';
       document.getElementById('s-description').value = '';
+      document.getElementById('s-photo').value = '';
+      document.getElementById('s-photo-hint').textContent = '';
       document.getElementById('s-submit').textContent = 'Publier';
     }
 
@@ -646,6 +951,10 @@
       }
       sel.value = ok ? del : '';
       document.getElementById('s-description').value = s.description || '';
+      document.getElementById('s-photo').value = '';
+      document.getElementById('s-photo-hint').textContent = s.photo_url
+        ? 'Photo actuelle en ligne. Choisissez un fichier pour la remplacer.'
+        : 'Aucune photo — vous pouvez en ajouter une ci-dessous.';
       showServicesView();
       const anchor = document.getElementById('service-form-anchor');
       if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -691,6 +1000,25 @@
           showErr((d.errors && Object.values(d.errors).flat().join(' ')) || d.message || 'Erreur.');
           return;
         }
+        const serviceId = isNew ? d.id : editingId;
+        const photoInput = document.getElementById('s-photo');
+        const photoFile = photoInput.files && photoInput.files[0];
+        if (photoFile && serviceId) {
+          const fd = new FormData();
+          fd.append('photo', photoFile);
+          const rp = await fetch('/api/prestataire/services/' + serviceId + '/photo', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': t, Accept: 'application/json' },
+            body: fd
+          });
+          const dp = await rp.json();
+          if (!rp.ok) {
+            showErr((dp.message || 'Service enregistré, mais la photo n’a pas pu être envoyée.'));
+            resetServiceForm();
+            await loadServices();
+            return;
+          }
+        }
         showOk(isNew ? 'Service publié.' : 'Service mis à jour.');
         resetServiceForm();
         await loadServices();
@@ -717,41 +1045,17 @@
       return d.innerHTML;
     }
 
-    async function loadPrestataireMessages() {
-      const box = document.getElementById('list-presta-messages');
-      if (!box) return;
-      box.innerHTML = '<p class="text-sm text-muted">Chargement…</p>';
-      try {
-        const r = await fetch('/api/prestataire/messages', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
-        const d = await r.json();
-        if (!r.ok || !d.ok) {
-          box.innerHTML = '<p class="text-sm text-muted">Impossible de charger les messages.</p>';
-          return;
-        }
-        if (!d.data || d.data.length === 0) {
-          box.innerHTML = '<p class="text-sm text-muted border border-dashed border-brd rounded-xl p-8 text-center">Aucun message pour l’instant.</p>';
-          return;
-        }
-        box.innerHTML = d.data.map(function (m) {
-          const unread = !m.lu;
-          const badge = unread
-            ? '<span class="shrink-0 text-[10px] font-bold uppercase tracking-wide text-accent bg-accent/15 border border-accent/30 rounded px-2 py-0.5">Nouveau</span>'
-            : '<span class="shrink-0 text-[10px] text-muted">Lu</span>';
-          return (
-            '<article class="rounded-xl border border-brd bg-surface2 p-4 sm:p-5">' +
-            '<div class="flex flex-wrap items-start justify-between gap-2 mb-2">' +
-            '<p class="text-xs text-muted">' + escapeHtml(m.created_at || '') + '</p>' +
-            badge +
-            '</div>' +
-            '<p class="font-syne font-bold text-sm text-tx">' + escapeHtml(m.client_label || '') + '</p>' +
-            '<p class="text-xs text-accent mt-0.5">' + escapeHtml(m.service_titre || '') + '</p>' +
-            '<p class="text-sm text-tx/85 mt-3 leading-relaxed whitespace-pre-wrap">' + escapeHtml(m.contenu_excerpt || '') + '</p>' +
-            '</article>'
-          );
-        }).join('');
-      } catch (_) {
-        box.innerHTML = '<p class="text-sm text-muted">Réseau indisponible.</p>';
+    function openPrestataireMessages() {
+      if (!prestaMessenger) {
+        prestaMessenger = BFMessenger({
+          role: 'prestataire',
+          apiList: '/api/prestataire/messages',
+          apiThread: '/api/prestataire/messages/thread',
+          apiSend: '/api/prestataire/messages',
+          onUnreadChange: setUnreadBadges,
+        });
       }
+      return prestaMessenger.load();
     }
 
     async function init() {
@@ -763,12 +1067,30 @@
         setUserUI(user);
         fillForm(user);
         await loadServices();
+        var qs = new URLSearchParams(window.location.search);
+        if (qs.get('section') === 'messages') {
+          desktopNavMessages(document.querySelector('aside.hidden.md\\:flex nav button.nav-link:nth-child(4)') || document.querySelector('.nav-link'));
+        }
+        if (qs.get('section') === 'commandes') {
+          var cmdBtn = document.querySelectorAll('aside.hidden.md\\:flex nav button.nav-link');
+          if (cmdBtn.length >= 5) desktopNavCommandes(cmdBtn[4]);
+          else showCommandes();
+        }
       } catch (_) {
         window.location.href = '/login';
       }
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function () {
+      init();
+      refreshPrestaCounters();
+      setInterval(refreshPrestaCounters, 30000);
+      document.addEventListener('bf:order-updated', refreshPrestaCounters);
+      loadMyAvis();
+      var ar = document.getElementById('avis-refresh');
+      if (ar) ar.addEventListener('click', loadMyAvis);
+      document.addEventListener('bf:order-updated', loadMyAvis);
+    });
   </script>
 </body>
 </html>

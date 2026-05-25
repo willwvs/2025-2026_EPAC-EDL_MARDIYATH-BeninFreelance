@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Avis;
 use App\Models\Prestataire;
 use App\Models\Service;
+use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -41,6 +42,185 @@ class MarketplaceController extends Controller
         ]);
     }
 
+    public function searchServices(Request $request)
+    {
+        $page = max(1, (int) $request->query('page', 1));
+        $perPage = 20;
+
+        $query = Service::query()
+            ->from('services as s')
+            ->join('prestataires as p', 'p.id', '=', 's.prestataire_id')
+            ->where('p.statut_verification', 'valide');
+
+        $categorie = trim((string) $request->query('categorie', ''));
+        if ($categorie !== '') {
+            $query->where('s.categorie', $categorie);
+        }
+
+        $localite = trim((string) $request->query('localite', ''));
+        if ($localite !== '') {
+            $query->where('p.localite', $localite);
+        }
+
+        $noteMin = (string) $request->query('note_min', '');
+        if ($noteMin !== '') {
+            $query->where('p.note_moyenne', '>=', (float) $noteMin);
+        }
+
+        $q = trim((string) $request->query('q', ''));
+        if ($q !== '') {
+            $safe = '%'.addcslashes($q, '%_\\').'%';
+            $query->where(function ($w) use ($safe) {
+                $w->where('s.titre', 'like', $safe)
+                    ->orWhere('s.description', 'like', $safe)
+                    ->orWhere('s.categorie', 'like', $safe)
+                    ->orWhere('p.prenom', 'like', $safe)
+                    ->orWhere('p.nom', 'like', $safe);
+            });
+        }
+
+        $nbAvisSql = Schema::hasTable('avis')
+            ? '(select count(*) from avis where avis.prestataire_id = p.id)'
+            : '0';
+
+        $hasPhoto = Schema::hasColumn('services', 'photo_path');
+
+        $query->select([
+            's.id',
+            's.titre',
+            's.categorie',
+            's.prix_indicatif',
+            's.delai_execution',
+            's.description',
+            'p.id as prestataire_id',
+            'p.nom',
+            'p.prenom',
+            'p.localite',
+            'p.photo_profil',
+            'p.note_moyenne',
+        ])
+            ->selectRaw("({$nbAvisSql}) as nb_avis");
+
+        if ($hasPhoto) {
+            $query->addSelect('s.photo_path');
+        }
+
+        $total = (clone $query)->count('s.id');
+        $rows = $query
+            ->orderByDesc('p.note_moyenne')
+            ->orderByDesc('s.id')
+            ->offset(($page - 1) * $perPage)
+            ->limit($perPage)
+            ->get()
+            ->map(function ($r) use ($hasPhoto) {
+                $desc = (string) ($r->description ?? '');
+                $snippet = mb_substr(preg_replace('/\s+/', ' ', $desc), 0, 160);
+                if (mb_strlen($desc) > 160) {
+                    $snippet .= '…';
+                }
+
+                return [
+                    'id' => (int) $r->id,
+                    'titre' => $r->titre,
+                    'categorie' => $r->categorie,
+                    'prix_indicatif' => $r->prix_indicatif !== null ? (float) $r->prix_indicatif : null,
+                    'delai_execution' => $r->delai_execution,
+                    'snippet' => $snippet,
+                    'photo_url' => $hasPhoto ? ImageStorage::publicUrl($r->photo_path ?? null) : null,
+                    'prestataire' => [
+                        'id' => (int) $r->prestataire_id,
+                        'nom' => $r->nom,
+                        'prenom' => $r->prenom,
+                        'localite' => $r->localite,
+                        'note_moyenne' => (float) $r->note_moyenne,
+                        'photo_url' => $r->photo_profil ? '/'.ltrim((string) $r->photo_profil, '/') : null,
+                        'nb_avis' => (int) $r->nb_avis,
+                    ],
+                    'detail_url' => '/service/'.$r->id,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'ok' => true,
+            'data' => $rows,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => max(1, (int) ceil($total / $perPage)),
+        ]);
+    }
+
+    public function showService(int $id)
+    {
+        $hasPhoto = Schema::hasColumn('services', 'photo_path');
+
+        $query = Service::query()
+            ->from('services as s')
+            ->join('prestataires as p', 'p.id', '=', 's.prestataire_id')
+            ->where('s.id', $id)
+            ->where('p.statut_verification', 'valide');
+
+        $query->select([
+            's.id',
+            's.titre',
+            's.description',
+            's.categorie',
+            's.prix_indicatif',
+            's.delai_execution',
+            's.prestataire_id',
+            'p.nom',
+            'p.prenom',
+            'p.localite',
+            'p.photo_profil',
+            'p.note_moyenne',
+            'p.biographie',
+        ]);
+
+        if ($hasPhoto) {
+            $query->addSelect('s.photo_path');
+        }
+
+        $row = $query->first();
+        if (! $row) {
+            return response()->json(['ok' => false], 404);
+        }
+
+        $nbAvis = Schema::hasTable('avis')
+            ? (int) Avis::query()->where('prestataire_id', $row->prestataire_id)->count()
+            : 0;
+
+        $pid = (int) $row->prestataire_id;
+        $sid = (int) $row->id;
+
+        return response()->json([
+            'ok' => true,
+            'service' => [
+                'id' => $sid,
+                'titre' => $row->titre,
+                'description' => $row->description,
+                'categorie' => $row->categorie,
+                'prix_indicatif' => $row->prix_indicatif !== null ? (float) $row->prix_indicatif : null,
+                'delai_execution' => $row->delai_execution,
+                'photo_url' => $hasPhoto ? ImageStorage::publicUrl($row->photo_path ?? null) : null,
+            ],
+            'prestataire' => [
+                'id' => $pid,
+                'nom' => $row->nom,
+                'prenom' => $row->prenom,
+                'localite' => $row->localite,
+                'note_moyenne' => (float) $row->note_moyenne,
+                'photo_url' => $row->photo_profil ? '/'.ltrim((string) $row->photo_profil, '/') : null,
+                'nb_avis' => $nbAvis,
+                'biographie_excerpt' => $this->bioExcerpt((string) ($row->biographie ?? ''), 200),
+                'profil_url' => '/prestataires/'.$pid,
+                'teaser_url' => '/prestataires/'.$pid,
+            ],
+            'contact_url' => '/contact/prestataire/'.$pid.'?service='.$sid,
+            'login_url' => '/login',
+        ]);
+    }
+
     public function searchPrestataires(Request $request)
     {
         $page = max(1, (int) $request->query('page', 1));
@@ -49,6 +229,14 @@ class MarketplaceController extends Controller
         $query = Prestataire::query()
             ->from('prestataires', 'p')
             ->where('p.statut_verification', 'valide');
+
+        if ($request->boolean('only_with_services')) {
+            $query->whereExists(function ($sub) {
+                $sub->select(DB::raw(1))
+                    ->from('services as sv0')
+                    ->whereColumn('sv0.prestataire_id', 'p.id');
+            });
+        }
 
         $categorie = trim((string) $request->query('categorie', ''));
         if ($categorie !== '') {
@@ -174,28 +362,18 @@ class MarketplaceController extends Controller
             return response()->json(['ok' => false], 404);
         }
 
+        $serviceCols = ['id', 'titre', 'categorie', 'prix_indicatif', 'delai_execution', 'description'];
+        if (Schema::hasColumn('services', 'photo_path')) {
+            $serviceCols[] = 'photo_path';
+        }
+
         $services = Service::query()
             ->where('prestataire_id', $id)
             ->orderByDesc('id')
             ->limit(3)
-            ->get(['id', 'titre', 'categorie', 'prix_indicatif', 'delai_execution', 'description']);
+            ->get($serviceCols);
 
-        $servicesOut = $services->map(function ($s) {
-            $desc = (string) ($s->description ?? '');
-            $excerpt = mb_substr(preg_replace('/\s+/', ' ', $desc), 0, 200);
-            if (mb_strlen($desc) > 200) {
-                $excerpt .= '…';
-            }
-
-            return [
-                'id' => $s->id,
-                'titre' => $s->titre,
-                'categorie' => $s->categorie,
-                'prix_indicatif' => $s->prix_indicatif !== null ? (float) $s->prix_indicatif : null,
-                'delai_execution' => $s->delai_execution,
-                'description_excerpt' => $excerpt,
-            ];
-        })->values();
+        $servicesOut = $services->map(fn ($s) => $this->publicServiceCard($s))->values();
 
         $nbAvis = Schema::hasTable('avis')
             ? (int) Avis::query()->where('prestataire_id', $id)->count()
@@ -237,20 +415,23 @@ class MarketplaceController extends Controller
             return response()->json(['ok' => false], 404);
         }
 
+        $serviceCols = ['id', 'titre', 'description', 'categorie', 'prix_indicatif', 'delai_execution'];
+        if (Schema::hasColumn('services', 'photo_path')) {
+            $serviceCols[] = 'photo_path';
+        }
+
         $services = Service::query()
             ->where('prestataire_id', $id)
             ->orderByDesc('id')
-            ->get(['id', 'titre', 'description', 'categorie', 'prix_indicatif', 'delai_execution']);
+            ->get($serviceCols)
+            ->map(fn ($s) => $this->publicServiceCard($s, true))
+            ->values();
 
         $nbAvis = Schema::hasTable('avis')
             ? (int) Avis::query()->where('prestataire_id', $id)->count()
             : 0;
 
         $bio = (string) ($p->biographie ?? '');
-        $bioPublic = $bio;
-        if ($bio !== '' && mb_strlen($bio) > 400) {
-            $bioPublic = mb_substr($bio, 0, 400).'…';
-        }
 
         return response()->json([
             'ok' => true,
@@ -261,11 +442,152 @@ class MarketplaceController extends Controller
                 'localite' => $p->localite,
                 'note_moyenne' => (float) $p->note_moyenne,
                 'photo_url' => $p->photo_profil ? '/'.ltrim((string) $p->photo_profil, '/') : null,
-                'biographie' => $bioPublic,
+                'biographie' => $this->bioExcerpt($bio, 400),
                 'nb_avis' => $nbAvis,
             ],
             'services' => $services,
             'detail_hint' => 'Connectez-vous en tant que client pour afficher email, téléphone et CV.',
         ]);
+    }
+
+    /**
+     * Liste publique des avis reçus par un prestataire (note + commentaire + auteur abrégé).
+     * Anonymise partiellement le client (prénom + initiale du nom) pour rester pudique.
+     */
+    public function publicAvis(Request $request, int $id)
+    {
+        if (! Schema::hasTable('avis')) {
+            return response()->json(['ok' => true, 'avis' => [], 'stats' => $this->emptyAvisStats()]);
+        }
+
+        $page = max(1, (int) $request->query('page', 1));
+        $perPage = 10;
+
+        $base = Avis::query()
+            ->from('avis as a')
+            ->leftJoin('clients as c', 'c.id', '=', 'a.client_id')
+            ->leftJoin('commandes as cmd', 'cmd.id', '=', 'a.commande_id')
+            ->where('a.prestataire_id', $id);
+
+        $total = (clone $base)->count();
+        $rows = $base
+            ->orderByDesc('a.id')
+            ->forPage($page, $perPage)
+            ->get([
+                'a.id',
+                'a.note',
+                'a.commentaire',
+                'a.created_at',
+                'c.prenom as client_prenom',
+                'c.nom as client_nom',
+                'cmd.titre as commande_titre',
+            ]);
+
+        $avis = $rows->map(function ($r) {
+            $prenom = trim((string) ($r->client_prenom ?? ''));
+            $nom = trim((string) ($r->client_nom ?? ''));
+            $auteur = $prenom !== '' ? $prenom : 'Client';
+            if ($nom !== '') {
+                $auteur .= ' '.mb_strtoupper(mb_substr($nom, 0, 1)).'.';
+            }
+
+            return [
+                'id' => (int) $r->id,
+                'note' => (int) $r->note,
+                'commentaire' => $r->commentaire ? (string) $r->commentaire : null,
+                'auteur' => $auteur,
+                'commande_titre' => $r->commande_titre ?: null,
+                'created_at' => $r->created_at,
+            ];
+        })->values()->all();
+
+        return response()->json([
+            'ok' => true,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total' => $total,
+            'last_page' => max(1, (int) ceil($total / $perPage)),
+            'avis' => $avis,
+            'stats' => $this->avisStats($id),
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function avisStats(int $prestataireId): array
+    {
+        if (! Schema::hasTable('avis')) {
+            return $this->emptyAvisStats();
+        }
+
+        $rows = Avis::query()
+            ->where('prestataire_id', $prestataireId)
+            ->selectRaw('note, COUNT(*) as n')
+            ->groupBy('note')
+            ->pluck('n', 'note');
+
+        $breakdown = [];
+        $total = 0;
+        $sum = 0;
+        for ($i = 5; $i >= 1; $i--) {
+            $count = (int) ($rows[$i] ?? 0);
+            $breakdown[$i] = $count;
+            $total += $count;
+            $sum += $count * $i;
+        }
+
+        return [
+            'total' => $total,
+            'moyenne' => $total > 0 ? round($sum / $total, 2) : 0.0,
+            'breakdown' => $breakdown,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function emptyAvisStats(): array
+    {
+        return ['total' => 0, 'moyenne' => 0.0, 'breakdown' => [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0]];
+    }
+
+    private function publicServiceCard(Service $s, bool $withDetailUrl = false): array
+    {
+        $desc = (string) ($s->description ?? '');
+        $excerpt = mb_substr(preg_replace('/\s+/', ' ', $desc), 0, 200);
+        if (mb_strlen($desc) > 200) {
+            $excerpt .= '…';
+        }
+
+        $photoPath = Schema::hasColumn('services', 'photo_path') ? ($s->photo_path ?? null) : null;
+
+        $row = [
+            'id' => $s->id,
+            'titre' => $s->titre,
+            'categorie' => $s->categorie,
+            'prix_indicatif' => $s->prix_indicatif !== null ? (float) $s->prix_indicatif : null,
+            'delai_execution' => $s->delai_execution,
+            'description_excerpt' => $excerpt,
+            'photo_url' => ImageStorage::publicUrl($photoPath),
+        ];
+
+        if ($withDetailUrl) {
+            $row['detail_url'] = '/service/'.$s->id;
+        }
+
+        return $row;
+    }
+
+    private function bioExcerpt(string $bio, int $max): string
+    {
+        if ($bio === '') {
+            return '';
+        }
+        if (mb_strlen($bio) <= $max) {
+            return $bio;
+        }
+
+        return mb_substr($bio, 0, $max).'…';
     }
 }

@@ -75,6 +75,13 @@
           </button>
         </div>
 
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <button type="button" id="tab-presta" onclick="showAdminTab('presta')" class="text-sm font-bold px-4 py-2 rounded-xl bg-accent text-bg">Prestataires</button>
+          <button type="button" id="tab-cmd" onclick="showAdminTab('cmd')" class="text-sm font-bold px-4 py-2 rounded-xl border border-brd text-muted">Commandes</button>
+          <button type="button" id="tab-disputes" onclick="showAdminTab('disputes')" class="text-sm font-bold px-4 py-2 rounded-xl border border-brd text-muted">Litiges <span id="badge-disputes" class="hidden ml-1.5 inline-block bg-danger text-bg text-[10px] font-bold px-1.5 py-0.5 rounded-full"></span></button>
+          <button type="button" id="tab-payouts" onclick="showAdminTab('payouts')" class="text-sm font-bold px-4 py-2 rounded-xl border border-brd text-muted">Versements</button>
+        </div>
+
         <div id="list-wrap" class="border border-brd rounded-xl overflow-hidden bg-surface">
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
@@ -88,6 +95,69 @@
                 </tr>
               </thead>
               <tbody id="rows" class="divide-y divide-brd"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="cmd-wrap" class="hidden border border-brd rounded-xl overflow-hidden bg-surface">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead>
+                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                  <th class="px-4 py-3">ID</th>
+                  <th class="px-4 py-3">Titre</th>
+                  <th class="px-4 py-3">Montant</th>
+                  <th class="px-4 py-3">Statut</th>
+                  <th class="px-4 py-3">Ref. FedaPay</th>
+                  <th class="px-4 py-3 w-32"></th>
+                </tr>
+              </thead>
+              <tbody id="cmd-rows" class="divide-y divide-brd"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="disputes-wrap" class="hidden border border-brd rounded-xl overflow-hidden bg-surface">
+          <div class="px-4 py-3 border-b border-brd bg-surface2 text-xs text-muted">
+            Litiges ouverts par les clients. Examinez le motif, la conversation et les livraisons puis tranchez : remboursement total, partiel ou paiement du prestataire.
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead>
+                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                  <th class="px-4 py-3">Cmde</th>
+                  <th class="px-4 py-3">Titre</th>
+                  <th class="px-4 py-3">Montant</th>
+                  <th class="px-4 py-3">Ouvert le</th>
+                  <th class="px-4 py-3">Motif</th>
+                  <th class="px-4 py-3">Statut</th>
+                  <th class="px-4 py-3 w-44"></th>
+                </tr>
+              </thead>
+              <tbody id="disputes-rows" class="divide-y divide-brd"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="payouts-wrap" class="hidden border border-brd rounded-xl overflow-hidden bg-surface">
+          <div class="px-4 py-3 border-b border-brd bg-surface2 text-xs text-muted">
+            Liste des versements (prestataires &amp; remboursements). « Marquer payé » à utiliser après virement effectif depuis votre dashboard FedaPay.
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead>
+                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                  <th class="px-4 py-3">ID</th>
+                  <th class="px-4 py-3">Cmde</th>
+                  <th class="px-4 py-3">Type</th>
+                  <th class="px-4 py-3">Bénéficiaire</th>
+                  <th class="px-4 py-3">Numéro</th>
+                  <th class="px-4 py-3">Montant</th>
+                  <th class="px-4 py-3">Statut</th>
+                  <th class="px-4 py-3 w-36"></th>
+                </tr>
+              </thead>
+              <tbody id="payouts-rows" class="divide-y divide-brd"></tbody>
             </table>
           </div>
         </div>
@@ -168,13 +238,211 @@
       document.getElementById('panel').classList.add('hidden');
     }
 
+    function tabBtnClass(active) {
+      return active
+        ? 'text-sm font-bold px-4 py-2 rounded-xl bg-accent text-bg'
+        : 'text-sm font-bold px-4 py-2 rounded-xl border border-brd text-muted';
+    }
+
+    function showAdminTab(tab) {
+      document.getElementById('list-wrap').classList.toggle('hidden', tab !== 'presta');
+      document.getElementById('cmd-wrap').classList.toggle('hidden', tab !== 'cmd');
+      document.getElementById('disputes-wrap').classList.toggle('hidden', tab !== 'disputes');
+      document.getElementById('payouts-wrap').classList.toggle('hidden', tab !== 'payouts');
+      document.getElementById('detail').classList.add('hidden');
+      document.getElementById('tab-presta').className = tabBtnClass(tab === 'presta');
+      document.getElementById('tab-cmd').className = tabBtnClass(tab === 'cmd');
+      document.getElementById('tab-disputes').className = tabBtnClass(tab === 'disputes') + ' relative';
+      document.getElementById('tab-payouts').className = tabBtnClass(tab === 'payouts');
+      // garder le badge visible
+      const badge = document.getElementById('badge-disputes');
+      if (badge && document.getElementById('tab-disputes').contains(badge) === false) {
+        document.getElementById('tab-disputes').appendChild(badge);
+      }
+      if (tab === 'cmd') loadCommandes();
+      if (tab === 'disputes') loadDisputes();
+      if (tab === 'payouts') loadPayouts();
+    }
+
+    async function loadDisputes() {
+      const r = await api('/admin/api/litiges');
+      if (r.status === 401 || r.status === 403) { showLogin(); return; }
+      const d = await r.json();
+      const tb = document.getElementById('disputes-rows');
+      tb.innerHTML = '';
+      const rows = d.rows || [];
+      const openCount = rows.filter(function (x) { return !x.litige_resolved_at; }).length;
+      const badge = document.getElementById('badge-disputes');
+      if (badge) {
+        if (openCount > 0) { badge.textContent = openCount; badge.classList.remove('hidden'); }
+        else badge.classList.add('hidden');
+      }
+      if (!rows.length) {
+        tb.innerHTML = '<tr><td colspan="7" class="px-4 py-6 text-center text-sm text-muted">Aucun litige enregistré.</td></tr>';
+        return;
+      }
+      rows.forEach(function (x) {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface2/50';
+        const resolved = !!x.litige_resolved_at;
+        tr.innerHTML =
+          '<td class="px-4 py-3 text-xs">#' + x.id + '</td>' +
+          '<td class="px-4 py-3 text-xs">' + escapeHtml(x.titre || '') + '</td>' +
+          '<td class="px-4 py-3 text-xs">' + Number(x.montant_fcfa).toLocaleString('fr-FR') + ' F</td>' +
+          '<td class="px-4 py-3 text-xs text-muted">' + escapeHtml(x.litige_at || '') + '</td>' +
+          '<td class="px-4 py-3 text-xs text-muted max-w-[260px] truncate" title="' + escapeHtml(x.litige_motif || '') + '">' + escapeHtml(x.litige_motif || '') + '</td>' +
+          '<td class="px-4 py-3 text-xs ' + (resolved ? 'text-ok' : 'text-warn') + '">' + (resolved ? 'Résolu (' + escapeHtml(x.litige_resolution || '') + ')' : 'Ouvert') + '</td>' +
+          '<td class="px-4 py-3 text-right">' + (resolved
+            ? '<span class="text-xs text-muted">' + escapeHtml(x.litige_resolved_at || '') + '</span>'
+            : '<button type="button" class="text-accent hover:underline text-[13px]">Résoudre</button>') + '</td>';
+        if (!resolved) {
+          tr.querySelector('button').onclick = function () { openResolveDispute(x); };
+        }
+        tb.appendChild(tr);
+      });
+    }
+
+    function openResolveDispute(c) {
+      const m = document.createElement('div');
+      m.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4';
+      m.innerHTML =
+        '<div class="bg-surface border border-brd rounded-2xl max-w-lg w-full p-6">' +
+        '<h3 class="font-syne font-bold text-lg mb-1">Résolution litige #' + c.id + '</h3>' +
+        '<p class="text-xs text-muted mb-4">' + escapeHtml(c.titre || '') + ' · ' + Number(c.montant_fcfa).toLocaleString('fr-FR') + ' F</p>' +
+        '<p class="text-[11px] uppercase text-muted font-bold mb-2">Motif client</p>' +
+        '<p class="text-sm text-tx italic mb-4 bg-bg/40 border border-brd rounded-lg p-3 max-h-32 overflow-y-auto">' + escapeHtml(c.litige_motif || '—') + '</p>' +
+        '<div class="space-y-2 mb-4">' +
+        '<label class="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="reso" value="refund_full" class="accent-accent" /> <span>Remboursement intégral (commande annulée)</span></label>' +
+        '<label class="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="reso" value="refund_partial" class="accent-accent" /> <span>Remboursement partiel + paiement partiel prestataire</span></label>' +
+        '<label class="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="reso" value="release_to_provider" class="accent-accent" /> <span>Paiement libéré au prestataire</span></label>' +
+        '</div>' +
+        '<label class="block mb-3"><span class="text-[11px] uppercase text-muted font-bold">Montant à rembourser (si partiel)</span>' +
+        '<input id="reso-amount" type="number" min="1" max="' + (Number(c.montant_fcfa) - 1) + '" placeholder="ex : ' + Math.round(c.montant_fcfa / 2) + '" class="mt-1 w-full bg-bg border border-brd rounded-xl px-3 py-2 text-sm" />' +
+        '</label>' +
+        '<label class="block mb-4"><span class="text-[11px] uppercase text-muted font-bold">Note interne (optionnel)</span>' +
+        '<textarea id="reso-note" rows="2" maxlength="2000" class="mt-1 w-full bg-bg border border-brd rounded-xl px-3 py-2 text-sm"></textarea>' +
+        '</label>' +
+        '<div class="flex justify-end gap-2">' +
+        '<button type="button" id="reso-cancel" class="text-sm border border-brd px-4 py-2 rounded-xl text-muted">Annuler</button>' +
+        '<button type="button" id="reso-go" class="text-sm bg-accent text-bg font-bold px-4 py-2 rounded-xl">Appliquer</button>' +
+        '</div></div>';
+      document.body.appendChild(m);
+      m.querySelector('#reso-cancel').onclick = function () { m.remove(); };
+      m.querySelector('#reso-go').onclick = async function () {
+        const sel = m.querySelector('input[name="reso"]:checked');
+        if (!sel) { alert('Choisissez une résolution.'); return; }
+        const reso = sel.value;
+        const amount = parseInt(m.querySelector('#reso-amount').value, 10) || null;
+        const note = m.querySelector('#reso-note').value.trim();
+        if (reso === 'refund_partial' && (!amount || amount < 1 || amount >= Number(c.montant_fcfa))) {
+          alert('Montant partiel invalide.'); return;
+        }
+        if (!confirm('Confirmer la décision : ' + reso + ' ?')) return;
+        await getCsrf();
+        const r = await api('/admin/api/litiges/' + c.id + '/resoudre', {
+          method: 'POST',
+          body: { resolution: reso, amount: amount, note: note },
+        });
+        const d = await r.json();
+        alert(d.message || (d.ok ? 'OK' : 'Erreur'));
+        m.remove();
+        if (d.ok) loadDisputes();
+      };
+    }
+
+    async function loadCommandes() {
+      const r = await api('/admin/api/commandes');
+      if (r.status === 401 || r.status === 403) { showLogin(); return; }
+      const d = await r.json();
+      const tb = document.getElementById('cmd-rows');
+      tb.innerHTML = '';
+      (d.rows || []).forEach(function (x) {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface2/50';
+        const canRefund = ['payee', 'livree', 'en_revision', 'terminee'].indexOf(x.statut) >= 0;
+        tr.innerHTML =
+          '<td class="px-4 py-3">' + x.id + '</td>' +
+          '<td class="px-4 py-3">' + escapeHtml(x.titre) + '</td>' +
+          '<td class="px-4 py-3">' + Number(x.montant_fcfa).toLocaleString('fr-FR') + ' F</td>' +
+          '<td class="px-4 py-3 text-xs">' + escapeHtml(x.statut) + '</td>' +
+          '<td class="px-4 py-3 text-xs text-muted">' + escapeHtml(x.fedapay_ref || '—') + '</td>' +
+          '<td class="px-4 py-3">' + (canRefund
+            ? '<button type="button" class="text-accent hover:underline text-[13px]">Rembourser</button>'
+            : '—') + '</td>';
+        if (canRefund) {
+          tr.querySelector('button').onclick = function () {
+            if (!confirm('Rembourser ' + Number(x.montant_fcfa).toLocaleString('fr-FR') + ' F au client via FedaPay ?')) return;
+            rembourserCommande(x.id);
+          };
+        }
+        tb.appendChild(tr);
+      });
+    }
+
+    async function rembourserCommande(id) {
+      await getCsrf();
+      const r = await api('/admin/api/commandes/' + id + '/rembourser', { method: 'POST', body: { motif: 'Remboursement admin' } });
+      const d = await r.json();
+      alert(d.message || (d.ok ? 'Remboursement initié' : 'Erreur'));
+      if (d.ok) loadCommandes();
+    }
+
+    async function loadPayouts() {
+      const r = await api('/admin/api/payouts');
+      if (r.status === 401 || r.status === 403) { showLogin(); return; }
+      const d = await r.json();
+      const tb = document.getElementById('payouts-rows');
+      tb.innerHTML = '';
+      (d.rows || []).forEach(function (p) {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface2/50';
+        const typeLabel = p.type === 'prestataire' ? 'Prestataire' : 'Remboursement';
+        const statutCls = p.statut === 'completed'
+          ? 'text-ok'
+          : p.statut === 'cancelled' ? 'text-danger' : 'text-warn';
+        tr.innerHTML =
+          '<td class="px-4 py-3">' + p.id + '</td>' +
+          '<td class="px-4 py-3 text-xs">#' + p.commande_id + '</td>' +
+          '<td class="px-4 py-3 text-xs">' + escapeHtml(typeLabel) + '</td>' +
+          '<td class="px-4 py-3">' + escapeHtml(p.destinataire_label || '') + '</td>' +
+          '<td class="px-4 py-3 text-xs text-muted">' + escapeHtml(p.phone || '—') + ' / ' + escapeHtml(p.withdraw_mode || '—') + '</td>' +
+          '<td class="px-4 py-3">' + Number(p.montant_fcfa).toLocaleString('fr-FR') + ' F</td>' +
+          '<td class="px-4 py-3 text-xs ' + statutCls + '">' + escapeHtml(p.statut) + '</td>' +
+          '<td class="px-4 py-3">' + (p.statut === 'pending'
+            ? '<button type="button" class="text-accent hover:underline text-[13px]">Marquer payé</button>'
+            : '—') + '</td>';
+        if (p.statut === 'pending') {
+          tr.querySelector('button').onclick = function () {
+            if (!confirm('Confirmer que le virement de ' + Number(p.montant_fcfa).toLocaleString('fr-FR') + ' F a bien été effectué ?')) return;
+            markPayoutPaid(p.id);
+          };
+        }
+        tb.appendChild(tr);
+      });
+      if (!d.rows || !d.rows.length) {
+        tb.innerHTML = '<tr><td colspan="8" class="px-4 py-6 text-center text-sm text-muted">Aucun versement enregistré.</td></tr>';
+      }
+    }
+
+    async function markPayoutPaid(id) {
+      await getCsrf();
+      const r = await api('/admin/api/payouts/' + id + '/marquer-paye', { method: 'POST' });
+      const d = await r.json();
+      alert(d.message || (d.ok ? 'OK' : 'Erreur'));
+      if (d.ok) loadPayouts();
+    }
+
     async function showPanel() {
       await getCsrf();
       document.getElementById('login-block').classList.add('hidden');
       document.getElementById('panel').classList.remove('hidden');
       document.getElementById('detail').classList.add('hidden');
       document.getElementById('list-wrap').classList.remove('hidden');
+      document.getElementById('cmd-wrap').classList.add('hidden');
+      document.getElementById('disputes-wrap').classList.add('hidden');
+      document.getElementById('payouts-wrap').classList.add('hidden');
       await loadList();
+      loadDisputes(); // précharger le badge
       const q = new URLSearchParams(location.search).get('id');
       if (q) openDetail(parseInt(q, 10));
     }
@@ -200,7 +468,7 @@
       location.href = '/admin';
     }
 
-    async function loadList() {
+    async function loadList(highlightId) {
       const r = await api('/admin/api/prestataires');
       if (r.status === 401 || r.status === 403) { showLogin(); return; }
       const d = await r.json();
@@ -210,6 +478,9 @@
         const st = formatStatut(x.statut);
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-surface2/50 transition-colors';
+        if (String(x.id) === String(highlightId || '')) {
+          tr.className += ' bg-accent/10 ring-1 ring-accent/30';
+        }
         tr.innerHTML =
           '<td class="px-4 py-3 whitespace-nowrap text-sm">' + x.id + '</td>' +
           '<td class="px-4 py-3 text-sm">' + escapeHtml(x.nom_complet) + '</td>' +
@@ -247,6 +518,7 @@
         'Email : ' + p.email + '\n' +
         'Statut : ' + statutLabel(p.statut_verification);
       document.getElementById('d-motif').textContent = p.motif_refus_ia || '(vide)';
+      document.getElementById('ref-motif').value = p.motif_refus_ia || '';
       document.getElementById('d-cv').href = d.urls.cv;
       document.getElementById('d-id').href = d.urls.identite;
       history.replaceState(null, '', '/admin?id=' + id);
@@ -259,19 +531,29 @@
       history.replaceState(null, '', '/admin');
     }
 
+    function adminMotifBody() {
+      const motif = document.getElementById('ref-motif').value.trim();
+      return motif ? { motif: motif } : {};
+    }
+
     async function doValider() {
       if (!currentId) return;
+      const changedId = currentId;
       await getCsrf();
-      await api('/admin/api/prestataires/' + currentId + '/valider', { method: 'POST', body: {} });
-      await openDetail(currentId);
+      await api('/admin/api/prestataires/' + changedId + '/valider', { method: 'POST', body: adminMotifBody() });
+      closeDetail();
+      await loadList(changedId);
     }
 
     async function doRefuser() {
       if (!currentId) return;
+      const changedId = currentId;
       await getCsrf();
-      const motif = document.getElementById('ref-motif').value || 'Dossier refusé par l\'administrateur.';
-      await api('/admin/api/prestataires/' + currentId + '/refuser', { method: 'POST', body: { motif: motif } });
-      await openDetail(currentId);
+      const motif = document.getElementById('ref-motif').value.trim();
+      const body = motif ? { motif: motif } : {};
+      await api('/admin/api/prestataires/' + changedId + '/refuser', { method: 'POST', body: body });
+      closeDetail();
+      await loadList(changedId);
     }
 
     boot();

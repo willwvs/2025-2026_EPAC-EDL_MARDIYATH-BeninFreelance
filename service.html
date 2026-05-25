@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Détail du service — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { syne: ['Syne', 'sans-serif'] },
+          colors: {
+            bg: '#0A0A0F', surface: '#13131A', surface2: '#1C1C27',
+            brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8', muted: '#7A7A9A', ok: '#2ECC71'
+          }
+        }
+      }
+    };
+  </script>
+  <style>body { font-family: 'DM Sans', sans-serif; }</style>
+</head>
+<body class="bg-bg text-tx min-h-screen">
+  <header class="border-b border-brd bg-surface/80 backdrop-blur-sm sticky top-0 z-10">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <a href="/search" class="text-sm text-muted hover:text-accent transition-colors">← Recherche services</a>
+      <a href="/" class="font-syne font-extrabold text-base">Bénin<span class="text-accent">Freelance</span></a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <div id="root"><p class="text-sm text-muted">Chargement…</p></div>
+  </main>
+
+  <script src="/assets/js/marketplace.js"></script>
+  <script>
+    const BF = window.BFMarketplace;
+
+    function serviceIdFromPath() {
+      const m = location.pathname.match(/\/service\/(\d+)/);
+      return m ? m[1] : null;
+    }
+
+    async function resolveContactHref(contactUrl, loginUrl) {
+      try {
+        const r = await fetch('/api/client/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        if (r.ok) {
+          const d = await r.json();
+          if (d.ok) return contactUrl + (contactUrl.indexOf('?') >= 0 ? '&' : '?') + 'return=' + encodeURIComponent(location.pathname);
+        }
+      } catch (_) {}
+      return loginUrl;
+    }
+
+    async function init() {
+      const id = serviceIdFromPath();
+      const root = document.getElementById('root');
+      if (!id) {
+        root.innerHTML = '<p class="text-sm text-muted">Service introuvable.</p>';
+        return;
+      }
+      const r = await fetch('/api/marketplace/services/' + id, { headers: { Accept: 'application/json' } });
+      if (!r.ok) {
+        root.innerHTML = '<p class="text-sm text-muted">Service introuvable ou indisponible.</p>';
+        return;
+      }
+      const d = await r.json();
+      if (!d.ok) {
+        root.innerHTML = '<p class="text-sm text-muted">Service introuvable.</p>';
+        return;
+      }
+      const s = d.service;
+      const p = d.prestataire;
+      const contactHref = await resolveContactHref(d.contact_url, d.login_url);
+      const contactLabel = contactHref.indexOf('/login') >= 0 ? 'Se connecter pour contacter' : 'Contacter pour ce service';
+
+      const heroImg = s.photo_url
+        ? '<div class="relative aspect-[21/9] w-full overflow-hidden rounded-2xl border border-brd mb-8 bg-surface2"><img src="' + BF.escapeHtml(s.photo_url) + '" alt="" class="absolute inset-0 w-full h-full object-cover" /></div>'
+        : '<div class="relative aspect-[21/9] w-full overflow-hidden rounded-2xl border border-brd mb-8 bg-gradient-to-br from-accent/20 to-surface2 flex items-center justify-center"><span class="font-syne font-bold text-4xl text-accent/70">' + BF.escapeHtml(BF.initials(p.prenom, p.nom)) + '</span></div>';
+
+      const prestaPhoto = p.photo_url
+        ? '<img src="' + BF.escapeHtml(p.photo_url) + '" alt="" class="w-14 h-14 rounded-full object-cover border border-brd shrink-0" />'
+        : '<div class="w-14 h-14 rounded-full bg-accent/15 border border-brd flex items-center justify-center font-syne font-bold text-accent shrink-0">' + BF.escapeHtml(BF.initials(p.prenom, p.nom)) + '</div>';
+
+      const meta = [
+        BF.escapeHtml(s.categorie || ''),
+        BF.escapeHtml(p.localite || ''),
+        s.delai_execution ? BF.escapeHtml(s.delai_execution) : '',
+        '<span class="text-accent font-medium">' + BF.escapeHtml(BF.formatPrix(s.prix_indicatif)) + '</span>'
+      ].filter(Boolean).join(' · ');
+
+      document.title = (s.titre || 'Service') + ' — BéninFreelance';
+
+      root.innerHTML =
+        heroImg +
+        '<h1 class="font-syne font-bold text-2xl sm:text-3xl mb-2">' + BF.escapeHtml(s.titre) + '</h1>' +
+        '<p class="text-sm text-muted mb-6">' + meta + '</p>' +
+        '<div class="prose prose-invert max-w-none text-sm text-tx/90 leading-relaxed whitespace-pre-wrap mb-8">' + BF.escapeHtml(s.description || '') + '</div>' +
+        '<div class="rounded-2xl border border-brd bg-surface2 p-5 mb-8 flex gap-4 items-start">' +
+        prestaPhoto +
+        '<div class="min-w-0 flex-1">' +
+        '<p class="text-xs text-muted mb-1">Prestataire</p>' +
+        '<p class="font-syne font-bold text-base">' + BF.escapeHtml((p.prenom || '') + ' ' + (p.nom || '')) + '</p>' +
+        '<p class="text-xs text-muted mt-1">' + BF.escapeHtml(BF.ratingLine(p.note_moyenne, p.nb_avis)) + '</p>' +
+        (p.biographie_excerpt ? '<p class="text-sm text-tx/80 mt-2">' + BF.escapeHtml(p.biographie_excerpt) + '</p>' : '') +
+        '</div></div>' +
+        '<div class="flex flex-wrap gap-3">' +
+        '<a href="' + BF.escapeHtml(contactHref) + '" class="inline-flex items-center justify-center rounded-xl bg-accent text-bg font-syne font-bold text-sm px-6 py-3 hover:opacity-90">' + BF.escapeHtml(contactLabel) + '</a>' +
+        '<a href="' + BF.escapeHtml(p.profil_url || '/prestataires/' + p.id) + '" class="inline-flex items-center justify-center rounded-xl border border-brd text-sm px-6 py-3 hover:border-muted">Voir le profil</a>' +
+        '</div>';
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Support\ImageStorage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class ServiceController extends Controller
 {
@@ -13,7 +15,9 @@ class ServiceController extends Controller
         $rows = Service::query()
             ->where('prestataire_id', $prestataireId)
             ->orderByDesc('id')
-            ->get();
+            ->get()
+            ->map(fn ($s) => $this->serviceRow($s))
+            ->values();
 
         return response()->json(['ok' => true, 'rows' => $rows]);
     }
@@ -37,26 +41,32 @@ class ServiceController extends Controller
             ], 422);
         }
 
-        $service = Service::create([
+        $payload = [
             'prestataire_id' => $prestataireId,
             'titre' => $data['titre'],
             'description' => $data['description'],
             'categorie' => $data['categorie'],
             'prix_indicatif' => $data['prix_indicatif'] ?? null,
             'delai_execution' => $data['delai_execution'] ?? null,
-        ]);
+        ];
 
-        return response()->json(['ok' => true, 'id' => $service->id], 201);
+        $service = Service::create($payload);
+
+        return response()->json([
+            'ok' => true,
+            'id' => $service->id,
+            'service' => $this->serviceRow($service),
+        ], 201);
     }
 
     public function update(Request $request, int $id)
     {
         $prestataireId = (int) $request->session()->get('auth_id');
-        $owns = Service::query()
+        $service = Service::query()
             ->where('id', $id)
             ->where('prestataire_id', $prestataireId)
-            ->exists();
-        if (! $owns) {
+            ->first();
+        if (! $service) {
             return response()->json(['ok' => false, 'message' => 'Service introuvable.'], 404);
         }
 
@@ -68,31 +78,86 @@ class ServiceController extends Controller
             'delai_execution' => 'nullable|string|max:100',
         ]);
 
-        Service::query()
+        $service->update([
+            'titre' => $data['titre'],
+            'description' => $data['description'],
+            'categorie' => $data['categorie'],
+            'prix_indicatif' => $data['prix_indicatif'] ?? null,
+            'delai_execution' => $data['delai_execution'] ?? null,
+        ]);
+
+        return response()->json(['ok' => true, 'service' => $this->serviceRow($service->fresh())]);
+    }
+
+    public function uploadPhoto(Request $request, int $id)
+    {
+        $request->validate([
+            'photo' => 'required|file|max:5120',
+        ]);
+
+        $prestataireId = (int) $request->session()->get('auth_id');
+        $service = Service::query()
             ->where('id', $id)
             ->where('prestataire_id', $prestataireId)
-            ->update([
-                'titre' => $data['titre'],
-                'description' => $data['description'],
-                'categorie' => $data['categorie'],
-                'prix_indicatif' => $data['prix_indicatif'] ?? null,
-                'delai_execution' => $data['delai_execution'] ?? null,
-            ]);
+            ->first();
+        if (! $service) {
+            return response()->json(['ok' => false, 'message' => 'Service introuvable.'], 404);
+        }
 
-        return response()->json(['ok' => true]);
+        if (! Schema::hasColumn('services', 'photo_path')) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Colonne photo_path absente. Exécutez la migration SQL des services.',
+            ], 503);
+        }
+
+        try {
+            ImageStorage::deletePublicPath($service->photo_path);
+            $stored = ImageStorage::storeImage($request->file('photo'), 'uploads/services');
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        $service->update(['photo_path' => $stored['path']]);
+
+        return response()->json([
+            'ok' => true,
+            'photo_url' => $stored['public_url'],
+            'service' => $this->serviceRow($service->fresh()),
+        ]);
     }
 
     public function destroy(Request $request, int $id)
     {
         $prestataireId = (int) $request->session()->get('auth_id');
-        $deleted = Service::query()
+        $service = Service::query()
             ->where('id', $id)
             ->where('prestataire_id', $prestataireId)
-            ->delete();
-        if ($deleted < 1) {
+            ->first();
+        if (! $service) {
             return response()->json(['ok' => false, 'message' => 'Service introuvable.'], 404);
         }
 
+        ImageStorage::deletePublicPath($service->photo_path);
+        $service->delete();
+
         return response()->json(['ok' => true]);
+    }
+
+    private function serviceRow(Service $s): array
+    {
+        $photoPath = Schema::hasColumn('services', 'photo_path') ? $s->photo_path : null;
+
+        return [
+            'id' => $s->id,
+            'prestataire_id' => $s->prestataire_id,
+            'titre' => $s->titre,
+            'description' => $s->description,
+            'categorie' => $s->categorie,
+            'prix_indicatif' => $s->prix_indicatif !== null ? (float) $s->prix_indicatif : null,
+            'delai_execution' => $s->delai_execution,
+            'photo_url' => ImageStorage::publicUrl($photoPath),
+            'created_at' => $s->created_at,
+        ];
     }
 }

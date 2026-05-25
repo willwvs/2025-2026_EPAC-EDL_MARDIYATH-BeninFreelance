@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E-mail envoyé — BéninFreelance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { syne: ['Syne', 'sans-serif'] }, colors: { bg: '#0A0A0F', surface: '#13131A', brd: '#2A2A3D', accent: '#F5A623', tx: '#F0EDE8', muted: '#7A7A9A' } } } } };
+  </script>
+  <style>body { font-family: 'DM Sans', sans-serif; }</style>
+</head>
+<body class="bg-bg text-tx min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-surface border border-brd rounded-2xl p-8 text-center">
+    <h1 class="font-syne font-extrabold text-2xl mb-3">Bénin<span class="text-accent">Freelance</span></h1>
+    <p id="msg" class="text-sm text-tx/90 leading-relaxed mb-6">Un e-mail de confirmation vous a été envoyé. Ouvrez le lien pour activer votre compte.</p>
+    <a href="/login" class="inline-block bg-accent text-bg font-bold text-sm px-6 py-3 rounded-xl hover:opacity-90">Aller à la connexion</a>
+  </div>
+  <script>
+    var role = new URLSearchParams(location.search).get('role');
+    if (role === 'prestataire') {
+      document.getElementById('msg').textContent =
+        'Confirmez votre e-mail, puis attendez la validation de votre dossier (notification par e-mail).';
+    }
+  </script>
+</body>
+</html>

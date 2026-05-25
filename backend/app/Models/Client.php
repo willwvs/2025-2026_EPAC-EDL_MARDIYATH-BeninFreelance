@@ -20,17 +20,23 @@ class Client extends Model
         'localite',
         'mot_de_passe',
         'password',
+        'email_verified_at',
+        'email_verify_token',
+        'email_verify_expires_at',
     ];
 
     protected $hidden = [
         'mot_de_passe',
         'password',
+        'email_verify_token',
     ];
 
     protected function casts(): array
     {
         return [
             'created_at' => 'datetime',
+            'email_verified_at' => 'datetime',
+            'email_verify_expires_at' => 'datetime',
         ];
     }
 

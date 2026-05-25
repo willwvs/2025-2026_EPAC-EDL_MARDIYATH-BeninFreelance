@@ -41,11 +41,15 @@
         :'<div class="w-full max-w-[200px] aspect-square sm:w-44 sm:h-44 mx-auto sm:mx-0 rounded-2xl border border-brd bg-accent/10 flex items-center justify-center font-syne font-bold text-4xl text-accent">'+escapeHtml(initials(p.prenom,p.nom))+'</div>';
       const svcRows=services.length?services.map(function(s){
         const prix=s.prix_indicatif!=null?Number(s.prix_indicatif).toLocaleString('fr-FR')+' F':'Sur devis';
-        const msg=isClient&&s.id?'<a href="/contact/prestataire/'+id+'?service='+encodeURIComponent(String(s.id))+'" class="inline-flex mt-3 items-center justify-center rounded-lg border border-accent/50 text-accent text-xs font-bold px-3 py-1.5 hover:bg-accent/10 transition-colors">Message</a>':'';
-        return '<div class="border border-brd rounded-xl p-4 bg-surface hover:border-accent/30 transition-colors">'+
+        const img=s.photo_url?'<img src="'+escapeHtml(s.photo_url)+'" alt="" class="w-full h-28 object-cover rounded-lg border border-brd mb-2" loading="lazy"/>':'';
+        const detail=s.detail_url||('/service/'+s.id);
+        const msg=isClient&&s.id?'<a href="/contact/prestataire/'+id+'?service='+encodeURIComponent(String(s.id))+'" class="inline-flex items-center justify-center rounded-lg border border-accent/50 text-accent text-xs font-bold px-3 py-1.5 hover:bg-accent/10 transition-colors">Contacter</a>':'';
+        const view='<a href="'+escapeHtml(detail)+'" class="inline-flex items-center justify-center rounded-lg bg-accent/90 text-bg text-xs font-bold px-3 py-1.5 hover:opacity-90">Détail</a>';
+        return '<div class="border border-brd rounded-xl p-4 bg-surface hover:border-accent/30 transition-colors">'+img+
           '<p class="font-syne font-bold text-sm text-tx">'+escapeHtml(s.titre)+'</p>'+
           '<p class="text-xs text-muted mt-1">'+escapeHtml(s.categorie||'')+' · '+escapeHtml(prix)+(s.delai_execution?' · '+escapeHtml(s.delai_execution):'')+'</p>'+
-          '<p class="text-sm text-tx/85 mt-2 leading-relaxed">'+escapeHtml(s.description_excerpt||'')+'</p>'+msg+'</div>';
+          '<p class="text-sm text-tx/85 mt-2 leading-relaxed">'+escapeHtml(s.description_excerpt||'')+'</p>'+
+          '<div class="mt-3 flex flex-wrap gap-2">'+view+msg+'</div></div>';
       }).join(''):'<p class="text-sm text-muted">Aucun service publié pour le moment.</p>';
       root.innerHTML=
         '<div class="rounded-2xl border border-brd bg-surface2 overflow-hidden">'+

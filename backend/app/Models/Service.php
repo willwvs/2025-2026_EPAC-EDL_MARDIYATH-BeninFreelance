@@ -19,6 +19,7 @@ class Service extends Model
         'categorie',
         'prix_indicatif',
         'delai_execution',
+        'photo_path',
     ];
 
     protected function casts(): array

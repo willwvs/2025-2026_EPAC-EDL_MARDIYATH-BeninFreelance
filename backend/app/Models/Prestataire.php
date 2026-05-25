@@ -26,11 +26,20 @@ class Prestataire extends Model
         'chemin_identite',
         'statut_verification',
         'motif_refus_ia',
+        'email_verified_at',
+        'email_verify_token',
+        'email_verify_expires_at',
+        'ia_decided_at',
+        'admin_decided_at',
+        'verification_email_sent_at',
+        'mm_phone',
+        'mm_mode',
     ];
 
     protected $hidden = [
         'mot_de_passe',
         'password',
+        'email_verify_token',
     ];
 
     protected function casts(): array
@@ -38,6 +47,11 @@ class Prestataire extends Model
         return [
             'created_at' => 'datetime',
             'note_moyenne' => 'decimal:2',
+            'email_verified_at' => 'datetime',
+            'email_verify_expires_at' => 'datetime',
+            'ia_decided_at' => 'datetime',
+            'admin_decided_at' => 'datetime',
+            'verification_email_sent_at' => 'datetime',
         ];
     }
 

@@ -35,7 +35,87 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     .anim-up { animation: fadeUp .45s ease both; }
     #btn-filters[aria-expanded="true"] { border-color: rgba(245, 166, 35, 0.45); color: #F0EDE8; }
+    #svc-btn-filters[aria-expanded="true"] { border-color: rgba(245, 166, 35, 0.45); color: #F0EDE8; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    #view-messages {
+      flex: 1;
+      min-height: 0;
+      height: calc(100dvh - 3.5rem);
+      max-height: calc(100dvh - 3.5rem);
+    }
+    #msg-layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+      max-height: 100%;
+      overflow: hidden;
+    }
+    #msg-sidebar {
+      width: 100%;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    #msg-conv-list { flex: 1 1 0%; min-height: 0; overflow-y: auto; }
+    #msg-chat-panel {
+      display: none;
+      flex: 1 1 0%;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+  @media (min-width: 768px) {
+      #msg-sidebar { width: 100%; max-width: 100%; flex: 1 1 0%; min-width: 0; border-right: none; }
+      #msg-layout:has(#msg-chat-active:not(.hidden)) #msg-sidebar {
+        width: 18rem; max-width: 40%; flex: 0 0 auto; border-right: 1px solid #2A2A3D;
+      }
+    }
+    #msg-layout.msg-list-only #msg-sidebar-header { padding-left: 1.25rem; padding-right: 1.25rem; }
+    @media (min-width: 768px) {
+      #msg-layout.msg-list-only #msg-sidebar-header { padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    #msg-layout.msg-list-only .msg-conv-item { padding-left: 1.25rem; padding-right: 1.25rem; }
+    @media (min-width: 768px) {
+      #msg-layout.msg-list-only .msg-conv-item { padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    #msg-layout.msg-list-only .msg-conv-peer,
+    #msg-layout.msg-list-only .msg-conv-service,
+    #msg-layout.msg-list-only .msg-conv-excerpt { word-break: break-word; }
+    #msg-layout.msg-list-only .msg-conv-excerpt { white-space: pre-wrap; }
+    #msg-layout:not(.msg-list-only) .msg-conv-peer,
+    #msg-layout:not(.msg-list-only) .msg-conv-service { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #msg-layout:not(.msg-list-only) .msg-conv-excerpt {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    #msg-layout:has(#msg-chat-active:not(.hidden)) #msg-chat-panel { display: flex !important; }
+    #msg-layout.msg-chat-open #msg-sidebar { display: none; }
+    #msg-layout.msg-chat-open #msg-chat-panel { display: flex !important; }
+    #msg-chat-active { flex: 1 1 0%; min-height: 0; overflow: hidden; }
+    #msg-chat-active:not(.hidden) { display: flex !important; flex-direction: column; }
+    #msg-bubbles {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+    .msg-compose-dock { flex: 0 0 auto; flex-shrink: 0; }
+    #msg-compose-input { resize: none; min-height: 24px; line-height: 1.5; }
+    .msg-composer-card { transition: border-color .15s ease, background .15s ease; }
+    .msg-composer-card:focus-within { border-color: rgba(245,166,35,.55); background: rgba(28,28,39,.95); }
+    .msg-thin-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .msg-thin-scroll::-webkit-scrollbar-thumb { background: rgba(122,122,154,.25); border-radius: 3px; }
+    .msg-thin-scroll::-webkit-scrollbar-track { background: transparent; }
+    .msg-thin-scroll { scrollbar-width: thin; scrollbar-color: rgba(122,122,154,.25) transparent; }
+    #msg-compose-input:focus { border-color: transparent !important; box-shadow: none !important; }
     </style>
+  <script src="/assets/js/marketplace.js"></script>
+  <script src="/assets/js/messenger.js"></script>
+  <script src="/assets/js/orders.js"></script>
 </head>
 <body class="bg-bg text-tx min-h-screen">
 
@@ -67,14 +147,19 @@
         <button type="button" onclick="go('accueil')" data-section="accueil" class="nav-sb active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-left w-full">
                     <i class="fa-solid fa-house w-4 text-center ml-2"></i> Accueil
         </button>
-        <span class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted/50 cursor-not-allowed ml-2" title="Bientôt">
-          <i class="fa-solid fa-magnifying-glass w-4 text-center"></i> Recherche
-        </span>
+        <button type="button" onclick="go('recherche')" data-section="recherche" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+                    <i class="fa-solid fa-magnifying-glass w-4 text-center ml-2"></i> Recherche
+        </button>
         <button type="button" onclick="go('compte')" data-section="compte" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
                     <i class="fa-solid fa-user w-4 text-center ml-2"></i> Mon compte
         </button>
         <button type="button" onclick="go('messages')" data-section="messages" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
                     <i class="fa-solid fa-envelope w-4 text-center ml-2"></i> Messages
+                    <span data-badge="messages" class="hidden ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-bg text-[10px] font-bold flex items-center justify-center"></span>
+        </button>
+        <button type="button" onclick="go('commandes')" data-section="commandes" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+                    <i class="fa-solid fa-file-contract w-4 text-center ml-2"></i> Commandes
+                    <span data-badge="commandes" class="hidden ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-bg text-[10px] font-bold flex items-center justify-center"></span>
         </button>
             </nav>
         </aside>
@@ -94,17 +179,25 @@
         <button type="button" onclick="goMob('accueil')" data-section="accueil" class="nav-sb active-nav flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-left w-full">
                     <i class="fa-solid fa-house w-4 text-center ml-2"></i> Accueil
         </button>
+        <button type="button" onclick="goMob('recherche')" data-section="recherche" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+                    <i class="fa-solid fa-magnifying-glass w-4 text-center ml-2"></i> Recherche
+        </button>
         <button type="button" onclick="goMob('compte')" data-section="compte" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
                     <i class="fa-solid fa-user w-4 text-center ml-2"></i> Mon compte
         </button>
         <button type="button" onclick="goMob('messages')" data-section="messages" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
                     <i class="fa-solid fa-envelope w-4 text-center ml-2"></i> Messages
+                    <span data-badge="messages" class="hidden ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-bg text-[10px] font-bold flex items-center justify-center"></span>
+        </button>
+        <button type="button" onclick="goMob('commandes')" data-section="commandes" class="nav-sb flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted hover:text-tx text-left w-full">
+                    <i class="fa-solid fa-file-contract w-4 text-center ml-2"></i> Commandes
+                    <span data-badge="commandes" class="hidden ml-auto min-w-[1.25rem] h-5 px-1.5 rounded-full bg-accent text-bg text-[10px] font-bold flex items-center justify-center"></span>
         </button>
             </nav>
       <button type="button" onclick="logout()" class="mt-auto text-xs text-muted border border-brd px-3 py-2 rounded-lg">Déconnexion</button>
         </aside>
 
-    <main class="flex-1 min-w-0">
+    <main class="flex-1 min-w-0 flex flex-col min-h-0">
       <div id="msg-ok" class="hidden mx-4 sm:mx-6 mt-4 text-sm text-ok border border-ok/30 bg-ok/10 px-3 py-2 rounded-lg max-w-4xl"></div>
       <div id="msg-err" class="hidden mx-4 sm:mx-6 mt-4 text-sm text-red-400 border border-red-500/30 bg-red-900/20 px-3 py-2 rounded-lg max-w-4xl"></div>
 
@@ -119,7 +212,8 @@
 
           <h1 id="greeting" class="font-syne font-bold text-3xl sm:text-[34px] tracking-tight mb-2">Bonjour</h1>
           <p class="text-tx/85 text-base sm:text-[17px] leading-relaxed max-w-3xl mb-8">
-            Parcourez les profils et les avis. Le bouton <strong class="text-tx/95 font-medium">Message</strong> ouvre le formulaire pour le service mis en avant sur la carte.
+            Découverte des <strong class="text-tx/95 font-medium">profils prestataires</strong> ayant déjà publié au moins un service.
+            Pour chercher une offre précise, utilisez <strong class="text-tx/95 font-medium">Recherche</strong> dans le menu.
           </p>
 
           <div class="flex gap-2 border-b border-brd">
@@ -175,10 +269,6 @@
             </div>
           </div>
 
-          <p class="text-sm text-muted leading-relaxed border border-brd/80 rounded-xl px-4 py-3 bg-surface/50 mb-6">
-            Ouvrez la fiche pour le détail complet. Sur une carte, Message correspond au dernier service publié par le prestataire.
-          </p>
-
           <div class="min-w-0">
             <div id="search-results" class="space-y-4"></div>
             <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -190,10 +280,118 @@
         </div>
       </section>
 
-      <section id="view-messages" class="hidden px-4 sm:px-6 lg:px-10 py-8 max-w-3xl">
-        <h1 class="font-syne font-bold text-2xl sm:text-3xl mb-1">Messages envoyés</h1>
-        <p class="text-muted text-sm mb-6 max-w-2xl">Demandes que vous avez envoyées aux prestataires.</p>
-        <div id="list-client-messages" class="space-y-4"></div>
+      <section id="view-recherche" class="hidden px-4 sm:px-6 lg:px-10 py-6 sm:py-8 pb-16">
+        <div class="max-w-6xl mx-auto anim-up">
+          <h1 class="font-syne font-bold text-3xl sm:text-[34px] tracking-tight mb-2">Rechercher un service</h1>
+          <p class="text-muted text-sm sm:text-base mb-6 max-w-2xl">Parcourez les offres publiées et contactez le prestataire pour le service choisi.</p>
+          <form class="mb-6 flex flex-col sm:flex-row gap-3" onsubmit="applySvcSearch(event)">
+            <input id="svc-flt-q" type="search" placeholder="Titre, catégorie, mot-clé…" class="flex-1 bg-surface border border-brd rounded-xl px-4 py-3 text-sm" />
+            <button type="submit" class="bg-accent text-bg font-syne font-bold text-sm px-6 py-3 rounded-xl shrink-0">Rechercher</button>
+          </form>
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+            <p id="svc-meta" class="text-sm text-tx/90 font-medium"></p>
+            <div class="relative shrink-0">
+              <button type="button" id="svc-btn-filters" onclick="toggleSvcFilters(event)" aria-expanded="false"
+                class="inline-flex items-center gap-2 rounded-[10px] border border-brd bg-bg/80 px-3.5 py-2 text-sm font-medium text-muted hover:text-tx">
+                <i class="fa-solid fa-sliders"></i> Filtres
+              </button>
+              <div id="svc-filters-popover" class="hidden absolute right-0 top-full mt-2 z-50 w-[min(100vw-2rem,22rem)] rounded-2xl border border-brd bg-surface2 p-5 shadow-2xl">
+                <form class="space-y-4" onsubmit="applySvcSearch(event)">
+                  <div>
+                    <label class="block text-xs text-muted mb-1.5" for="svc-flt-cat">Catégorie</label>
+                    <select id="svc-flt-cat" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5"></select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-muted mb-1.5" for="svc-flt-loc">Ville</label>
+                    <select id="svc-flt-loc" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5"></select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-muted mb-1.5" for="svc-flt-note">Note minimum</label>
+                    <select id="svc-flt-note" class="w-full bg-bg border border-brd rounded-xl text-sm px-3 py-2.5">
+                      <option value="">Toutes</option>
+                      <option value="4">4,0 et +</option>
+                      <option value="3">3,0 et +</option>
+                      <option value="2">2,0 et +</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="w-full bg-accent text-bg font-syne font-bold text-sm py-2.5 rounded-xl">Appliquer</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div id="svc-results" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+          <div class="mt-8 flex flex-wrap items-center gap-3">
+            <button type="button" onclick="goSvcPage(-1)" class="border border-brd text-muted text-sm px-4 py-2 rounded-xl hover:border-accent hover:text-accent">Précédent</button>
+            <span id="svc-page" class="text-sm text-muted"></span>
+            <button type="button" onclick="goSvcPage(1)" class="border border-brd text-muted text-sm px-4 py-2 rounded-xl hover:border-accent hover:text-accent">Suivant</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-messages" class="hidden flex flex-col px-4 sm:px-6 lg:px-10 py-3 md:py-4 flex-1 min-h-0 max-w-5xl w-full mx-auto">
+        <div id="msg-layout" class="rounded-2xl border border-brd bg-surface2 overflow-hidden flex-1 min-h-0 h-full">
+          <aside id="msg-sidebar" class="bg-surface/30 flex flex-col min-h-0 h-full">
+            <div id="msg-sidebar-header" class="px-4 py-4 border-b border-brd shrink-0 w-full">
+              <h1 class="font-syne font-bold text-xl text-tx">Messages</h1>
+              <p class="text-xs text-muted mt-1">Échanges liés à vos demandes de services</p>
+            </div>
+            <div id="msg-conv-list" class="flex-1 overflow-y-auto min-h-0"></div>
+          </aside>
+          <div id="msg-chat-panel" class="bg-bg/40 h-full min-h-0">
+            <div id="msg-chat-active" class="hidden flex-1 flex flex-col min-h-0 h-full">
+              <header class="shrink-0 flex items-center gap-3 px-3 py-3 border-b border-brd bg-surface/80">
+                <button type="button" id="msg-btn-back" class="shrink-0 w-9 h-9 rounded-lg border border-brd text-muted hover:text-tx" aria-label="Retour">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div id="msg-chat-header" class="min-w-0 flex-1"></div>
+                <button type="button" id="btn-propose-order" title="Proposer une commande à ce prestataire" class="shrink-0 text-[12px] font-bold bg-accent text-bg rounded-lg px-3 py-1.5 hover:opacity-90 flex items-center gap-1.5"><i class="fa-solid fa-file-contract text-[11px]"></i> Commander</button>
+              </header>
+              <div id="msg-bubbles" class="msg-thin-scroll px-3 sm:px-4 py-4"></div>
+              <div class="msg-compose-dock border-t border-brd/70 bg-surface/40 px-3 sm:px-4 pt-3 pb-3">
+              <form id="msg-compose-form" class="m-0">
+                <input id="msg-file-input" type="file" class="hidden" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" />
+                <div id="msg-emoji-panel" class="hidden mb-2 flex flex-wrap gap-1 rounded-2xl border border-brd bg-surface2 p-2"></div>
+                <div class="msg-composer-card rounded-2xl bg-surface2 border border-brd/60 px-3 pt-2.5 pb-2">
+                  <div id="msg-attachment-preview" class="hidden mb-2"></div>
+                  <textarea id="msg-compose-input" rows="1" maxlength="8000" placeholder="Écrivez un message…"
+                    class="msg-thin-scroll block w-full bg-transparent text-[14px] text-tx placeholder:text-muted/80 px-1 py-1 outline-none border-0 max-h-[180px]"></textarea>
+                  <div class="flex items-center justify-between gap-2 mt-1.5">
+                    <div class="flex items-center gap-1">
+                      <button type="button" id="msg-emoji-btn" class="w-8 h-8 rounded-lg text-muted hover:text-tx hover:bg-bg/60 transition-colors flex items-center justify-center" aria-label="Ajouter un emoji">
+                        <i class="fa-regular fa-face-smile text-[14px]"></i>
+                      </button>
+                      <button type="button" id="msg-attach-btn" class="w-8 h-8 rounded-lg text-muted hover:text-tx hover:bg-bg/60 transition-colors flex items-center justify-center" aria-label="Joindre un fichier">
+                        <i class="fa-solid fa-paperclip text-[13px]"></i>
+                      </button>
+                    </div>
+                    <button type="submit" id="msg-send-btn" class="shrink-0 w-9 h-9 rounded-full bg-accent text-bg flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Envoyer">
+                      <i class="fa-solid fa-arrow-up text-[12px]"></i>
+                    </button>
+                  </div>
+                </div>
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-commandes" class="hidden flex flex-col px-4 sm:px-6 lg:px-10 py-3 md:py-4 flex-1 min-h-0 max-w-5xl w-full mx-auto">
+        <div class="rounded-2xl border border-brd bg-surface2 overflow-hidden flex-1 min-h-0 h-full flex flex-col md:flex-row">
+          <aside class="md:w-80 shrink-0 border-b md:border-b-0 md:border-r border-brd flex flex-col min-h-0">
+            <div class="px-4 py-4 border-b border-brd flex items-start justify-between gap-2">
+              <div>
+                <h1 class="font-syne font-bold text-xl text-tx">Commandes</h1>
+                <p class="text-xs text-muted mt-1">Paiement sécurisé par la plateforme</p>
+              </div>
+              <button type="button" onclick="goStartOrder()" title="Nouvelle commande" class="shrink-0 w-9 h-9 rounded-lg bg-accent text-bg flex items-center justify-center hover:opacity-90">
+                <i class="fa-solid fa-plus text-sm"></i>
+              </button>
+            </div>
+            <div id="orders-list" class="flex-1 overflow-y-auto min-h-0"></div>
+          </aside>
+          <div id="orders-detail" class="flex-1 min-h-0 overflow-y-auto bg-bg/40 relative"></div>
+        </div>
       </section>
 
       <section id="view-compte" class="hidden px-4 sm:px-6 lg:px-10 py-8 max-w-lg">
@@ -235,8 +433,15 @@
 
     <script>
     let searchState = { page: 1, lastPage: 1, total: 0 };
+    let clientMessenger = null;
+    let clientOrders = null;
+    window.clientGo = go;
     let currentFilters = { q: '', categorie: '', localite: '', note_min: '' };
     let filtersPanelOpen = false;
+    let svcState = { page: 1, lastPage: 1, total: 0 };
+    let svcFilters = { q: '', categorie: '', localite: '', note_min: '' };
+    let svcFiltersOpen = false;
+    const BF = window.BFMarketplace;
 
     function isFiltersPopoverTarget(el) {
       if (!el) return false;
@@ -261,9 +466,8 @@
       setFiltersPanelOpen(false);
     }
     function onDocumentClickCloseFilters(ev) {
-      if (!filtersPanelOpen) return;
-      if (isFiltersPopoverTarget(ev.target)) return;
-      closeFiltersPanel();
+      if (filtersPanelOpen && !isFiltersPopoverTarget(ev.target)) closeFiltersPanel();
+      if (svcFiltersOpen && ev.target && !ev.target.closest('#svc-filters-popover') && !ev.target.closest('#svc-btn-filters')) closeSvcFilters();
     }
     function resetSearchFromPanel() {
       resetSearch();
@@ -313,11 +517,103 @@
     function show(section) {
       hideMessages();
       document.getElementById('view-accueil').classList.toggle('hidden', section !== 'accueil');
+      document.getElementById('view-recherche').classList.toggle('hidden', section !== 'recherche');
       document.getElementById('view-compte').classList.toggle('hidden', section !== 'compte');
       document.getElementById('view-messages').classList.toggle('hidden', section !== 'messages');
+      document.getElementById('view-commandes').classList.toggle('hidden', section !== 'commandes');
     }
-    function go(section) { markNav(section); show(section); if (section === 'messages') loadClientMessages(); }
-    function goMob(section) { markNav(section); show(section); toggleSidebar(); if (section === 'messages') loadClientMessages(); }
+    function openClientOrders() {
+      if (!clientOrders) {
+        var qs = new URLSearchParams(window.location.search);
+        clientOrders = BFOrders({
+          role: 'client',
+          openCommandeId: qs.get('commande_id'),
+        });
+      }
+      clientOrders.load();
+    }
+    function setBadge(section, count) {
+      document.querySelectorAll('[data-badge="' + section + '"]').forEach(function (el) {
+        const n = Number(count || 0);
+        if (n > 0) {
+          el.textContent = n > 9 ? '9+' : String(n);
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+    }
+    async function refreshCounters() {
+      try {
+        const r = await fetch('/api/client/counters', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!d.ok) return;
+        setBadge('messages', d.messages_unread);
+        setBadge('commandes', d.commandes_action);
+      } catch (_) { /* silencieux */ }
+    }
+    // Expose pour orders.js : ouvrir le thread d'une commande dans la section Messages.
+    window.BFOpenThreadForOrder = function (c) {
+      go('messages');
+      setTimeout(function () {
+        if (clientMessenger && typeof clientMessenger.openByParams === 'function') {
+          clientMessenger.openByParams({
+            prestataire_id: c.prestataire_id,
+            service_id: c.service_id,
+          });
+        }
+      }, 100);
+    };
+    function go(section) {
+      markNav(section);
+      show(section);
+      if (section === 'messages') openClientMessages();
+      if (section === 'commandes') openClientOrders();
+      if (section === 'recherche') loadSvcSearch();
+    }
+    function goMob(section) {
+      markNav(section);
+      show(section);
+      toggleSidebar();
+      if (section === 'messages') openClientMessages();
+      if (section === 'commandes') openClientOrders();
+      if (section === 'recherche') loadSvcSearch();
+    }
+    function openProposeForActiveConversation() {
+      var active = clientMessenger && clientMessenger.getActive && clientMessenger.getActive();
+      if (!active) {
+        alert('Ouvrez d\'abord une conversation avec le prestataire, puis cliquez sur « Commander ».');
+        return false;
+      }
+      if (typeof window.BFOrdersOpenModal !== 'function') {
+        alert('Module commandes indisponible. Rechargez la page.');
+        return false;
+      }
+      window.BFOrdersOpenModal({
+        prestataire_id: active.prestataire_id,
+        service_id: active.service_id,
+        service_titre: active.service_titre || '',
+      });
+      return true;
+    }
+    function goStartOrder() {
+      go('messages');
+      setTimeout(openProposeForActiveConversation, 80);
+    }
+    function toggleSvcFilters(ev) {
+      if (ev) ev.stopPropagation();
+      svcFiltersOpen = !svcFiltersOpen;
+      const pop = document.getElementById('svc-filters-popover');
+      const btn = document.getElementById('svc-btn-filters');
+      if (pop) pop.classList.toggle('hidden', !svcFiltersOpen);
+      if (btn) btn.setAttribute('aria-expanded', svcFiltersOpen ? 'true' : 'false');
+    }
+    function closeSvcFilters() {
+      svcFiltersOpen = false;
+      const pop = document.getElementById('svc-filters-popover');
+      if (pop) pop.classList.add('hidden');
+    }
     function toggleSidebar() {
       const sb = document.getElementById('mob-sidebar');
       const ov = document.getElementById('mob-overlay');
@@ -419,12 +715,13 @@
       ev.preventDefault();
       const g = document.getElementById('q-global');
       const gm = document.getElementById('q-global-mob');
-      currentFilters.q = ((g && g.value) || (gm && gm.value) || '').trim();
-      if (g && gm) gm.value = g.value;
-      if (g && gm) g.value = currentFilters.q;
+      const q = ((g && g.value) || (gm && gm.value) || '').trim();
+      if (g) g.value = q;
+      if (gm) gm.value = q;
+      currentFilters.q = q;
       searchState.page = 1;
-      closeFiltersPanel();
-      loadSearch();
+      go('accueil');
+      loadDiscovery();
     }
 
     function applySearch(ev) {
@@ -436,7 +733,7 @@
       const gm = document.getElementById('q-global-mob');
       currentFilters.q = (g && g.value ? g.value : (gm && gm.value ? gm.value : '')).trim();
       searchState.page = 1;
-      loadSearch();
+      loadDiscovery();
       closeFiltersPanel();
     }
 
@@ -450,7 +747,7 @@
       if (g) g.value = '';
       if (gm) gm.value = '';
       searchState.page = 1;
-      loadSearch();
+      loadDiscovery();
     }
 
     function ratingLine(note, nbAvis) {
@@ -461,24 +758,15 @@
 
     function resultCard(x) {
       const name = escapeHtml(abbrevDisplay(x.prenom, x.nom));
-      const headline = escapeHtml(x.headline || 'Prestataire');
       const snippet = escapeHtml(x.snippet || '');
       const loc = escapeHtml(x.localite || '');
-      const cat = escapeHtml(x.headline_categorie || '');
-      const delai = escapeHtml(x.headline_delai || '');
-      const prix = x.headline_prix != null ? Number(x.headline_prix).toLocaleString('fr-FR') + ' F' : '';
+      const svcCount = x.services_count != null ? Number(x.services_count) : 0;
       const pills = [];
       if (loc) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-tx/90">' + loc + '</span>');
-      if (cat) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-tx/90">' + cat + '</span>');
-      if (delai) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-tx/90">' + delai + '</span>');
-      if (prix) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-accent/95">' + escapeHtml(prix) + '</span>');
+      if (svcCount > 0) pills.push('<span class="inline-flex items-center rounded-md border border-brd bg-bg px-2 py-0.5 text-xs text-tx/90">' + svcCount + ' service' + (svcCount > 1 ? 's' : '') + '</span>');
       const photo = x.photo_url
         ? '<img src="' + escapeHtml(x.photo_url) + '" alt="" class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border border-brd shrink-0" loading="lazy" />'
         : '<div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-accent/15 border border-brd flex items-center justify-center font-syne font-bold text-accent shrink-0">' + escapeHtml(initials(x.prenom, x.nom)) + '</div>';
-      var sid = x.featured_service_id != null ? Number(x.featured_service_id) : 0;
-      var msgBtn = sid > 0
-        ? '<a href="/contact/prestataire/' + x.id + '?service=' + sid + '" class="inline-flex items-center justify-center rounded-xl border border-accent/50 text-accent font-syne font-bold text-sm px-5 py-2.5 hover:bg-accent/10 transition-colors">Message</a>'
-        : '<button type="button" disabled class="inline-flex items-center justify-center rounded-xl border border-brd text-muted text-sm px-5 py-2.5 cursor-not-allowed" title="Aucun service publié — message indisponible">Message</button>';
       return (
         '<article class="rounded-2xl border border-brd bg-surface2 p-4 sm:p-5 flex gap-4 sm:gap-5">' +
         photo +
@@ -488,52 +776,69 @@
         '<span class="text-[11px] font-bold uppercase tracking-wide text-accent bg-accent/10 border border-accent/25 rounded px-1.5 py-0.5">Vérifié</span>' +
         '</div>' +
         '<p class="text-[13px] text-muted mb-2">' + ratingLine(x.note_moyenne, x.nb_avis) + '</p>' +
-        '<p class="font-syne font-bold text-[15px] text-tx mb-1.5 leading-snug">' + headline + '</p>' +
         '<p class="text-sm text-tx/80 leading-relaxed mb-3">' + snippet + '</p>' +
         '<div class="flex flex-wrap gap-2 mb-4">' + pills.join('') + '</div>' +
-        '<div class="flex flex-wrap items-center gap-3">' +
         '<a href="/prestataires/' + x.id + '" class="inline-flex items-center justify-center rounded-xl bg-accent text-bg font-syne font-bold text-sm px-5 py-2.5 hover:opacity-90 transition-opacity">Voir le profil</a>' +
-        msgBtn +
-        '</div></div></article>'
+        '</div></article>'
       );
     }
 
-    async function loadClientMessages() {
-      var box = document.getElementById('list-client-messages');
-      if (!box) return;
-      box.innerHTML = '<p class="text-sm text-muted">Chargement…</p>';
-      try {
-        var r = await fetch('/api/client/messages', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
-        var d = await r.json();
-        if (!r.ok || !d.ok) {
-          box.innerHTML = '<p class="text-sm text-muted">Impossible de charger les messages.</p>';
-          return;
-        }
-        if (!d.data || d.data.length === 0) {
-          box.innerHTML = '<p class="text-sm text-muted border border-dashed border-brd rounded-xl p-8 text-center">Aucun message pour l’instant. Utilisez <strong class="text-tx/90">Message</strong> sur une carte pour contacter un prestataire.</p>';
-          return;
-        }
-        box.innerHTML = d.data.map(function (m) {
-          return (
-            '<article class="rounded-xl border border-brd bg-surface2 p-4 sm:p-5">' +
-            '<p class="text-xs text-muted">' + escapeHtml(m.created_at || '') + '</p>' +
-            '<p class="font-syne font-bold text-sm mt-1 text-tx">' + escapeHtml(m.prestataire_label || '') + '</p>' +
-            '<p class="text-xs text-accent mt-0.5">' + escapeHtml(m.service_titre || '') + '</p>' +
-            '<p class="text-sm text-tx/85 mt-3 leading-relaxed whitespace-pre-wrap">' + escapeHtml(m.contenu_excerpt || '') + '</p>' +
-            '</article>'
-          );
-        }).join('');
-      } catch (_) {
-        box.innerHTML = '<p class="text-sm text-muted">Réseau indisponible.</p>';
+    function openClientMessages() {
+      if (!clientMessenger) {
+        clientMessenger = BFMessenger({
+          role: 'client',
+          apiList: '/api/client/messages',
+          apiThread: '/api/client/messages/thread',
+          apiSend: '/api/client/messages',
+          onUnreadChange: function (n) { setBadge('messages', n); },
+        });
       }
+      return clientMessenger.load();
     }
 
-    async function loadSearch() {
+    function applySvcSearch(ev) {
+      if (ev) ev.preventDefault();
+      svcFilters = BF.readFiltersFromForm({ q: 'svc-flt-q', categorie: 'svc-flt-cat', localite: 'svc-flt-loc', note: 'svc-flt-note' });
+      svcState.page = 1;
+      closeSvcFilters();
+      loadSvcSearch();
+    }
+
+    async function loadSvcSearch() {
+      const p = BF.filtersToParams(svcFilters, svcState.page);
+      const r = await fetch('/api/marketplace/services?' + p.toString(), { headers: { Accept: 'application/json' } });
+      const d = await r.json();
+      if (!r.ok || !d.ok) return;
+      svcState.lastPage = d.last_page || 1;
+      svcState.total = d.total || 0;
+      document.getElementById('svc-meta').textContent = svcState.total === 0
+        ? 'Aucun service ne correspond.'
+        : svcState.total + ' service' + (svcState.total > 1 ? 's' : '') + ' trouvé' + (svcState.total > 1 ? 's' : '');
+      document.getElementById('svc-page').textContent = 'Page ' + svcState.page + ' / ' + svcState.lastPage;
+      const box = document.getElementById('svc-results');
+      if (!d.data || !d.data.length) {
+        box.innerHTML = '<p class="col-span-full text-sm text-muted border border-dashed border-brd rounded-xl p-8 text-center">Affinez les filtres ou élargissez la recherche.</p>';
+        return;
+      }
+      box.innerHTML = d.data.map(function (row) {
+        return BF.serviceBannerCard(row, { showContact: true, contactBase: '/contact/prestataire/' });
+      }).join('');
+    }
+
+    function goSvcPage(delta) {
+      const next = svcState.page + delta;
+      if (next < 1 || next > svcState.lastPage) return;
+      svcState.page = next;
+      loadSvcSearch();
+    }
+
+    async function loadDiscovery() {
       const p = new URLSearchParams();
       if (currentFilters.q) p.set('q', currentFilters.q);
       if (currentFilters.categorie) p.set('categorie', currentFilters.categorie);
       if (currentFilters.localite) p.set('localite', currentFilters.localite);
       if (currentFilters.note_min !== '') p.set('note_min', currentFilters.note_min);
+      p.set('only_with_services', '1');
       p.set('page', String(searchState.page));
       const r = await fetch('/api/marketplace/prestataires?' + p.toString(), { headers: { Accept: 'application/json' } });
       const d = await r.json();
@@ -558,7 +863,7 @@
       if (next < 1 || next > searchState.lastPage) return;
       searchState.page = next;
       closeFiltersPanel();
-      loadSearch();
+      loadDiscovery();
     }
 
     async function init() {
@@ -584,8 +889,48 @@
           }
         } catch (_) { /* filtres manuels si meta indispo */ }
         fillMetaSelects(categories, localites);
+        if (BF) {
+          BF.fillSelect('svc-flt-cat', categories, 'Toutes les catégories');
+          BF.fillSelect('svc-flt-loc', localites, 'Toutes les villes');
+        }
         syncFilterInputsFromState();
-        await loadSearch();
+        await loadDiscovery();
+        var qs = new URLSearchParams(window.location.search);
+        if (!clientMessenger) {
+          clientMessenger = BFMessenger({
+            role: 'client',
+            apiList: '/api/client/messages',
+            apiThread: '/api/client/messages/thread',
+            apiSend: '/api/client/messages',
+            onUnreadChange: function (n) { setBadge('messages', n); },
+          });
+        }
+        var btnPropose = document.getElementById('btn-propose-order');
+        if (btnPropose) {
+          btnPropose.addEventListener('click', openProposeForActiveConversation);
+        }
+        document.addEventListener('bf:order-proposed', function (ev) {
+          var newId = ev && ev.detail && ev.detail.commande && ev.detail.commande.id;
+          go('commandes');
+          if (clientOrders && typeof clientOrders.load === 'function') {
+            clientOrders.load();
+            if (newId && typeof clientOrders.open === 'function') {
+              setTimeout(function () { clientOrders.open(newId); }, 200);
+            }
+          }
+        });
+        if (qs.get('section') === 'messages') {
+          go('messages');
+          if (qs.get('prestataire_id') && qs.get('service_id')) {
+            clientMessenger.openByParams({
+              prestataire_id: qs.get('prestataire_id'),
+              service_id: qs.get('service_id'),
+            });
+          }
+        }
+        if (qs.get('section') === 'commandes') {
+          go('commandes');
+        }
       } catch (_) {
         window.location.href = '/login';
       }
@@ -596,6 +941,10 @@
         if (ev.key === 'Escape') closeFiltersPanel();
       });
       init();
+      refreshCounters();
+      setInterval(refreshCounters, 30000);
+      document.addEventListener('bf:order-updated', refreshCounters);
+      document.addEventListener('bf:order-proposed', refreshCounters);
         });
     </script>
 </body>

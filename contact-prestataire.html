@@ -36,7 +36,7 @@
 
   <div class="w-full max-w-xl bg-surface border border-brd rounded-2xl px-6 py-8 sm:px-8 sm:py-10 anim-up">
     <p class="text-muted text-sm mb-4">
-      <a href="/dashboard/client" class="text-accent hover:underline">← Retour recherche</a>
+      <a id="back-link" href="/search" class="text-accent hover:underline">← Retour</a>
     </p>
 
     <div id="load-err" class="hidden rounded-xl border border-red-500/30 bg-red-900/20 text-red-300 text-sm px-4 py-3 mb-4"></div>
@@ -169,7 +169,8 @@
           document.getElementById('js-ok').classList.remove('hidden');
           document.getElementById('contenu').value = '';
           document.getElementById('objet').value = '';
-          setTimeout(function () { window.location.href = '/dashboard/client'; }, 1600);
+          var redir = '/dashboard/client?section=messages&prestataire_id=' + pid + '&service_id=' + sid;
+          setTimeout(function () { window.location.href = redir; }, 1200);
         } catch (_) {
           document.getElementById('js-errors').innerHTML = '<p>Réseau indisponible.</p>';
           document.getElementById('js-errors').classList.remove('hidden');
@@ -177,7 +178,26 @@
         }
       });
 
+      function setBackLink() {
+        var link = document.getElementById('back-link');
+        if (!link) return;
+        var ret = new URLSearchParams(location.search).get('return');
+        if (ret && ret.indexOf('/') === 0) {
+          link.href = ret;
+          link.textContent = '← Retour';
+          return;
+        }
+        if (document.referrer && document.referrer.indexOf('/search') >= 0) {
+          link.href = '/search';
+          link.textContent = '← Recherche services';
+          return;
+        }
+        link.href = '/dashboard/client';
+        link.textContent = '← Espace client';
+      }
+
       async function boot() {
+        setBackLink();
         var pid = prestataireIdFromPath();
         var sid = serviceIdFromQuery();
         if (pid < 1) {
