@@ -17,6 +17,7 @@ class Prestataire extends Model
         'email',
         'telephone',
         'localite',
+        'statut',
         'photo_profil',
         'biographie',
         'mot_de_passe',

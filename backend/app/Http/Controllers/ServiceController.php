@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Service;
 use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class ServiceController extends Controller
 {
@@ -25,13 +27,12 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         $prestataireId = (int) $request->session()->get('auth_id');
-        $data = $request->validate([
+        $data = $request->validate(array_merge([
             'titre' => 'required|string|max:200',
             'description' => 'required|string|max:10000',
-            'categorie' => 'required|string|max:100',
             'prix_indicatif' => 'nullable|numeric|min:0',
             'delai_execution' => 'nullable|string|max:100',
-        ]);
+        ], $this->categoryRules()));
 
         $existing = (int) Service::query()->where('prestataire_id', $prestataireId)->count();
         if ($existing >= 2) {
@@ -70,13 +71,12 @@ class ServiceController extends Controller
             return response()->json(['ok' => false, 'message' => 'Service introuvable.'], 404);
         }
 
-        $data = $request->validate([
+        $data = $request->validate(array_merge([
             'titre' => 'required|string|max:200',
             'description' => 'required|string|max:10000',
-            'categorie' => 'required|string|max:100',
             'prix_indicatif' => 'nullable|numeric|min:0',
             'delai_execution' => 'nullable|string|max:100',
-        ]);
+        ], $this->categoryRules()));
 
         $service->update([
             'titre' => $data['titre'],
@@ -142,6 +142,19 @@ class ServiceController extends Controller
         $service->delete();
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * @return array<string, array<int, mixed>|string>
+     */
+    private function categoryRules(): array
+    {
+        $names = Category::activeNames();
+        if ($names === []) {
+            return ['categorie' => 'required|string|max:100'];
+        }
+
+        return ['categorie' => ['required', 'string', 'max:100', Rule::in($names)]];
     }
 
     private function serviceRow(Service $s): array

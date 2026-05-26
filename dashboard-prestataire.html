@@ -269,14 +269,6 @@
                 <label class="block text-xs text-muted font-medium mb-1.5" for="s-categorie">Catégorie <span class="text-red-400">*</span></label>
                 <select id="s-categorie" required class="w-full bg-bg border border-brd rounded-xl px-3 py-2.5 text-sm appearance-none">
                   <option value="">Choisir</option>
-                  <option>Développement</option>
-                  <option>Design</option>
-                  <option>Électricité</option>
-                  <option>Plomberie</option>
-                  <option>Mobile App</option>
-                  <option>Photographie</option>
-                  <option>Marketing</option>
-                  <option>Maçonnerie</option>
                 </select>
               </div>
               <div>
@@ -1081,8 +1073,27 @@
       }
     }
 
+    async function loadServiceCategories() {
+      try {
+        const r = await fetch('/api/marketplace/meta', { headers: { Accept: 'application/json' } });
+        const d = await r.json();
+        const sel = document.getElementById('s-categorie');
+        if (!sel || !d.categories) return;
+        const keep = sel.value;
+        sel.innerHTML = '<option value="">Choisir</option>';
+        d.categories.forEach(function (name) {
+          const o = document.createElement('option');
+          o.value = name;
+          o.textContent = name;
+          sel.appendChild(o);
+        });
+        if (keep) sel.value = keep;
+      } catch (_) { /* ignore */ }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
       init();
+      loadServiceCategories();
       refreshPrestaCounters();
       setInterval(refreshPrestaCounters, 30000);
       document.addEventListener('bf:order-updated', refreshPrestaCounters);

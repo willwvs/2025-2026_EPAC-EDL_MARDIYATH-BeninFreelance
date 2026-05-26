@@ -143,6 +143,13 @@ class AuthController extends Controller
                 ], 403);
             }
 
+            if (! \App\Support\AccountStatus::isActive($user, 'clients')) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => \App\Support\AccountStatus::blockMessage((string) ($user->statut ?? '')),
+                ], 403);
+            }
+
             $request->session()->regenerate();
             session([
                 'auth_id' => $user->id,
@@ -162,6 +169,13 @@ class AuthController extends Controller
             return response()->json([
                 'ok' => false,
                 'message' => 'Confirmez votre adresse e-mail avant de vous connecter.',
+            ], 403);
+        }
+
+        if (! \App\Support\AccountStatus::isActive($user, 'prestataires')) {
+            return response()->json([
+                'ok' => false,
+                'message' => \App\Support\AccountStatus::blockMessage((string) ($user->statut ?? '')),
             ], 403);
         }
 

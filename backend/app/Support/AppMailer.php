@@ -179,4 +179,44 @@ HTML;
 
         return self::send($email, 'Rappel validation livraison', $html);
     }
+
+    public static function sendAdminAvisSignalement(
+        int $avisId,
+        int $note,
+        ?string $commentaire,
+        string $prestataireLabel,
+        string $reporterLabel,
+        ?string $motif,
+    ): bool {
+        $to = (string) config('services.admin_email', '');
+        if ($to === '') {
+            Log::info('ADMIN_EMAIL non défini — notification avis signalé ignorée.', ['avis_id' => $avisId]);
+
+            return false;
+        }
+
+        $adminUrl = url('/admin');
+        $excerpt = $commentaire !== null && trim($commentaire) !== ''
+            ? htmlspecialchars(mb_substr(trim($commentaire), 0, 300), ENT_QUOTES, 'UTF-8')
+            : '(sans commentaire)';
+        $motifHtml = $motif !== null && trim($motif) !== ''
+            ? '<p style="font-family:sans-serif;color:#555;"><strong>Motif :</strong> '.htmlspecialchars(trim($motif), ENT_QUOTES, 'UTF-8').'</p>'
+            : '';
+        $presta = htmlspecialchars($prestataireLabel, ENT_QUOTES, 'UTF-8');
+        $reporter = htmlspecialchars($reporterLabel, ENT_QUOTES, 'UTF-8');
+
+        $html = <<<HTML
+<p style="font-family:sans-serif;color:#333;">Un avis a été signalé sur BéninFreelance.</p>
+<ul style="font-family:sans-serif;color:#333;font-size:14px;">
+<li><strong>Avis #</strong>{$avisId} — {$note}/5</li>
+<li><strong>Prestataire :</strong> {$presta}</li>
+<li><strong>Signalé par :</strong> {$reporter}</li>
+</ul>
+<p style="font-family:sans-serif;color:#555;">{$excerpt}</p>
+{$motifHtml}
+<p><a href="{$adminUrl}" style="display:inline-block;background:#F5A623;color:#0A0A0F;padding:12px 20px;border-radius:8px;font-weight:bold;text-decoration:none;">Ouvrir l'administration</a></p>
+HTML;
+
+        return self::send($to, 'Avis signalé — modération requise', $html);
+    }
 }

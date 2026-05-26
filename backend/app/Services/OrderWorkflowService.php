@@ -399,8 +399,8 @@ class OrderWorkflowService
                 'size' => (int) ($a['size'] ?? 0),
                 'mime' => $a['mime'] ?? null,
                 'is_image' => isset($a['mime']) && is_string($a['mime']) && str_starts_with($a['mime'], 'image/'),
-                'url' => url('/api/client/commandes/'.$commande->id.'/livraisons/'.$livraison->id.'/fichier?i='.$i),
-                'url_prestataire' => url('/api/prestataire/commandes/'.$commande->id.'/livraisons/'.$livraison->id.'/fichier?i='.$i),
+                'url' => '/api/client/commandes/'.$commande->id.'/livraisons/'.$livraison->id.'/fichier?i='.$i,
+                'url_prestataire' => '/api/prestataire/commandes/'.$commande->id.'/livraisons/'.$livraison->id.'/fichier?i='.$i,
             ];
         }, $stored, array_keys($stored));
 
@@ -756,6 +756,40 @@ class OrderWorkflowService
     }
 
     /**
+     * Enregistre un remboursement litige en attente (FedaPay refusé ou sandbox sans solde).
+     */
+    private function recordManualDisputePayout(
+        Commande $commande,
+        int $clientId,
+        string $phone,
+        int $amount,
+        string $resolution,
+        ?string $apiError
+    ): void {
+        if (! Schema::hasTable('payouts')) {
+            return;
+        }
+
+        $log = [];
+        if ($apiError) {
+            $log[] = ['at' => now()->toIso8601String(), 'event' => 'fedapay.skipped', 'message' => $apiError];
+        }
+
+        Payout::query()->create([
+            'commande_id' => $commande->id,
+            'provider' => 'fedapay',
+            'type' => 'remboursement_client',
+            'destinataire_id' => $clientId,
+            'phone' => $phone,
+            'withdraw_mode' => 'mtn-benin',
+            'provider_ref' => null,
+            'montant_fcfa' => $amount,
+            'statut' => 'pending',
+            'webhook_log' => $log ?: null,
+        ]);
+    }
+
+    /**
      * Marque un payout comme complété et déclenche les effets (commande paid_out + mail).
      */
     private function finalizePayoutCompletion(Payout $payout): void
@@ -869,8 +903,14 @@ class OrderWorkflowService
             description: 'Litige #'.$commande->id.' — '.$resolution,
         );
 
+        $fedapaySkipped = false;
         if (! ($result['ok'] ?? false)) {
-            return $result;
+            if (config('marketplace.dispute_allow_db_close')) {
+                $this->recordManualDisputePayout($commande, $client->id, $phone, $amount, $resolution, $result['message'] ?? null);
+                $fedapaySkipped = true;
+            } else {
+                return $result;
+            }
         }
 
         $partial = $resolution === 'refund_partial';
@@ -912,7 +952,11 @@ class OrderWorkflowService
             ['event' => 'order.dispute_resolved', 'resolution' => $resolution, 'note' => $note, 'amount' => $amount]
         );
 
-        return ['ok' => true, 'message' => 'Litige résolu : remboursement émis.'];
+        $msg = $fedapaySkipped
+            ? 'Litige clos. Remboursement enregistré — à effectuer manuellement depuis FedaPay (voir onglet Versements).'
+            : 'Litige résolu : remboursement émis.';
+
+        return ['ok' => true, 'message' => $msg];
     }
 
     private function disputeRelease(Commande $commande, ?string $note): array

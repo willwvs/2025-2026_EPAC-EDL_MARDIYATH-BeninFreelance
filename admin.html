@@ -50,38 +50,51 @@
   <!-- Vue panneau (Figma : admin.html — Panneau global — Desktop) -->
   <div id="panel" class="hidden min-h-screen flex flex-col md:flex-row">
 
-    <aside class="hidden md:flex flex-col w-[280px] shrink-0 bg-surface border-r border-brd py-6 px-4 md:sticky md:top-0 md:h-screen">
-      <a href="/" class="font-syne font-extrabold text-[17px] mb-1">Bénin<span class="text-accent">Freelance</span></a>
-      <p class="text-[11px] text-muted font-medium mb-6 px-0.5">Espace administration</p>
-      <nav>
-        <div class="relative pl-4 py-2 rounded-lg bg-surface2 border-l-[3px] border-accent">
-          <span class="text-sm font-bold text-tx">Vérification dossiers</span>
-        </div>
+    <aside id="admin-sidebar" class="hidden md:flex flex-col w-[260px] shrink-0 bg-surface border-r border-brd py-6 px-3 md:sticky md:top-0 md:h-screen overflow-y-auto">
+      <a href="/" class="font-syne font-extrabold text-[17px] mb-1 px-2">Bénin<span class="text-accent">Freelance</span></a>
+      <p class="text-[11px] text-muted font-medium mb-5 px-2">Administration</p>
+      <nav id="admin-nav" class="space-y-1 text-sm">
+        <p class="text-[10px] uppercase tracking-wider text-muted font-bold px-2 pt-2 pb-1">Utilisateurs</p>
+        <button type="button" data-section="presta" class="admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-medium hover:bg-surface2 transition-colors">Vérification prestataires</button>
+        <button type="button" data-section="clients" class="admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-medium text-muted hover:bg-surface2 transition-colors">Clients</button>
+        <p class="text-[10px] uppercase tracking-wider text-muted font-bold px-2 pt-4 pb-1">Marketplace</p>
+        <button type="button" data-section="cmd" class="admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-medium text-muted hover:bg-surface2 transition-colors">Commandes</button>
+        <button type="button" data-section="disputes" class="admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-medium text-muted hover:bg-surface2 transition-colors">Litiges <span id="badge-disputes-nav" class="hidden ml-1 inline-block bg-danger text-bg text-[10px] font-bold px-1.5 py-0.5 rounded-full"></span></button>
+        <button type="button" data-section="payouts" class="admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-medium text-muted hover:bg-surface2 transition-colors">Versements</button>
+        <button type="button" data-section="avis" class="admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-medium text-muted hover:bg-surface2 transition-colors">Modération avis <span id="badge-avis-nav" class="hidden ml-1 inline-block bg-danger text-bg text-[10px] font-bold px-1.5 py-0.5 rounded-full"></span></button>
+        <button type="button" data-section="categories" class="admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-medium text-muted hover:bg-surface2 transition-colors">Catégories</button>
       </nav>
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
-      <header class="md:hidden flex items-center justify-between px-4 py-3 border-b border-brd bg-surface">
-        <a href="/" class="font-syne font-extrabold text-base">Bénin<span class="text-accent">Freelance</span></a>
-        <span class="text-[10px] text-muted uppercase tracking-wide">Admin</span>
+      <header class="md:hidden flex items-center justify-between px-4 py-3 border-b border-brd bg-surface gap-2">
+        <a href="/" class="font-syne font-extrabold text-base shrink-0">Bénin<span class="text-accent">Freelance</span></a>
+        <select id="mobile-section" onchange="showAdminSection(this.value)" class="flex-1 max-w-[200px] bg-bg border border-brd rounded-lg text-xs py-1.5 px-2 text-tx">
+          <option value="presta">Vérification</option>
+          <option value="clients">Clients</option>
+          <option value="cmd">Commandes</option>
+          <option value="disputes">Litiges</option>
+          <option value="payouts">Versements</option>
+          <option value="avis">Avis</option>
+          <option value="categories">Catégories</option>
+        </select>
+        <button type="button" onclick="doLogout()" class="text-[11px] text-muted shrink-0">Sortir</button>
       </header>
 
       <main class="flex-1 px-4 sm:px-6 lg:px-10 py-6 sm:py-8 max-w-6xl w-full mx-auto">
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-          <h2 class="font-syne font-bold text-xl sm:text-[22px] leading-tight">Admin — dossiers prestataires</h2>
+        <div class="hidden md:flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+          <h2 id="page-title" class="font-syne font-bold text-xl sm:text-[22px] leading-tight">Vérification prestataires</h2>
           <button type="button" onclick="doLogout()"
             class="shrink-0 text-[13px] font-medium text-muted border border-brd px-4 py-2 rounded-xl hover:border-muted hover:text-tx transition-colors w-fit">
             Déconnexion
           </button>
         </div>
+        <h2 id="page-title-mobile" class="md:hidden font-syne font-bold text-lg mb-4">Vérification prestataires</h2>
 
-        <div class="flex gap-2 mb-4 flex-wrap">
-          <button type="button" id="tab-presta" onclick="showAdminTab('presta')" class="text-sm font-bold px-4 py-2 rounded-xl bg-accent text-bg">Prestataires</button>
-          <button type="button" id="tab-cmd" onclick="showAdminTab('cmd')" class="text-sm font-bold px-4 py-2 rounded-xl border border-brd text-muted">Commandes</button>
-          <button type="button" id="tab-disputes" onclick="showAdminTab('disputes')" class="text-sm font-bold px-4 py-2 rounded-xl border border-brd text-muted">Litiges <span id="badge-disputes" class="hidden ml-1.5 inline-block bg-danger text-bg text-[10px] font-bold px-1.5 py-0.5 rounded-full"></span></button>
-          <button type="button" id="tab-payouts" onclick="showAdminTab('payouts')" class="text-sm font-bold px-4 py-2 rounded-xl border border-brd text-muted">Versements</button>
+        <div id="section-presta">
+        <div class="flex justify-end mb-3">
+          <a href="/admin/api/prestataires/export.csv" class="text-xs font-medium text-accent border border-accent/40 px-3 py-1.5 rounded-lg hover:bg-accent/10">Exporter CSV</a>
         </div>
-
         <div id="list-wrap" class="border border-brd rounded-xl overflow-hidden bg-surface">
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
@@ -90,74 +103,12 @@
                   <th class="px-4 py-3 whitespace-nowrap">ID</th>
                   <th class="px-4 py-3 whitespace-nowrap">Nom</th>
                   <th class="px-4 py-3 whitespace-nowrap">Email</th>
-                  <th class="px-4 py-3 whitespace-nowrap">Statut</th>
+                  <th class="px-4 py-3 whitespace-nowrap">Dossier</th>
+                  <th class="px-4 py-3 whitespace-nowrap">Compte</th>
                   <th class="px-4 py-3 whitespace-nowrap w-28"></th>
                 </tr>
               </thead>
               <tbody id="rows" class="divide-y divide-brd"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div id="cmd-wrap" class="hidden border border-brd rounded-xl overflow-hidden bg-surface">
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-              <thead>
-                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
-                  <th class="px-4 py-3">ID</th>
-                  <th class="px-4 py-3">Titre</th>
-                  <th class="px-4 py-3">Montant</th>
-                  <th class="px-4 py-3">Statut</th>
-                  <th class="px-4 py-3">Ref. FedaPay</th>
-                  <th class="px-4 py-3 w-32"></th>
-                </tr>
-              </thead>
-              <tbody id="cmd-rows" class="divide-y divide-brd"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div id="disputes-wrap" class="hidden border border-brd rounded-xl overflow-hidden bg-surface">
-          <div class="px-4 py-3 border-b border-brd bg-surface2 text-xs text-muted">
-            Litiges ouverts par les clients. Examinez le motif, la conversation et les livraisons puis tranchez : remboursement total, partiel ou paiement du prestataire.
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-              <thead>
-                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
-                  <th class="px-4 py-3">Cmde</th>
-                  <th class="px-4 py-3">Titre</th>
-                  <th class="px-4 py-3">Montant</th>
-                  <th class="px-4 py-3">Ouvert le</th>
-                  <th class="px-4 py-3">Motif</th>
-                  <th class="px-4 py-3">Statut</th>
-                  <th class="px-4 py-3 w-44"></th>
-                </tr>
-              </thead>
-              <tbody id="disputes-rows" class="divide-y divide-brd"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div id="payouts-wrap" class="hidden border border-brd rounded-xl overflow-hidden bg-surface">
-          <div class="px-4 py-3 border-b border-brd bg-surface2 text-xs text-muted">
-            Liste des versements (prestataires &amp; remboursements). « Marquer payé » à utiliser après virement effectif depuis votre dashboard FedaPay.
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-              <thead>
-                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
-                  <th class="px-4 py-3">ID</th>
-                  <th class="px-4 py-3">Cmde</th>
-                  <th class="px-4 py-3">Type</th>
-                  <th class="px-4 py-3">Bénéficiaire</th>
-                  <th class="px-4 py-3">Numéro</th>
-                  <th class="px-4 py-3">Montant</th>
-                  <th class="px-4 py-3">Statut</th>
-                  <th class="px-4 py-3 w-36"></th>
-                </tr>
-              </thead>
-              <tbody id="payouts-rows" class="divide-y divide-brd"></tbody>
             </table>
           </div>
         </div>
@@ -180,8 +131,8 @@
 
           <hr class="border-brd my-8" />
 
-          <h4 class="text-[15px] font-bold mb-4">Actions manuelles</h4>
-          <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center">
+          <h4 class="text-[15px] font-bold mb-4">Validation du dossier</h4>
+          <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center mb-8">
             <button type="button" onclick="doValider()"
               class="bg-accent text-bg font-bold text-sm py-2.5 px-5 rounded-xl hover:opacity-90">Valider</button>
             <input id="ref-motif" type="text" placeholder="Motif (générique)"
@@ -191,6 +142,161 @@
               Refuser
             </button>
           </div>
+
+          <h4 class="text-[15px] font-bold mb-3">Compte prestataire</h4>
+          <p id="d-compte-statut" class="text-sm text-muted mb-3"></p>
+          <div id="d-compte-actions" class="flex flex-wrap gap-2"></div>
+        </div>
+        </div>
+
+        <div id="section-clients" class="hidden">
+          <div class="flex justify-end mb-3">
+            <a href="/admin/api/clients/export.csv" class="text-xs font-medium text-accent border border-accent/40 px-3 py-1.5 rounded-lg hover:bg-accent/10">Exporter CSV</a>
+          </div>
+          <div class="border border-brd rounded-xl overflow-hidden bg-surface">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left">
+                <thead>
+                  <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                    <th class="px-4 py-3">ID</th>
+                    <th class="px-4 py-3">Nom</th>
+                    <th class="px-4 py-3">Email</th>
+                    <th class="px-4 py-3">Tél.</th>
+                    <th class="px-4 py-3">Statut</th>
+                    <th class="px-4 py-3 w-48">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="client-rows" class="divide-y divide-brd"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-cmd" class="hidden">
+        <div id="cmd-wrap" class="border border-brd rounded-xl overflow-hidden bg-surface">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead>
+                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                  <th class="px-4 py-3">ID</th>
+                  <th class="px-4 py-3">Titre</th>
+                  <th class="px-4 py-3">Montant</th>
+                  <th class="px-4 py-3">Statut</th>
+                  <th class="px-4 py-3">Ref. FedaPay</th>
+                  <th class="px-4 py-3 w-32"></th>
+                </tr>
+              </thead>
+              <tbody id="cmd-rows" class="divide-y divide-brd"></tbody>
+            </table>
+          </div>
+        </div>
+        </div>
+
+        <div id="section-disputes" class="hidden">
+        <div id="disputes-wrap" class="border border-brd rounded-xl overflow-hidden bg-surface">
+          <div class="px-4 py-3 border-b border-brd bg-surface2 text-xs text-muted">
+            Litiges ouverts par les clients. Examinez le motif, la conversation et les livraisons puis tranchez : remboursement total, partiel ou paiement du prestataire.
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead>
+                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                  <th class="px-4 py-3">Cmde</th>
+                  <th class="px-4 py-3">Titre</th>
+                  <th class="px-4 py-3">Montant</th>
+                  <th class="px-4 py-3">Ouvert le</th>
+                  <th class="px-4 py-3">Motif</th>
+                  <th class="px-4 py-3">Statut</th>
+                  <th class="px-4 py-3 w-44"></th>
+                </tr>
+              </thead>
+              <tbody id="disputes-rows" class="divide-y divide-brd"></tbody>
+            </table>
+          </div>
+        </div>
+        </div>
+
+        <div id="section-payouts" class="hidden">
+        <div id="payouts-wrap" class="border border-brd rounded-xl overflow-hidden bg-surface">
+          <div class="px-4 py-3 border-b border-brd bg-surface2 text-xs text-muted">
+            Liste des versements (prestataires &amp; remboursements). « Marquer payé » à utiliser après virement effectif depuis votre dashboard FedaPay.
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead>
+                <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                  <th class="px-4 py-3">ID</th>
+                  <th class="px-4 py-3">Cmde</th>
+                  <th class="px-4 py-3">Type</th>
+                  <th class="px-4 py-3">Bénéficiaire</th>
+                  <th class="px-4 py-3">Numéro</th>
+                  <th class="px-4 py-3">Montant</th>
+                  <th class="px-4 py-3">Statut</th>
+                  <th class="px-4 py-3 w-36"></th>
+                </tr>
+              </thead>
+              <tbody id="payouts-rows" class="divide-y divide-brd"></tbody>
+            </table>
+          </div>
+        </div>
+        </div>
+
+        <div id="section-avis" class="hidden">
+          <div class="flex flex-wrap items-center gap-3 mb-4">
+            <label class="flex items-center gap-2 text-sm text-muted cursor-pointer">
+              <input type="checkbox" id="avis-only-signale" class="accent-accent" onchange="loadAvis()" />
+              Signalés uniquement
+            </label>
+          </div>
+          <div class="border border-brd rounded-xl overflow-hidden bg-surface">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left">
+                <thead>
+                  <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                    <th class="px-4 py-3">Note</th>
+                    <th class="px-4 py-3">Commentaire</th>
+                    <th class="px-4 py-3">Client</th>
+                    <th class="px-4 py-3">Prestataire</th>
+                    <th class="px-4 py-3">Date</th>
+                    <th class="px-4 py-3 w-40">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="avis-rows" class="divide-y divide-brd"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="section-categories" class="hidden">
+          <div class="flex flex-wrap gap-2 mb-4 items-end">
+            <div>
+              <label class="block text-xs text-muted mb-1" for="cat-nom">Nouvelle catégorie</label>
+              <input id="cat-nom" type="text" maxlength="100" placeholder="ex. Réparation"
+                class="bg-bg border border-brd rounded-xl px-3 py-2 text-sm w-48" />
+            </div>
+            <div>
+              <label class="block text-xs text-muted mb-1" for="cat-ordre">Ordre</label>
+              <input id="cat-ordre" type="number" min="0" value="0"
+                class="bg-bg border border-brd rounded-xl px-3 py-2 text-sm w-20" />
+            </div>
+            <button type="button" onclick="addCategory()"
+              class="bg-accent text-bg font-bold text-sm py-2 px-4 rounded-xl hover:opacity-90">Ajouter</button>
+          </div>
+          <div class="border border-brd rounded-xl overflow-hidden bg-surface">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left">
+                <thead>
+                  <tr class="border-b border-brd bg-surface2 text-[12px] font-bold text-tx">
+                    <th class="px-4 py-3">Nom</th>
+                    <th class="px-4 py-3">Ordre</th>
+                    <th class="px-4 py-3">Active</th>
+                    <th class="px-4 py-3 w-36">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="category-rows" class="divide-y divide-brd"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -199,12 +305,32 @@
   <script>
     let csrf = '';
     let currentId = null;
+    let currentPrestaCompte = 'actif';
+    let adminSection = 'presta';
+
+    const SECTION_TITLES = {
+      presta: 'Vérification prestataires',
+      clients: 'Clients',
+      cmd: 'Commandes',
+      disputes: 'Litiges',
+      payouts: 'Versements',
+      avis: 'Modération avis',
+      categories: 'Catégories de services',
+    };
 
     function formatStatut(raw) {
       const s = (raw || '').toLowerCase();
       if (s === 'en_attente') return { label: 'En attente', cls: 'text-warn border-warn/30 bg-warn/10' };
       if (s === 'valide') return { label: 'Validé', cls: 'text-ok border-ok/30 bg-ok/10' };
       if (s === 'refuse') return { label: 'Refusé', cls: 'text-danger border-danger/30 bg-danger/10' };
+      return { label: raw || '—', cls: 'text-muted border-brd bg-surface2' };
+    }
+
+    function formatCompteStatut(raw) {
+      const s = (raw || 'actif').toLowerCase();
+      if (s === 'actif') return { label: 'Actif', cls: 'text-ok border-ok/30 bg-ok/10' };
+      if (s === 'suspendu') return { label: 'Suspendu', cls: 'text-warn border-warn/30 bg-warn/10' };
+      if (s === 'supprime') return { label: 'Supprimé', cls: 'text-danger border-danger/30 bg-danger/10' };
       return { label: raw || '—', cls: 'text-muted border-brd bg-surface2' };
     }
 
@@ -223,14 +349,37 @@
         opts.headers['Content-Type'] = 'application/json';
         opts.body = JSON.stringify(opts.body);
       }
+      opts.credentials = 'same-origin';
       return fetch(path, opts);
+    }
+
+    function updateAvisBadge(count) {
+      const n = parseInt(count, 10) || 0;
+      const badge = document.getElementById('badge-avis-nav');
+      if (!badge) return;
+      if (n > 0) {
+        badge.textContent = n;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    async function refreshAdminBadges() {
+      const r = await api('/admin/api/session');
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d.signale_avis_count != null) updateAvisBadge(d.signale_avis_count);
     }
 
     async function boot() {
       await getCsrf();
       const r = await api('/admin/api/session');
       const d = await r.json();
-      if (d.authenticated) showPanel(); else showLogin();
+      if (d.authenticated) {
+        updateAvisBadge(d.signale_avis_count);
+        showPanel();
+      } else showLogin();
     }
 
     function showLogin() {
@@ -238,30 +387,45 @@
       document.getElementById('panel').classList.add('hidden');
     }
 
-    function tabBtnClass(active) {
+    function navBtnClass(active) {
       return active
-        ? 'text-sm font-bold px-4 py-2 rounded-xl bg-accent text-bg'
-        : 'text-sm font-bold px-4 py-2 rounded-xl border border-brd text-muted';
+        ? 'admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-bold bg-surface2 border-l-[3px] border-accent text-tx'
+        : 'admin-nav-btn w-full text-left px-3 py-2.5 rounded-lg font-medium text-muted hover:bg-surface2 transition-colors';
     }
 
-    function showAdminTab(tab) {
-      document.getElementById('list-wrap').classList.toggle('hidden', tab !== 'presta');
-      document.getElementById('cmd-wrap').classList.toggle('hidden', tab !== 'cmd');
-      document.getElementById('disputes-wrap').classList.toggle('hidden', tab !== 'disputes');
-      document.getElementById('payouts-wrap').classList.toggle('hidden', tab !== 'payouts');
+    function showAdminSection(tab) {
+      adminSection = tab;
+      ['presta', 'clients', 'cmd', 'disputes', 'payouts', 'avis', 'categories'].forEach(function (s) {
+        const el = document.getElementById('section-' + s);
+        if (el) el.classList.toggle('hidden', s !== tab);
+      });
       document.getElementById('detail').classList.add('hidden');
-      document.getElementById('tab-presta').className = tabBtnClass(tab === 'presta');
-      document.getElementById('tab-cmd').className = tabBtnClass(tab === 'cmd');
-      document.getElementById('tab-disputes').className = tabBtnClass(tab === 'disputes') + ' relative';
-      document.getElementById('tab-payouts').className = tabBtnClass(tab === 'payouts');
-      // garder le badge visible
-      const badge = document.getElementById('badge-disputes');
-      if (badge && document.getElementById('tab-disputes').contains(badge) === false) {
-        document.getElementById('tab-disputes').appendChild(badge);
-      }
+      const title = SECTION_TITLES[tab] || 'Administration';
+      const pt = document.getElementById('page-title');
+      const ptm = document.getElementById('page-title-mobile');
+      if (pt) pt.textContent = title;
+      if (ptm) ptm.textContent = title;
+      document.querySelectorAll('#admin-nav .admin-nav-btn').forEach(function (btn) {
+        btn.className = navBtnClass(btn.getAttribute('data-section') === tab);
+      });
+      const mob = document.getElementById('mobile-section');
+      if (mob && mob.value !== tab) mob.value = tab;
+      if (tab === 'presta') loadList();
+      if (tab === 'clients') loadClients();
       if (tab === 'cmd') loadCommandes();
       if (tab === 'disputes') loadDisputes();
       if (tab === 'payouts') loadPayouts();
+      if (tab === 'avis') { loadAvis(); refreshAdminBadges(); }
+      if (tab === 'categories') loadCategories();
+    }
+
+    const adminNavEl = document.getElementById('admin-nav');
+    if (adminNavEl) {
+      adminNavEl.addEventListener('click', function (ev) {
+        const btn = ev.target.closest('[data-section]');
+        if (!btn) return;
+        showAdminSection(btn.getAttribute('data-section'));
+      });
     }
 
     async function loadDisputes() {
@@ -272,11 +436,12 @@
       tb.innerHTML = '';
       const rows = d.rows || [];
       const openCount = rows.filter(function (x) { return !x.litige_resolved_at; }).length;
-      const badge = document.getElementById('badge-disputes');
-      if (badge) {
+      ['badge-disputes-nav'].forEach(function (id) {
+        const badge = document.getElementById(id);
+        if (!badge) return;
         if (openCount > 0) { badge.textContent = openCount; badge.classList.remove('hidden'); }
         else badge.classList.add('hidden');
-      }
+      });
       if (!rows.length) {
         tb.innerHTML = '<tr><td colspan="7" class="px-4 py-6 text-center text-sm text-muted">Aucun litige enregistré.</td></tr>';
         return;
@@ -302,15 +467,172 @@
       });
     }
 
-    function openResolveDispute(c) {
+    function disputeLivraisonsSummary(livs) {
+      if (!livs.length) return 'Aucune livraison enregistrée.';
+      const last = livs[livs.length - 1];
+      const nFiles = livs.reduce(function (n, l) { return n + (l.attachments ? l.attachments.length : 0); }, 0);
+      return livs.length + ' version' + (livs.length > 1 ? 's' : '') +
+        (last.created_at ? ' · dernière le ' + last.created_at : '') +
+        (nFiles ? ' · ' + nFiles + ' fichier' + (nFiles > 1 ? 's' : '') : '');
+    }
+
+    function disputeThreadSummary(msgs) {
+      if (!msgs.length) return 'Aucun message dans ce fil.';
+      const last = msgs[msgs.length - 1];
+      const excerpt = (last.contenu || '').trim();
+      const short = excerpt.length > 80 ? excerpt.slice(0, 80) + '…' : excerpt;
+      return msgs.length + ' message' + (msgs.length > 1 ? 's' : '') +
+        (short ? ' · « ' + short + ' »' : '');
+    }
+
+    function renderDisputeDossier(detail) {
+      const cmd = detail.commande || {};
+      const livs = detail.livraisons || [];
+      const msgs = detail.messages || [];
+      return (
+        '<div class="rounded-xl border border-brd bg-bg/30 p-4 space-y-3">' +
+        '<div class="text-xs text-muted">' +
+        escapeHtml(cmd.client_label || '') + ' ↔ ' + escapeHtml(cmd.prestataire_label || '') +
+        '<br><span class="text-accent/90">' + escapeHtml(cmd.service_titre || '') + '</span></div>' +
+        '<div>' +
+        '<p class="text-[11px] uppercase text-muted font-bold mb-1">Description</p>' +
+        '<p class="text-sm whitespace-pre-wrap line-clamp-3 text-tx/90">' + escapeHtml(cmd.description || '—') + '</p>' +
+        '</div>' +
+        '<div class="border-t border-brd/60 pt-3">' +
+        '<p class="text-[11px] uppercase text-muted font-bold mb-1">Livraisons</p>' +
+        '<p class="text-xs text-muted mb-2">' + escapeHtml(disputeLivraisonsSummary(livs)) + '</p>' +
+        '<button type="button" id="btn-view-livraisons" class="text-sm font-medium text-accent border border-accent/40 px-3 py-1.5 rounded-lg hover:bg-accent/10 ' + (livs.length ? '' : 'opacity-50 cursor-not-allowed') + '"' +
+        (livs.length ? '' : ' disabled') + '>Voir les livraisons</button>' +
+        '</div>' +
+        '<div class="border-t border-brd/60 pt-3">' +
+        '<p class="text-[11px] uppercase text-muted font-bold mb-1">Fil de conversation</p>' +
+        '<p class="text-xs text-muted mb-2">' + escapeHtml(disputeThreadSummary(msgs)) + '</p>' +
+        '<button type="button" id="btn-view-thread" class="text-sm font-medium text-accent border border-accent/40 px-3 py-1.5 rounded-lg hover:bg-accent/10 ' + (msgs.length ? '' : 'opacity-50 cursor-not-allowed') + '"' +
+        (msgs.length ? '' : ' disabled') + '>Voir la conversation</button>' +
+        '</div></div>'
+      );
+    }
+
+    function openAdminOverlay(title, bodyHtml, zIndex) {
+      const overlay = document.createElement('div');
+      overlay.className = 'fixed inset-0 flex items-center justify-center bg-black/75 p-4 overflow-y-auto';
+      overlay.style.zIndex = String(zIndex || 110);
+      overlay.innerHTML =
+        '<div class="bg-surface border border-brd rounded-2xl w-full max-w-4xl my-4 max-h-[90vh] flex flex-col shadow-2xl">' +
+        '<div class="flex items-center justify-between gap-3 px-5 py-4 border-b border-brd shrink-0">' +
+        '<h4 class="font-syne font-bold text-base sm:text-lg">' + escapeHtml(title) + '</h4>' +
+        '<button type="button" class="overlay-close w-9 h-9 rounded-lg border border-brd text-muted hover:text-tx flex items-center justify-center" aria-label="Fermer">' +
+        '<span class="text-lg leading-none">×</span></button></div>' +
+        '<div class="overlay-body flex-1 overflow-y-auto px-5 py-4">' + bodyHtml + '</div></div>';
+      overlay.querySelector('.overlay-close').onclick = function () { overlay.remove(); };
+      overlay.addEventListener('click', function (ev) {
+        if (ev.target === overlay) overlay.remove();
+      });
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function renderLivraisonsPanel(detail) {
+      const livs = detail.livraisons || [];
+      if (!livs.length) return '<p class="text-sm text-muted">Aucune livraison.</p>';
+      return livs.map(function (l) {
+        const files = (l.attachments || []).map(function (a) {
+          const preview = a.is_image
+            ? '<a href="' + escapeHtml(a.url) + '" target="_blank" rel="noopener" class="block mb-2">' +
+              '<img src="' + escapeHtml(a.preview_url || a.url) + '" alt="" class="w-full max-h-64 object-contain rounded-xl border border-brd bg-bg" loading="lazy" />' +
+              '</a>'
+            : '';
+          return (
+            '<div class="flex items-center gap-3 rounded-xl border border-brd bg-bg/40 p-3">' +
+            preview +
+            '<div class="min-w-0 flex-1">' +
+            '<p class="text-sm font-medium truncate">' + escapeHtml(a.name || 'Fichier') + '</p>' +
+            '<p class="text-xs text-muted">' + Math.round((a.size || 0) / 1024) + ' Ko</p>' +
+            '</div>' +
+            '<a href="' + escapeHtml(a.url) + '" target="_blank" rel="noopener" class="shrink-0 text-xs font-bold text-accent border border-accent/40 px-3 py-2 rounded-lg hover:bg-accent/10">Télécharger</a>' +
+            '</div>'
+          );
+        }).join('');
+        return (
+          '<article class="border border-brd rounded-2xl p-4 sm:p-5 mb-4 bg-surface2/50">' +
+          '<div class="flex items-center justify-between gap-2 mb-3">' +
+          '<span class="text-xs font-bold uppercase tracking-wide text-accent">Version ' + l.version + '</span>' +
+          '<span class="text-xs text-muted">' + escapeHtml(l.created_at || '') + '</span></div>' +
+          (l.message ? '<p class="text-sm leading-relaxed whitespace-pre-wrap text-tx/95 mb-4">' + escapeHtml(l.message) + '</p>' : '<p class="text-xs text-muted italic mb-4">Pas de message accompagnant cette version.</p>') +
+          (files ? '<div class="space-y-2"><p class="text-[11px] uppercase text-muted font-bold mb-2">Fichiers</p>' + files + '</div>' : '<p class="text-xs text-muted">Aucun fichier joint.</p>') +
+          '</article>'
+        );
+      }).join('');
+    }
+
+    function renderThreadPanel(detail) {
+      const msgs = detail.messages || [];
+      const cmd = detail.commande || {};
+      if (!msgs.length) return '<p class="text-sm text-muted">Aucun message.</p>';
+      return (
+        '<p class="text-xs text-muted mb-4 pb-3 border-b border-brd">' +
+        escapeHtml(cmd.client_label || '') + ' ↔ ' + escapeHtml(cmd.prestataire_label || '') +
+        ' · ' + escapeHtml(cmd.service_titre || '') + '</p>' +
+        '<div class="space-y-1">' +
+        msgs.map(function (m) {
+          const isClient = m.expediteur === 'client';
+          const isPresta = m.expediteur === 'prestataire';
+          const isSystem = !isClient && !isPresta;
+          const who = isClient ? 'Client' : (isPresta ? 'Prestataire' : 'Système');
+          const kind = m.kind && m.kind !== 'chat' ? m.kind : '';
+          const isEvent = kind === 'delivery' || kind === 'revision_request' || kind === 'event' || isSystem;
+          let body = '';
+          if (m.contenu) body = '<p class="text-sm whitespace-pre-wrap leading-relaxed">' + escapeHtml(m.contenu) + '</p>';
+          if (m.attachment) {
+            const a = m.attachment;
+            if (a.is_image) {
+              body += '<a href="' + escapeHtml(a.url) + '" target="_blank" rel="noopener" class="block mt-2">' +
+                '<img src="' + escapeHtml(a.preview_url || a.url) + '" class="max-h-48 rounded-xl border border-brd object-contain" loading="lazy" /></a>' +
+                '<a href="' + escapeHtml(a.url) + '" class="text-xs text-accent underline mt-1 inline-block">' + escapeHtml(a.name) + '</a>';
+            } else {
+              body += '<a href="' + escapeHtml(a.url) + '" target="_blank" class="mt-2 inline-flex items-center gap-2 text-xs font-medium text-accent border border-brd px-3 py-2 rounded-lg">' +
+                escapeHtml(a.name || 'Pièce jointe') + ' ↓</a>';
+            }
+          }
+          if (isEvent) {
+            return (
+              '<div class="my-3 flex justify-center">' +
+              '<div class="max-w-[95%] rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-center">' +
+              '<p class="text-[10px] uppercase font-bold text-accent mb-1">' + escapeHtml(who) + (kind ? ' · ' + escapeHtml(kind) : '') + '</p>' +
+              '<p class="text-[10px] text-muted mb-1">' + escapeHtml(m.created_at || '') + '</p>' +
+              body + '</div></div>'
+            );
+          }
+          return (
+            '<div class="flex mb-2 ' + (isClient ? 'justify-start' : 'justify-end') + '">' +
+            '<div class="max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm ' +
+            (isClient ? 'bg-surface2 border border-brd rounded-bl-md' : 'bg-accent/20 border border-accent/30 rounded-br-md') + '">' +
+            '<p class="text-[10px] font-bold text-muted mb-0.5">' + who + ' · ' + escapeHtml(m.created_at || '') + '</p>' +
+            body + '</div></div>'
+          );
+        }).join('') +
+        '</div>'
+      );
+    }
+
+    function openDisputeLivraisonsView(detail, commandeId) {
+      openAdminOverlay('Livraisons — commande #' + commandeId, renderLivraisonsPanel(detail), 110);
+    }
+
+    function openDisputeThreadView(detail, commandeId) {
+      openAdminOverlay('Conversation — commande #' + commandeId, renderThreadPanel(detail), 110);
+    }
+
+    async function openResolveDispute(c) {
       const m = document.createElement('div');
-      m.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4';
+      m.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 overflow-y-auto';
       m.innerHTML =
-        '<div class="bg-surface border border-brd rounded-2xl max-w-lg w-full p-6">' +
+        '<div class="bg-surface border border-brd rounded-2xl max-w-lg w-full p-6 my-4 max-h-[92vh] overflow-y-auto">' +
         '<h3 class="font-syne font-bold text-lg mb-1">Résolution litige #' + c.id + '</h3>' +
-        '<p class="text-xs text-muted mb-4">' + escapeHtml(c.titre || '') + ' · ' + Number(c.montant_fcfa).toLocaleString('fr-FR') + ' F</p>' +
+        '<p class="text-xs text-muted mb-3">' + escapeHtml(c.titre || '') + ' · ' + Number(c.montant_fcfa).toLocaleString('fr-FR') + ' F</p>' +
+        '<div id="reso-dossier" class="mb-4 text-sm"><p class="text-muted text-xs">Chargement du dossier…</p></div>' +
         '<p class="text-[11px] uppercase text-muted font-bold mb-2">Motif client</p>' +
-        '<p class="text-sm text-tx italic mb-4 bg-bg/40 border border-brd rounded-lg p-3 max-h-32 overflow-y-auto">' + escapeHtml(c.litige_motif || '—') + '</p>' +
+        '<p class="text-sm text-tx italic mb-4 bg-bg/40 border border-brd rounded-lg p-3 max-h-24 overflow-y-auto">' + escapeHtml(c.litige_motif || '—') + '</p>' +
         '<div class="space-y-2 mb-4">' +
         '<label class="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="reso" value="refund_full" class="accent-accent" /> <span>Remboursement intégral (commande annulée)</span></label>' +
         '<label class="flex items-center gap-2 text-sm cursor-pointer"><input type="radio" name="reso" value="refund_partial" class="accent-accent" /> <span>Remboursement partiel + paiement partiel prestataire</span></label>' +
@@ -328,6 +650,28 @@
         '</div></div>';
       document.body.appendChild(m);
       m.querySelector('#reso-cancel').onclick = function () { m.remove(); };
+      const dossierEl = m.querySelector('#reso-dossier');
+      let disputeDetail = null;
+      try {
+        const dr = await api('/admin/api/litiges/' + c.id);
+        const dd = await dr.json();
+        if (dd.ok && dossierEl) {
+          disputeDetail = dd;
+          dossierEl.innerHTML = renderDisputeDossier(dd);
+          const btnLiv = dossierEl.querySelector('#btn-view-livraisons');
+          const btnThread = dossierEl.querySelector('#btn-view-thread');
+          if (btnLiv) {
+            btnLiv.onclick = function () { openDisputeLivraisonsView(disputeDetail, c.id); };
+          }
+          if (btnThread) {
+            btnThread.onclick = function () { openDisputeThreadView(disputeDetail, c.id); };
+          }
+        } else if (dossierEl) {
+          dossierEl.innerHTML = '<p class="text-xs text-danger">Impossible de charger le dossier.</p>';
+        }
+      } catch (_) {
+        if (dossierEl) dossierEl.innerHTML = '<p class="text-xs text-danger">Erreur réseau.</p>';
+      }
       m.querySelector('#reso-go').onclick = async function () {
         const sel = m.querySelector('input[name="reso"]:checked');
         if (!sel) { alert('Choisissez une résolution.'); return; }
@@ -343,7 +687,9 @@
           method: 'POST',
           body: { resolution: reso, amount: amount, note: note },
         });
-        const d = await r.json();
+        let d = { ok: false, message: 'Erreur serveur' };
+        try { d = await r.json(); } catch (_) { /* ignore */ }
+        if (!r.ok && !d.message) d.message = 'Erreur HTTP ' + r.status;
         alert(d.message || (d.ok ? 'OK' : 'Erreur'));
         m.remove();
         if (d.ok) loadDisputes();
@@ -437,12 +783,9 @@
       document.getElementById('login-block').classList.add('hidden');
       document.getElementById('panel').classList.remove('hidden');
       document.getElementById('detail').classList.add('hidden');
-      document.getElementById('list-wrap').classList.remove('hidden');
-      document.getElementById('cmd-wrap').classList.add('hidden');
-      document.getElementById('disputes-wrap').classList.add('hidden');
-      document.getElementById('payouts-wrap').classList.add('hidden');
-      await loadList();
-      loadDisputes(); // précharger le badge
+      showAdminSection('presta');
+      loadDisputes();
+      refreshAdminBadges();
       const q = new URLSearchParams(location.search).get('id');
       if (q) openDetail(parseInt(q, 10));
     }
@@ -476,6 +819,7 @@
       tb.innerHTML = '';
       (d.rows || []).forEach(function (x) {
         const st = formatStatut(x.statut);
+        const cs = formatCompteStatut(x.statut_compte);
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-surface2/50 transition-colors';
         if (String(x.id) === String(highlightId || '')) {
@@ -486,10 +830,250 @@
           '<td class="px-4 py-3 text-sm">' + escapeHtml(x.nom_complet) + '</td>' +
           '<td class="px-4 py-3 text-sm text-muted">' + escapeHtml(x.email) + '</td>' +
           '<td class="px-4 py-3"><span class="inline-block text-xs px-2 py-0.5 rounded-full border ' + st.cls + '">' + escapeHtml(st.label) + '</span></td>' +
+          '<td class="px-4 py-3"><span class="inline-block text-xs px-2 py-0.5 rounded-full border ' + cs.cls + '">' + escapeHtml(cs.label) + '</span></td>' +
           '<td class="px-4 py-3"><button type="button" class="text-[13px] font-medium text-accent hover:underline">Détail</button></td>';
         tr.querySelector('button').onclick = function () { openDetail(x.id); };
         tb.appendChild(tr);
       });
+    }
+
+    async function loadClients() {
+      const r = await api('/admin/api/clients');
+      if (r.status === 401 || r.status === 403) { showLogin(); return; }
+      const d = await r.json();
+      const tb = document.getElementById('client-rows');
+      tb.innerHTML = '';
+      const rows = d.rows || [];
+      if (!rows.length) {
+        tb.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-sm text-muted">Aucun client.</td></tr>';
+        return;
+      }
+      rows.forEach(function (c) {
+        const st = formatCompteStatut(c.statut);
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface2/50';
+        tr.innerHTML =
+          '<td class="px-4 py-3">' + c.id + '</td>' +
+          '<td class="px-4 py-3">' + escapeHtml(c.nom_complet) + '</td>' +
+          '<td class="px-4 py-3 text-muted text-xs">' + escapeHtml(c.email) + '</td>' +
+          '<td class="px-4 py-3 text-xs">' + escapeHtml(c.telephone || '—') + '</td>' +
+          '<td class="px-4 py-3"><span class="inline-block text-xs px-2 py-0.5 rounded-full border ' + st.cls + '">' + escapeHtml(st.label) + '</span></td>' +
+          '<td class="px-4 py-3 text-xs space-x-2"></td>';
+        const actions = tr.querySelector('td:last-child');
+        if (c.statut !== 'suspendu') {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'text-warn hover:underline';
+          b.textContent = 'Suspendre';
+          b.onclick = function () { setAccountStatut('client', c.id, 'suspendu'); };
+          actions.appendChild(b);
+        }
+        if (c.statut !== 'actif') {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'text-ok hover:underline';
+          b.textContent = 'Réactiver';
+          b.onclick = function () { setAccountStatut('client', c.id, 'actif'); };
+          actions.appendChild(b);
+        }
+        if (c.statut !== 'supprime') {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'text-danger hover:underline';
+          b.textContent = 'Supprimer';
+          b.onclick = function () {
+            if (!confirm('Marquer ce compte client comme supprimé ?')) return;
+            setAccountStatut('client', c.id, 'supprime');
+          };
+          actions.appendChild(b);
+        }
+        tb.appendChild(tr);
+      });
+    }
+
+    async function setAccountStatut(kind, id, statut) {
+      await getCsrf();
+      const path = kind === 'client'
+        ? '/admin/api/clients/' + id + '/statut'
+        : '/admin/api/prestataires/' + id + '/statut';
+      const r = await api(path, { method: 'POST', body: { statut: statut } });
+      const d = await r.json();
+      if (!d.ok) { alert(d.message || 'Erreur'); return; }
+      if (kind === 'client') loadClients();
+      else {
+        if (currentId === id) currentPrestaCompte = statut;
+        loadList();
+        if (currentId === id) renderPrestaCompteActions(statut);
+      }
+    }
+
+    function renderPrestaCompteActions(statut) {
+      const box = document.getElementById('d-compte-actions');
+      const label = document.getElementById('d-compte-statut');
+      if (!box || !label) return;
+      const st = formatCompteStatut(statut);
+      label.innerHTML = '<span class="inline-block text-xs px-2 py-0.5 rounded-full border ' + st.cls + '">' + escapeHtml(st.label) + '</span>';
+      box.innerHTML = '';
+      if (statut !== 'suspendu') {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'text-sm border border-warn/50 text-warn px-3 py-1.5 rounded-lg';
+        b.textContent = 'Suspendre le compte';
+        b.onclick = function () { setAccountStatut('prestataire', currentId, 'suspendu'); };
+        box.appendChild(b);
+      }
+      if (statut !== 'actif') {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'text-sm border border-ok/50 text-ok px-3 py-1.5 rounded-lg';
+        b.textContent = 'Réactiver';
+        b.onclick = function () { setAccountStatut('prestataire', currentId, 'actif'); };
+        box.appendChild(b);
+      }
+      if (statut !== 'supprime') {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'text-sm border border-danger/50 text-danger px-3 py-1.5 rounded-lg';
+        b.textContent = 'Supprimer le compte';
+        b.onclick = function () {
+          if (!confirm('Supprimer ce compte prestataire ?')) return;
+          setAccountStatut('prestataire', currentId, 'supprime');
+        };
+        box.appendChild(b);
+      }
+    }
+
+    async function loadAvis() {
+      const only = document.getElementById('avis-only-signale').checked ? '?signale=1' : '';
+      const r = await api('/admin/api/avis' + only);
+      if (r.status === 401 || r.status === 403) { showLogin(); return; }
+      const d = await r.json();
+      const tb = document.getElementById('avis-rows');
+      tb.innerHTML = '';
+      const rows = d.rows || [];
+      if (!rows.length) {
+        tb.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-sm text-muted">Aucun avis.</td></tr>';
+        return;
+      }
+      rows.forEach(function (a) {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface2/50' + (a.signale ? ' bg-danger/5' : '');
+        const flag = a.signale ? '<span class="text-danger text-[10px] font-bold uppercase">Signalé</span><br>' : '';
+        tr.innerHTML =
+          '<td class="px-4 py-3">' + a.note + '/5</td>' +
+          '<td class="px-4 py-3 text-xs max-w-xs">' + flag + escapeHtml(a.commentaire || '') +
+          (a.signale_motif ? '<p class="text-muted mt-1">' + escapeHtml(a.signale_motif) + '</p>' : '') + '</td>' +
+          '<td class="px-4 py-3 text-xs">' + escapeHtml(a.client_label) + '</td>' +
+          '<td class="px-4 py-3 text-xs">' + escapeHtml(a.prestataire_label) + '</td>' +
+          '<td class="px-4 py-3 text-xs text-muted">' + escapeHtml(a.created_at || '') + '</td>' +
+          '<td class="px-4 py-3 text-xs space-x-2"></td>';
+        const actions = tr.querySelector('td:last-child');
+        if (a.signale) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'text-muted hover:underline';
+          b.textContent = 'Lever signalement';
+          b.onclick = function () { dismissAvis(a.id); };
+          actions.appendChild(b);
+        }
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'text-danger hover:underline';
+        del.textContent = 'Supprimer';
+        del.onclick = function () {
+          if (!confirm('Supprimer cet avis ?')) return;
+          deleteAvis(a.id);
+        };
+        actions.appendChild(del);
+        tb.appendChild(tr);
+      });
+    }
+
+    async function dismissAvis(id) {
+      await getCsrf();
+      await api('/admin/api/avis/' + id + '/dismiss-signalement', { method: 'POST' });
+      loadAvis();
+      refreshAdminBadges();
+    }
+
+    async function deleteAvis(id) {
+      await getCsrf();
+      const r = await api('/admin/api/avis/' + id, { method: 'DELETE' });
+      const d = await r.json();
+      if (!d.ok) alert(d.message || 'Erreur');
+      loadAvis();
+      refreshAdminBadges();
+    }
+
+    async function loadCategories() {
+      const r = await api('/admin/api/categories');
+      if (r.status === 401 || r.status === 403) { showLogin(); return; }
+      const d = await r.json();
+      const tb = document.getElementById('category-rows');
+      tb.innerHTML = '';
+      (d.rows || []).forEach(function (c) {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface2/50';
+        tr.innerHTML =
+          '<td class="px-4 py-3"><input type="text" data-cat-nom="' + c.id + '" value="' + escapeHtml(c.nom) + '" class="bg-bg border border-brd rounded-lg px-2 py-1 text-sm w-full max-w-[200px]" /></td>' +
+          '<td class="px-4 py-3"><input type="number" data-cat-ordre="' + c.id + '" value="' + c.ordre + '" class="bg-bg border border-brd rounded-lg px-2 py-1 text-sm w-16" /></td>' +
+          '<td class="px-4 py-3"><input type="checkbox" data-cat-active="' + c.id + '" ' + (c.active ? 'checked' : '') + ' class="accent-accent" /></td>' +
+          '<td class="px-4 py-3 space-x-2"></td>';
+        const actions = tr.querySelector('td:last-child');
+        const save = document.createElement('button');
+        save.type = 'button';
+        save.className = 'text-accent hover:underline text-xs';
+        save.textContent = 'Enregistrer';
+        save.onclick = function () { saveCategory(c.id); };
+        actions.appendChild(save);
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'text-danger hover:underline text-xs';
+        del.textContent = 'Suppr.';
+        del.onclick = function () {
+          if (!confirm('Supprimer la catégorie « ' + c.nom + ' » ?')) return;
+          deleteCategory(c.id);
+        };
+        actions.appendChild(del);
+        tb.appendChild(tr);
+      });
+      if (!d.rows || !d.rows.length) {
+        tb.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-sm text-muted">Aucune catégorie.</td></tr>';
+      }
+    }
+
+    async function addCategory() {
+      const nom = document.getElementById('cat-nom').value.trim();
+      const ordre = parseInt(document.getElementById('cat-ordre').value, 10) || 0;
+      if (!nom) { alert('Nom requis.'); return; }
+      await getCsrf();
+      const r = await api('/admin/api/categories', { method: 'POST', body: { nom: nom, ordre: ordre, active: true } });
+      const d = await r.json();
+      if (!d.ok) { alert(d.message || 'Erreur'); return; }
+      document.getElementById('cat-nom').value = '';
+      loadCategories();
+    }
+
+    async function saveCategory(id) {
+      const nom = document.querySelector('[data-cat-nom="' + id + '"]').value.trim();
+      const ordre = parseInt(document.querySelector('[data-cat-ordre="' + id + '"]').value, 10) || 0;
+      const active = document.querySelector('[data-cat-active="' + id + '"]').checked;
+      await getCsrf();
+      const r = await api('/admin/api/categories/' + id, {
+        method: 'PATCH',
+        body: { nom: nom, ordre: ordre, active: active },
+      });
+      const d = await r.json();
+      if (!d.ok) alert(d.message || 'Erreur');
+      else loadCategories();
+    }
+
+    async function deleteCategory(id) {
+      await getCsrf();
+      const r = await api('/admin/api/categories/' + id, { method: 'DELETE' });
+      const d = await r.json();
+      if (!d.ok) alert(d.message || 'Erreur');
+      else loadCategories();
     }
 
     function escapeHtml(s) {
@@ -504,6 +1088,7 @@
     }
 
     async function openDetail(id) {
+      if (adminSection !== 'presta') showAdminSection('presta');
       currentId = id;
       await getCsrf();
       const r = await api('/admin/api/prestataires/' + id);
@@ -516,11 +1101,13 @@
       document.getElementById('d-infos').textContent =
         'Nom : ' + p.prenom + ' ' + p.nom + '\n' +
         'Email : ' + p.email + '\n' +
-        'Statut : ' + statutLabel(p.statut_verification);
+        'Dossier : ' + statutLabel(p.statut_verification);
       document.getElementById('d-motif').textContent = p.motif_refus_ia || '(vide)';
       document.getElementById('ref-motif').value = p.motif_refus_ia || '';
       document.getElementById('d-cv').href = d.urls.cv;
       document.getElementById('d-id').href = d.urls.identite;
+      currentPrestaCompte = p.statut_compte || 'actif';
+      renderPrestaCompteActions(currentPrestaCompte);
       history.replaceState(null, '', '/admin?id=' + id);
     }
 

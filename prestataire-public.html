@@ -76,7 +76,44 @@
         return dt.toLocaleDateString('fr-FR',{year:'numeric',month:'short',day:'numeric'});
       }catch(e){return '';}
     }
-    function avisCard(a){
+    let avisCsrf='';
+    async function getAvisCsrf(){
+      if(avisCsrf)return avisCsrf;
+      try{
+        const r=await fetch('/csrf-token',{headers:{Accept:'application/json'},credentials:'same-origin'});
+        const d=await r.json();
+        avisCsrf=d.token||'';
+      }catch(_){}
+      return avisCsrf;
+    }
+    async function signalerAvis(avisId){
+      const motif=window.prompt('Motif du signalement (optionnel) :','Contenu inapproprié ou trompeur');
+      if(motif===null)return;
+      await getAvisCsrf();
+      try{
+        const r=await fetch('/api/client/avis/'+avisId+'/signaler',{
+          method:'POST',
+          credentials:'same-origin',
+          headers:{'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN':avisCsrf},
+          body:JSON.stringify({motif:motif.trim()}),
+        });
+        const d=await r.json();
+        if(r.status===401||r.status===403){
+          alert('Connectez-vous en tant que client pour signaler un avis.');
+          window.location.href='/login';
+          return;
+        }
+        alert(d.message||(d.ok?'Signalement envoyé.':'Erreur'));
+        if(d.ok){
+          const id=getId();
+          const el=document.getElementById('avis-section');
+          if(id&&el)loadAvisSection(id,el);
+        }
+      }catch(_){
+        alert('Erreur réseau.');
+      }
+    }
+    function avisCard(a,viewer){
       const stars=starRow(a.note);
       const date=formatDate(a.created_at);
       const tag=a.commande_titre
@@ -84,12 +121,20 @@
       const body=a.commentaire
         ?'<p class="text-sm leading-relaxed text-tx/90 mt-2 whitespace-pre-wrap">'+escapeHtml(a.commentaire)+'</p>'
         :'<p class="text-xs text-muted italic mt-2">Le client n\u2019a pas laissé de commentaire.</p>';
+      let reportBtn='';
+      if(viewer&&viewer.is_client){
+        if(a.can_signaler){
+          reportBtn='<button type="button" data-signaler="'+a.id+'" class="text-[11px] text-muted hover:text-danger border border-brd px-2 py-1 rounded-lg mt-2">Signaler cet avis</button>';
+        }else if(a.signale){
+          reportBtn='<span class="text-[11px] text-muted mt-2 inline-block">Signalement en cours d\u2019examen</span>';
+        }
+      }
       return '<article class="border border-brd rounded-xl p-4 bg-surface2">'+
         '<div class="flex items-center justify-between flex-wrap gap-2">'+
         '<div class="flex items-center gap-2"><div class="flex items-center gap-0.5">'+stars+'</div>'+
         '<span class="text-xs text-muted">'+escapeHtml(date)+'</span></div>'+
         '<div class="text-xs text-tx/80 font-medium">'+escapeHtml(a.auteur||'Client')+tag+'</div></div>'+
-        body+'</article>';
+        body+reportBtn+'</article>';
     }
     function avisBreakdown(stats){
       if(!stats||!stats.total)return '';
@@ -113,16 +158,20 @@
     }
     async function loadAvisSection(prestataireId, container){
       try{
-        const r=await fetch('/api/prestataires/'+prestataireId+'/avis',{headers:{Accept:'application/json'}});
+        const r=await fetch('/api/prestataires/'+prestataireId+'/avis',{headers:{Accept:'application/json'},credentials:'same-origin'});
         if(!r.ok)throw new Error('http');
         const d=await r.json();
         if(!d.ok)throw new Error('payload');
         const items=Array.isArray(d.avis)?d.avis:[];
+        const viewer=d.viewer||{};
         if(!items.length){
           container.innerHTML='<p class="text-sm text-muted">Aucun avis pour le moment. Soyez le premier à laisser un retour après une commande terminée.</p>';
           return;
         }
-        container.innerHTML=avisBreakdown(d.stats)+'<div class="space-y-3">'+items.map(avisCard).join('')+'</div>';
+        container.innerHTML=avisBreakdown(d.stats)+'<div class="space-y-3">'+items.map(function(a){return avisCard(a,viewer);}).join('')+'</div>';
+        container.querySelectorAll('[data-signaler]').forEach(function(btn){
+          btn.addEventListener('click',function(){signalerAvis(parseInt(btn.getAttribute('data-signaler'),10));});
+        });
       }catch(_e){
         container.innerHTML='<p class="text-sm text-muted">Impossible de charger les avis.</p>';
       }

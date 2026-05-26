@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Avis;
+use App\Models\Client;
 use App\Models\Commande;
+use App\Models\Prestataire;
 use App\Services\OrderWorkflowService;
+use App\Support\AppMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -60,6 +63,66 @@ class AvisController extends Controller
                 'note' => $avis->note,
                 'commentaire' => $avis->commentaire,
             ],
+        ]);
+    }
+
+    public function signaler(Request $request, int $id)
+    {
+        if (! Schema::hasTable('avis') || ! Schema::hasColumn('avis', 'signale')) {
+            return response()->json(['ok' => false, 'message' => 'Signalement indisponible.'], 503);
+        }
+
+        $clientId = (int) $request->session()->get('auth_id');
+        $avis = Avis::query()->find($id);
+        if (! $avis) {
+            return response()->json(['ok' => false, 'message' => 'Avis introuvable.'], 404);
+        }
+
+        if ((int) $avis->client_id === $clientId) {
+            return response()->json(['ok' => false, 'message' => 'Vous ne pouvez pas signaler votre propre avis.'], 422);
+        }
+
+        if ($avis->signale) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Cet avis a déjà été signalé. Notre équipe va l\'examiner.',
+                'already' => true,
+            ]);
+        }
+
+        $data = $request->validate([
+            'motif' => 'nullable|string|max:500',
+        ]);
+
+        $motif = isset($data['motif']) ? trim((string) $data['motif']) : null;
+
+        $avis->update([
+            'signale' => true,
+            'signale_motif' => $motif !== '' ? $motif : null,
+            'signale_at' => now(),
+        ]);
+
+        $client = Client::query()->find($clientId);
+        $prestataire = Prestataire::query()->find($avis->prestataire_id);
+        $reporterLabel = $client
+            ? trim($client->prenom.' '.$client->nom)
+            : 'Client #'.$clientId;
+        $prestataireLabel = $prestataire
+            ? trim($prestataire->prenom.' '.$prestataire->nom)
+            : 'Prestataire #'.$avis->prestataire_id;
+
+        AppMailer::sendAdminAvisSignalement(
+            (int) $avis->id,
+            (int) $avis->note,
+            $avis->commentaire,
+            $prestataireLabel,
+            $reporterLabel,
+            $motif,
+        );
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Merci. Votre signalement a été transmis à l\'équipe de modération.',
         ]);
     }
 }

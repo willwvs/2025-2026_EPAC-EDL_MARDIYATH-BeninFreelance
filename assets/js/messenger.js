@@ -55,6 +55,17 @@ window.BFMessenger = function (opts) {
       d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   }
 
+  function normalizeAssetUrl(u) {
+    if (!u || u === '#') return '#';
+    if (u.charAt(0) === '/') return u;
+    try {
+      const parsed = new URL(u, window.location.origin);
+      return parsed.pathname + parsed.search;
+    } catch (_) {
+      return u;
+    }
+  }
+
   function formatBytes(bytes) {
     const n = Number(bytes || 0);
     if (!n) return '';
@@ -209,16 +220,21 @@ window.BFMessenger = function (opts) {
       const attsHtml = atts.length ? (
         '<div class="grid sm:grid-cols-2 gap-2 mt-3">' +
         atts.map(function (a) {
-          const url = role === 'client' ? (a.url || '#') : (a.url_prestataire || a.url || '#');
+          const url = normalizeAssetUrl(role === 'client' ? (a.url || '#') : (a.url_prestataire || a.url || '#'));
+          const imgPreview = a.is_image
+            ? '<img src="' + escapeHtml(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'inline=1') + '" alt="" class="w-full max-h-36 object-cover rounded-lg mb-2 bg-bg/40" loading="lazy" />'
+            : '';
           return (
-            '<a href="' + escapeHtml(url) + '" target="_blank" class="flex items-center gap-2 rounded-xl bg-bg/60 border border-brd/70 hover:border-accent/60 px-3 py-2 text-[13px] transition-colors">' +
+            '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" class="flex flex-col rounded-xl bg-bg/60 border border-brd/70 hover:border-accent/60 px-3 py-2 text-[13px] transition-colors">' +
+            imgPreview +
+            '<span class="flex items-center gap-2">' +
             '<i class="fa-regular ' + (a.is_image ? 'fa-image' : 'fa-file-lines') + ' text-accent shrink-0"></i>' +
             '<span class="min-w-0 flex-1">' +
             '<span class="block truncate font-medium text-tx">' + escapeHtml(a.name || 'fichier') + '</span>' +
             '<span class="block text-[10px] opacity-65 mt-0.5">' + escapeHtml(formatBytes(a.size)) + '</span>' +
             '</span>' +
             '<i class="fa-solid fa-arrow-down text-[11px] opacity-70"></i>' +
-            '</a>'
+            '</span></a>'
           );
         }).join('') +
         '</div>'
@@ -322,8 +338,19 @@ window.BFMessenger = function (opts) {
     const label = escapeHtml(att.name || 'Pièce jointe');
     const meta = escapeHtml(formatBytes(att.size));
     const icon = att.is_image ? 'fa-image' : 'fa-file-lines';
+    const rawUrl = normalizeAssetUrl(att.url || '#');
+    const dlUrl = escapeHtml(rawUrl);
+    const previewUrl = att.preview_url
+      ? normalizeAssetUrl(att.preview_url)
+      : (att.is_image ? rawUrl + (rawUrl.indexOf('?') >= 0 ? '&' : '?') + 'inline=1' : null);
+    const previewImg = previewUrl && att.is_image
+      ? '<a href="' + dlUrl + '" target="_blank" rel="noopener" class="block mt-2 rounded-xl overflow-hidden border border-brd/60 max-w-[280px]">' +
+        '<img src="' + escapeHtml(previewUrl) + '" alt="' + label + '" class="w-full max-h-48 object-cover bg-bg/40" loading="lazy" />' +
+        '</a>'
+      : '';
     return (
-      '<a href="' + escapeHtml(att.url || '#') + '" target="_blank" class="mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] transition-opacity hover:opacity-90 ' +
+      previewImg +
+      '<a href="' + dlUrl + '" target="_blank" rel="noopener" class="mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] transition-opacity hover:opacity-90 ' +
       (mine ? 'bg-bg/15 text-bg' : 'bg-bg/40 text-tx/95 border border-brd/60') + '">' +
       '<i class="fa-regular ' + icon + ' shrink-0 text-[14px]"></i>' +
       '<span class="min-w-0 flex-1">' +

@@ -18,6 +18,7 @@ class Client extends Model
         'email',
         'telephone',
         'localite',
+        'statut',
         'mot_de_passe',
         'password',
         'email_verified_at',

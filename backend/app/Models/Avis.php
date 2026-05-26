@@ -17,12 +17,17 @@ class Avis extends Model
         'commande_id',
         'note',
         'commentaire',
+        'signale',
+        'signale_motif',
+        'signale_at',
     ];
 
     protected function casts(): array
     {
         return [
             'created_at' => 'datetime',
+            'signale_at' => 'datetime',
+            'signale' => 'boolean',
             'note' => 'integer',
         ];
     }

@@ -231,10 +231,19 @@ class MessageController extends Controller
             abort(404);
         }
 
-        return Storage::disk('local')->download(
-            (string) $message->attachment_path,
-            $message->attachment_name ?: 'piece-jointe'
-        );
+        $path = (string) $message->attachment_path;
+        $name = $message->attachment_name ?: 'piece-jointe';
+        $mime = $message->attachment_mime ? (string) $message->attachment_mime : null;
+        $inline = $request->boolean('inline') || ($mime && str_starts_with($mime, 'image/'));
+
+        if ($inline) {
+            return Storage::disk('local')->response($path, $name, [
+                'Content-Type' => $mime ?: 'application/octet-stream',
+                'Content-Disposition' => 'inline; filename="'.$name.'"',
+            ]);
+        }
+
+        return Storage::disk('local')->download($path, $name);
     }
 
     /** @return array<int, array<string, mixed>> */
@@ -565,7 +574,8 @@ class MessageController extends Controller
             'name' => $message->attachment_name ?: 'Pièce jointe',
             'mime' => $mime,
             'size' => $message->attachment_size ? (int) $message->attachment_size : null,
-            'url' => url('/api/messages/'.$message->id.'/attachment'),
+            'url' => '/api/messages/'.$message->id.'/attachment',
+            'preview_url' => '/api/messages/'.$message->id.'/attachment?inline=1',
             'is_image' => $mime !== null && str_starts_with($mime, 'image/'),
         ];
     }

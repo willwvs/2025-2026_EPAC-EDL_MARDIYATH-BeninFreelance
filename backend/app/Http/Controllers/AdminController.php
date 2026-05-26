@@ -2,15 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Avis;
+use App\Models\Category;
+use App\Models\Client;
 use App\Models\Commande;
+use App\Models\CommandeLivraison;
+use App\Models\Message;
 use App\Models\Paiement;
 use App\Models\Payout;
 use App\Models\Prestataire;
+use App\Models\Service;
 use App\Services\OrderWorkflowService;
+use App\Support\AccountStatus;
 use App\Support\AppMailer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
@@ -20,9 +29,15 @@ class AdminController extends Controller
 
     public function sessionStatus()
     {
+        $signaleAvis = 0;
+        if (Schema::hasTable('avis') && Schema::hasColumn('avis', 'signale')) {
+            $signaleAvis = (int) Avis::query()->where('signale', true)->count();
+        }
+
         return response()->json([
             'ok' => true,
             'authenticated' => (bool) session('admin_ok'),
+            'signale_avis_count' => $signaleAvis,
         ]);
     }
 
@@ -63,6 +78,7 @@ class AdminController extends Controller
                 'nom_complet' => trim($r->prenom.' '.$r->nom),
                 'email' => $r->email,
                 'statut' => $r->statut_verification ?? '',
+                'statut_compte' => $r->statut ?? AccountStatus::ACTIF,
             ]);
 
         return response()->json(['ok' => true, 'rows' => $rows]);
@@ -83,6 +99,7 @@ class AdminController extends Controller
                 'prenom' => $p->prenom,
                 'email' => $p->email,
                 'statut_verification' => $p->statut_verification,
+                'statut_compte' => $p->statut ?? AccountStatus::ACTIF,
                 'motif_refus_ia' => $p->motif_refus_ia,
             ],
             'urls' => [
@@ -224,6 +241,179 @@ class AdminController extends Controller
         return response()->json(['ok' => true, 'rows' => $rows]);
     }
 
+    /**
+     * Détail litige : commande, livraisons, fil de conversation (pour trancher).
+     */
+    public function showDispute(int $id)
+    {
+        if (! Schema::hasTable('commandes')) {
+            return response()->json(['ok' => false, 'message' => 'Table commandes absente.'], 404);
+        }
+
+        $commande = Commande::query()->find($id);
+        if (! $commande || $commande->litige_at === null) {
+            return response()->json(['ok' => false, 'message' => 'Litige introuvable.'], 404);
+        }
+
+        $client = Client::query()->find($commande->client_id);
+        $prestataire = Prestataire::query()->find($commande->prestataire_id);
+        $service = Service::query()->find($commande->service_id);
+
+        $livraisons = CommandeLivraison::query()
+            ->where('commande_id', $commande->id)
+            ->orderBy('version')
+            ->get()
+            ->map(function ($l) use ($commande) {
+                $items = $l->attachmentList();
+                $attachments = [];
+                foreach ($items as $i => $a) {
+                    $attachments[] = [
+                        'name' => $a['name'],
+                        'size' => (int) $a['size'],
+                        'mime' => $a['mime'],
+                        'is_image' => $a['mime'] ? str_starts_with((string) $a['mime'], 'image/') : false,
+                        'url' => '/admin/api/commandes/'.$commande->id.'/livraisons/'.$l->id.'/fichier?i='.$i,
+                        'preview_url' => '/admin/api/commandes/'.$commande->id.'/livraisons/'.$l->id.'/fichier?i='.$i.'&inline=1',
+                    ];
+                }
+
+                return [
+                    'id' => $l->id,
+                    'version' => $l->version,
+                    'message' => $l->message,
+                    'created_at' => $l->created_at?->format('d/m/Y H:i'),
+                    'attachments' => $attachments,
+                ];
+            })
+            ->values();
+
+        $messages = [];
+        if (Schema::hasTable('messages')) {
+            $messages = Message::query()
+                ->where('client_id', $commande->client_id)
+                ->where('prestataire_id', $commande->prestataire_id)
+                ->where('service_id', $commande->service_id)
+                ->orderBy('id')
+                ->limit(300)
+                ->get()
+                ->map(function ($m) {
+                    $row = [
+                        'id' => $m->id,
+                        'expediteur' => $m->expediteur,
+                        'kind' => $m->kind ?? 'chat',
+                        'contenu' => $m->contenu,
+                        'created_at' => $m->created_at?->format('d/m/Y H:i'),
+                        'meta' => $m->meta,
+                    ];
+                    if (! empty($m->attachment_path)) {
+                        $mime = $m->attachment_mime ? (string) $m->attachment_mime : null;
+                        $row['attachment'] = [
+                            'name' => $m->attachment_name ?: 'Pièce jointe',
+                            'mime' => $mime,
+                            'is_image' => $mime && str_starts_with($mime, 'image/'),
+                            'url' => '/admin/api/messages/'.$m->id.'/attachment',
+                            'preview_url' => '/admin/api/messages/'.$m->id.'/attachment?inline=1',
+                        ];
+                    }
+
+                    return $row;
+                })
+                ->values()
+                ->all();
+        }
+
+        return response()->json([
+            'ok' => true,
+            'commande' => [
+                'id' => $commande->id,
+                'titre' => $commande->titre,
+                'description' => $commande->description,
+                'montant_fcfa' => (int) $commande->montant_fcfa,
+                'statut' => $commande->statut,
+                'delai_jours' => (int) $commande->delai_jours,
+                'commission_fcfa' => (int) $commande->commission_fcfa,
+                'net_prestataire_fcfa' => (int) $commande->net_prestataire_fcfa,
+                'litige_at' => $commande->litige_at?->format('d/m/Y H:i'),
+                'litige_motif' => $commande->litige_motif,
+                'litige_resolution' => $commande->litige_resolution,
+                'litige_resolved_at' => $commande->litige_resolved_at?->format('d/m/Y H:i'),
+                'client_label' => $client ? trim($client->prenom.' '.$client->nom) : 'Client #'.$commande->client_id,
+                'prestataire_label' => $prestataire ? trim($prestataire->prenom.' '.$prestataire->nom) : 'Prestataire #'.$commande->prestataire_id,
+                'service_titre' => $service?->titre ?? '',
+            ],
+            'livraisons' => $livraisons,
+            'messages' => $messages,
+        ]);
+    }
+
+    public function downloadLivraison(Request $request, int $commandeId, int $livraisonId)
+    {
+        $commande = Commande::query()->find($commandeId);
+        if (! $commande) {
+            abort(404);
+        }
+
+        $livraison = CommandeLivraison::query()
+            ->where('commande_id', $commandeId)
+            ->where('id', $livraisonId)
+            ->first();
+
+        if (! $livraison) {
+            abort(404);
+        }
+
+        $items = $livraison->attachmentList();
+        if (empty($items)) {
+            abort(404);
+        }
+
+        $index = max(0, (int) $request->query('i', 0));
+        $target = $items[$index] ?? $items[0];
+
+        if (! Storage::disk('local')->exists($target['path'])) {
+            abort(404);
+        }
+
+        $mime = $target['mime'] ?? null;
+        $name = $target['name'] ?: 'livraison';
+        $inline = $request->boolean('inline') || ($mime && str_starts_with((string) $mime, 'image/'));
+
+        if ($inline) {
+            return Storage::disk('local')->response($target['path'], $name, [
+                'Content-Type' => $mime ?: 'application/octet-stream',
+                'Content-Disposition' => 'inline; filename="'.$name.'"',
+            ]);
+        }
+
+        return Storage::disk('local')->download($target['path'], $name);
+    }
+
+    public function downloadMessageAttachment(Request $request, int $id)
+    {
+        $message = Message::query()->where('id', $id)->first();
+        if (! $message || empty($message->attachment_path)) {
+            abort(404);
+        }
+
+        if (! Storage::disk('local')->exists((string) $message->attachment_path)) {
+            abort(404);
+        }
+
+        $path = (string) $message->attachment_path;
+        $name = $message->attachment_name ?: 'piece-jointe';
+        $mime = $message->attachment_mime ? (string) $message->attachment_mime : null;
+        $inline = $request->boolean('inline') || ($mime && str_starts_with($mime, 'image/'));
+
+        if ($inline) {
+            return Storage::disk('local')->response($path, $name, [
+                'Content-Type' => $mime ?: 'application/octet-stream',
+                'Content-Disposition' => 'inline; filename="'.$name.'"',
+            ]);
+        }
+
+        return Storage::disk('local')->download($path, $name);
+    }
+
     public function resolveDispute(Request $request, int $id)
     {
         $commande = Commande::query()->find($id);
@@ -298,6 +488,283 @@ class AdminController extends Controller
             'ok' => $result['ok'] ?? false,
             'message' => $result['message'] ?? null,
         ]);
+    }
+
+    public function exportClientsCsv()
+    {
+        $filename = 'clients_'.now()->format('Y-m-d_His').'.csv';
+
+        return response()->streamDownload(function () {
+            $out = fopen('php://output', 'w');
+            if ($out === false) {
+                return;
+            }
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, [
+                'id', 'prenom', 'nom', 'email', 'telephone', 'localite', 'statut', 'inscrit_le',
+            ], ';');
+
+            Client::query()->orderByDesc('id')->chunk(500, function ($clients) use ($out) {
+                foreach ($clients as $c) {
+                    fputcsv($out, [
+                        $c->id,
+                        $c->prenom,
+                        $c->nom,
+                        $c->email,
+                        $c->telephone,
+                        $c->localite,
+                        $c->statut ?? AccountStatus::ACTIF,
+                        $c->created_at?->format('Y-m-d H:i:s'),
+                    ], ';');
+                }
+            });
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function exportPrestatairesCsv()
+    {
+        $filename = 'prestataires_'.now()->format('Y-m-d_His').'.csv';
+
+        return response()->streamDownload(function () {
+            $out = fopen('php://output', 'w');
+            if ($out === false) {
+                return;
+            }
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, [
+                'id', 'prenom', 'nom', 'email', 'telephone', 'localite',
+                'statut_verification', 'statut_compte', 'note_moyenne', 'inscrit_le',
+            ], ';');
+
+            Prestataire::query()->orderByDesc('id')->chunk(500, function ($rows) use ($out) {
+                foreach ($rows as $p) {
+                    fputcsv($out, [
+                        $p->id,
+                        $p->prenom,
+                        $p->nom,
+                        $p->email,
+                        $p->telephone,
+                        $p->localite,
+                        $p->statut_verification ?? '',
+                        $p->statut ?? AccountStatus::ACTIF,
+                        $p->note_moyenne,
+                        $p->created_at?->format('Y-m-d H:i:s'),
+                    ], ';');
+                }
+            });
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function listClients()
+    {
+        $rows = Client::query()
+            ->orderByDesc('id')
+            ->limit(300)
+            ->get()
+            ->map(fn ($c) => [
+                'id' => $c->id,
+                'nom_complet' => trim($c->prenom.' '.$c->nom),
+                'email' => $c->email,
+                'telephone' => $c->telephone,
+                'localite' => $c->localite,
+                'statut' => $c->statut ?? AccountStatus::ACTIF,
+                'created_at' => $c->created_at?->format('d/m/Y'),
+            ]);
+
+        return response()->json(['ok' => true, 'rows' => $rows]);
+    }
+
+    public function updateClientStatut(Request $request, int $id)
+    {
+        return $this->updateAccountStatut($request, Client::class, 'clients', $id);
+    }
+
+    public function updatePrestataireStatut(Request $request, int $id)
+    {
+        return $this->updateAccountStatut($request, Prestataire::class, 'prestataires', $id);
+    }
+
+    /**
+     * @param  class-string<Client|Prestataire>  $modelClass
+     */
+    private function updateAccountStatut(Request $request, string $modelClass, string $table, int $id)
+    {
+        if (! Schema::hasColumn($table, 'statut')) {
+            return response()->json(['ok' => false, 'message' => 'Migration comptes non appliquée.'], 503);
+        }
+
+        $data = $request->validate([
+            'statut' => ['required', Rule::in([AccountStatus::ACTIF, AccountStatus::SUSPENDU, AccountStatus::SUPPRIME])],
+        ]);
+
+        $user = $modelClass::query()->find($id);
+        if (! $user) {
+            return response()->json(['ok' => false, 'message' => 'Compte introuvable.'], 404);
+        }
+
+        $user->update(['statut' => $data['statut']]);
+
+        return response()->json(['ok' => true, 'statut' => $data['statut']]);
+    }
+
+    public function listAvis(Request $request)
+    {
+        if (! Schema::hasTable('avis')) {
+            return response()->json(['ok' => true, 'rows' => []]);
+        }
+
+        $onlySignale = $request->boolean('signale');
+
+        $rows = Avis::query()
+            ->with(['client:id,nom,prenom,email', 'prestataire:id,nom,prenom'])
+            ->when($onlySignale, fn ($q) => $q->where('signale', true))
+            ->orderByDesc('id')
+            ->limit(200)
+            ->get()
+            ->map(function (Avis $a) {
+                return [
+                    'id' => $a->id,
+                    'note' => (int) $a->note,
+                    'commentaire' => $a->commentaire,
+                    'signale' => (bool) $a->signale,
+                    'signale_motif' => $a->signale_motif,
+                    'signale_at' => $a->signale_at?->format('d/m/Y H:i'),
+                    'created_at' => $a->created_at?->format('d/m/Y H:i'),
+                    'client_label' => trim(($a->client->prenom ?? '').' '.($a->client->nom ?? '')),
+                    'prestataire_label' => trim(($a->prestataire->prenom ?? '').' '.($a->prestataire->nom ?? '')),
+                    'prestataire_id' => $a->prestataire_id,
+                ];
+            });
+
+        return response()->json(['ok' => true, 'rows' => $rows]);
+    }
+
+    public function dismissAvisSignalement(int $id)
+    {
+        $avis = Avis::query()->find($id);
+        if (! $avis) {
+            return response()->json(['ok' => false, 'message' => 'Avis introuvable.'], 404);
+        }
+
+        $avis->update([
+            'signale' => false,
+            'signale_motif' => null,
+            'signale_at' => null,
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function deleteAvis(int $id)
+    {
+        $avis = Avis::query()->find($id);
+        if (! $avis) {
+            return response()->json(['ok' => false, 'message' => 'Avis introuvable.'], 404);
+        }
+
+        $prestataireId = (int) $avis->prestataire_id;
+        $avis->delete();
+        $this->orderWorkflow->recalculatePrestataireRating($prestataireId);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function listCategories()
+    {
+        if (! Schema::hasTable('categories')) {
+            return response()->json(['ok' => true, 'rows' => []]);
+        }
+
+        $rows = Category::query()
+            ->orderBy('ordre')
+            ->orderBy('nom')
+            ->get()
+            ->map(fn (Category $c) => [
+                'id' => $c->id,
+                'nom' => $c->nom,
+                'slug' => $c->slug,
+                'ordre' => (int) $c->ordre,
+                'active' => (bool) $c->active,
+            ]);
+
+        return response()->json(['ok' => true, 'rows' => $rows]);
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $data = $request->validate([
+            'nom' => 'required|string|max:100',
+            'ordre' => 'nullable|integer|min:0|max:9999',
+            'active' => 'nullable|boolean',
+        ]);
+
+        $cat = Category::create([
+            'nom' => trim($data['nom']),
+            'slug' => Str::slug($data['nom']),
+            'ordre' => (int) ($data['ordre'] ?? 0),
+            'active' => $data['active'] ?? true,
+        ]);
+
+        return response()->json(['ok' => true, 'category' => ['id' => $cat->id, 'nom' => $cat->nom]], 201);
+    }
+
+    public function updateCategory(Request $request, int $id)
+    {
+        $cat = Category::query()->find($id);
+        if (! $cat) {
+            return response()->json(['ok' => false, 'message' => 'Catégorie introuvable.'], 404);
+        }
+
+        $data = $request->validate([
+            'nom' => 'sometimes|required|string|max:100',
+            'ordre' => 'nullable|integer|min:0|max:9999',
+            'active' => 'nullable|boolean',
+        ]);
+
+        $oldNom = $cat->nom;
+        if (isset($data['nom'])) {
+            $cat->nom = trim($data['nom']);
+            $cat->slug = Str::slug($cat->nom);
+        }
+        if (array_key_exists('ordre', $data)) {
+            $cat->ordre = (int) $data['ordre'];
+        }
+        if (array_key_exists('active', $data)) {
+            $cat->active = (bool) $data['active'];
+        }
+        $cat->save();
+
+        if (isset($data['nom']) && $oldNom !== $cat->nom && Schema::hasTable('services')) {
+            Service::query()->where('categorie', $oldNom)->update(['categorie' => $cat->nom]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function deleteCategory(int $id)
+    {
+        $cat = Category::query()->find($id);
+        if (! $cat) {
+            return response()->json(['ok' => false, 'message' => 'Catégorie introuvable.'], 404);
+        }
+
+        $inUse = Service::query()->where('categorie', $cat->nom)->exists();
+        if ($inUse) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Catégorie utilisée par des services. Désactivez-la plutôt.',
+            ], 422);
+        }
+
+        $cat->delete();
+
+        return response()->json(['ok' => true]);
     }
 
     public function file(int $id, string $type)

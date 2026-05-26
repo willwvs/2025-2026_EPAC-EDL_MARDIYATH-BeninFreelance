@@ -281,7 +281,7 @@ class OrderController extends Controller
             abort(404);
         }
 
-        $role = (string) $request->session()->get('auth_role');
+        $role = (string) $request->session()->get('auth_type');
         $authId = (int) $request->session()->get('auth_id');
         $allowed = ($role === 'client' && $commande->client_id === $authId)
             || ($role === 'prestataire' && $commande->prestataire_id === $authId);
@@ -311,10 +311,20 @@ class OrderController extends Controller
             abort(404);
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('local')->download(
-            $target['path'],
-            $target['name'] ?: 'livraison'
-        );
+        $mime = $target['mime'] ?? null;
+        $name = $target['name'] ?: 'livraison';
+        $inline = $request->boolean('inline')
+            || ($mime && str_starts_with((string) $mime, 'image/'));
+
+        if ($inline) {
+            return \Illuminate\Support\Facades\Storage::disk('local')->response(
+                $target['path'],
+                $name,
+                ['Content-Type' => $mime ?: 'application/octet-stream', 'Content-Disposition' => 'inline; filename="'.$name.'"']
+            );
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download($target['path'], $name);
     }
 
     private function indexForRole(Request $request, string $role): \Illuminate\Http\JsonResponse
@@ -360,7 +370,7 @@ class OrderController extends Controller
                         'name' => $a['name'],
                         'size' => (int) $a['size'],
                         'mime' => $a['mime'],
-                        'url' => url($base.'?i='.$i),
+                        'url' => $base.'?i='.$i,
                         'is_image' => $a['mime'] ? str_starts_with($a['mime'], 'image/') : false,
                     ];
                 }

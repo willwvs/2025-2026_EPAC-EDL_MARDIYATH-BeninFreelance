@@ -100,6 +100,7 @@ Route::middleware('app.auth:client')->group(function () {
         ->whereNumber(['commandeId', 'livraisonId']);
     Route::get('/api/client/counters', [OrderController::class, 'countersClient']);
     Route::get('/api/client/avis', [ClientController::class, 'avisIndex']);
+    Route::post('/api/client/avis/{id}/signaler', [AvisController::class, 'signaler'])->whereNumber('id');
 });
 
 Route::middleware('app.auth:prestataire')->group(function () {
@@ -258,7 +259,8 @@ Route::prefix('admin')->group(function () {
     Route::middleware('admin.auth')->group(function () {
         Route::post('/logout', [AdminController::class, 'logoutApi']);
         Route::get('/api/prestataires', [AdminController::class, 'listApi']);
-        Route::get('/api/prestataires/{id}', [AdminController::class, 'showApi']);
+        Route::get('/api/prestataires/export.csv', [AdminController::class, 'exportPrestatairesCsv']);
+        Route::get('/api/prestataires/{id}', [AdminController::class, 'showApi'])->whereNumber('id');
         Route::post('/api/prestataires/{id}/valider', [AdminController::class, 'validateApi']);
         Route::post('/api/prestataires/{id}/refuser', [AdminController::class, 'refuseApi']);
         Route::get('/prestataires/{id}/fichiers/{type}', [AdminController::class, 'file'])
@@ -266,9 +268,24 @@ Route::prefix('admin')->group(function () {
         Route::get('/api/commandes', [AdminController::class, 'listCommandes']);
         Route::post('/api/commandes/{id}/rembourser', [AdminController::class, 'rembourserCommande'])->whereNumber('id');
         Route::get('/api/litiges', [AdminController::class, 'listDisputes']);
+        Route::get('/api/litiges/{id}', [AdminController::class, 'showDispute'])->whereNumber('id');
         Route::post('/api/litiges/{id}/resoudre', [AdminController::class, 'resolveDispute'])->whereNumber('id');
+        Route::get('/api/commandes/{commandeId}/livraisons/{livraisonId}/fichier', [AdminController::class, 'downloadLivraison'])
+            ->whereNumber(['commandeId', 'livraisonId']);
+        Route::get('/api/messages/{id}/attachment', [AdminController::class, 'downloadMessageAttachment'])->whereNumber('id');
         Route::get('/api/payouts', [AdminController::class, 'listPayouts']);
         Route::post('/api/payouts/{id}/marquer-paye', [AdminController::class, 'markPayoutPaid'])->whereNumber('id');
+        Route::get('/api/clients', [AdminController::class, 'listClients']);
+        Route::get('/api/clients/export.csv', [AdminController::class, 'exportClientsCsv']);
+        Route::post('/api/clients/{id}/statut', [AdminController::class, 'updateClientStatut'])->whereNumber('id');
+        Route::post('/api/prestataires/{id}/statut', [AdminController::class, 'updatePrestataireStatut'])->whereNumber('id');
+        Route::get('/api/avis', [AdminController::class, 'listAvis']);
+        Route::post('/api/avis/{id}/dismiss-signalement', [AdminController::class, 'dismissAvisSignalement'])->whereNumber('id');
+        Route::delete('/api/avis/{id}', [AdminController::class, 'deleteAvis'])->whereNumber('id');
+        Route::get('/api/categories', [AdminController::class, 'listCategories']);
+        Route::post('/api/categories', [AdminController::class, 'storeCategory']);
+        Route::patch('/api/categories/{id}', [AdminController::class, 'updateCategory'])->whereNumber('id');
+        Route::delete('/api/categories/{id}', [AdminController::class, 'deleteCategory'])->whereNumber('id');
     });
 });
 

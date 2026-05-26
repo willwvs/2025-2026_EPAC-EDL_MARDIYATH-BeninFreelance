@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Avis;
+use App\Models\Category;
 use App\Models\Prestataire;
 use App\Models\Service;
 use App\Support\ImageStorage;
@@ -14,19 +15,23 @@ class MarketplaceController extends Controller
 {
     public function meta()
     {
-        $categories = Service::query()
-            ->join('prestataires', 'prestataires.id', '=', 'services.prestataire_id')
-            ->where('prestataires.statut_verification', 'valide')
-            ->whereNotNull('services.categorie')
-            ->where('services.categorie', '!=', '')
-            ->distinct()
-            ->orderBy('services.categorie')
-            ->pluck('services.categorie')
-            ->values()
-            ->all();
+        $categories = Category::activeNames();
+        if ($categories === []) {
+            $categories = Service::query()
+                ->join('prestataires', 'prestataires.id', '=', 'services.prestataire_id')
+                ->where('prestataires.statut_verification', 'valide')
+                ->whereNotNull('services.categorie')
+                ->where('services.categorie', '!=', '')
+                ->distinct()
+                ->orderBy('services.categorie')
+                ->pluck('services.categorie')
+                ->values()
+                ->all();
+        }
 
         $localites = Prestataire::query()
             ->where('statut_verification', 'valide')
+            ->tap(fn ($q) => $this->scopeActiveAccount($q))
             ->whereNotNull('localite')
             ->where('localite', '!=', '')
             ->distinct()
@@ -51,6 +56,7 @@ class MarketplaceController extends Controller
             ->from('services as s')
             ->join('prestataires as p', 'p.id', '=', 's.prestataire_id')
             ->where('p.statut_verification', 'valide');
+        $this->scopeActiveAccount($query, 'p');
 
         $categorie = trim((string) $request->query('categorie', ''));
         if ($categorie !== '') {
@@ -160,6 +166,7 @@ class MarketplaceController extends Controller
             ->join('prestataires as p', 'p.id', '=', 's.prestataire_id')
             ->where('s.id', $id)
             ->where('p.statut_verification', 'valide');
+        $this->scopeActiveAccount($query, 'p');
 
         $query->select([
             's.id',
@@ -229,6 +236,7 @@ class MarketplaceController extends Controller
         $query = Prestataire::query()
             ->from('prestataires', 'p')
             ->where('p.statut_verification', 'valide');
+        $this->scopeActiveAccount($query, 'p');
 
         if ($request->boolean('only_with_services')) {
             $query->whereExists(function ($sub) {
@@ -358,7 +366,7 @@ class MarketplaceController extends Controller
             ->where('id', $id)
             ->where('statut_verification', 'valide')
             ->first();
-        if (! $p) {
+        if (! $p || ! $this->prestataireIsPubliclyVisible($p)) {
             return response()->json(['ok' => false], 404);
         }
 
@@ -411,7 +419,7 @@ class MarketplaceController extends Controller
             ->where('id', $id)
             ->where('statut_verification', 'valide')
             ->first();
-        if (! $p) {
+        if (! $p || ! $this->prestataireIsPubliclyVisible($p)) {
             return response()->json(['ok' => false], 404);
         }
 
@@ -469,27 +477,41 @@ class MarketplaceController extends Controller
             ->leftJoin('commandes as cmd', 'cmd.id', '=', 'a.commande_id')
             ->where('a.prestataire_id', $id);
 
+        $authClientId = $request->session()->get('auth_type') === 'client'
+            ? (int) $request->session()->get('auth_id')
+            : 0;
+        $hasSignale = Schema::hasColumn('avis', 'signale');
+
+        $select = [
+            'a.id',
+            'a.note',
+            'a.commentaire',
+            'a.created_at',
+            'a.client_id',
+            'c.prenom as client_prenom',
+            'c.nom as client_nom',
+            'cmd.titre as commande_titre',
+        ];
+        if ($hasSignale) {
+            $select[] = 'a.signale';
+        }
+
         $total = (clone $base)->count();
         $rows = $base
             ->orderByDesc('a.id')
             ->forPage($page, $perPage)
-            ->get([
-                'a.id',
-                'a.note',
-                'a.commentaire',
-                'a.created_at',
-                'c.prenom as client_prenom',
-                'c.nom as client_nom',
-                'cmd.titre as commande_titre',
-            ]);
+            ->get($select);
 
-        $avis = $rows->map(function ($r) {
+        $avis = $rows->map(function ($r) use ($authClientId, $hasSignale) {
             $prenom = trim((string) ($r->client_prenom ?? ''));
             $nom = trim((string) ($r->client_nom ?? ''));
             $auteur = $prenom !== '' ? $prenom : 'Client';
             if ($nom !== '') {
                 $auteur .= ' '.mb_strtoupper(mb_substr($nom, 0, 1)).'.';
             }
+
+            $own = $authClientId > 0 && (int) $r->client_id === $authClientId;
+            $signale = $hasSignale && (bool) ($r->signale ?? false);
 
             return [
                 'id' => (int) $r->id,
@@ -498,6 +520,8 @@ class MarketplaceController extends Controller
                 'auteur' => $auteur,
                 'commande_titre' => $r->commande_titre ?: null,
                 'created_at' => $r->created_at,
+                'can_signaler' => $authClientId > 0 && ! $own && ! $signale,
+                'signale' => $signale,
             ];
         })->values()->all();
 
@@ -509,6 +533,10 @@ class MarketplaceController extends Controller
             'last_page' => max(1, (int) ceil($total / $perPage)),
             'avis' => $avis,
             'stats' => $this->avisStats($id),
+            'viewer' => [
+                'role' => $request->session()->get('auth_type'),
+                'is_client' => $authClientId > 0,
+            ],
         ]);
     }
 
@@ -589,5 +617,31 @@ class MarketplaceController extends Controller
         }
 
         return mb_substr($bio, 0, $max).'…';
+    }
+
+    private function prestataireIsPubliclyVisible(Prestataire $p): bool
+    {
+        if (! Schema::hasColumn('prestataires', 'statut')) {
+            return true;
+        }
+
+        $statut = (string) ($p->statut ?? 'actif');
+
+        return $statut === 'actif' || $statut === '';
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $query
+     */
+    private function scopeActiveAccount($query, string $alias = 'prestataires'): void
+    {
+        if (! Schema::hasColumn('prestataires', 'statut')) {
+            return;
+        }
+
+        $col = str_contains($alias, '.') ? $alias : $alias.'.statut';
+        $query->where(function ($w) use ($col) {
+            $w->where($col, 'actif')->orWhereNull($col);
+        });
     }
 }
