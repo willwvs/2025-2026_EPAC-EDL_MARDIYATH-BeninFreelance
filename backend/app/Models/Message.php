@@ -25,12 +25,16 @@ class Message extends Model
         'attachment_mime',
         'attachment_size',
         'lu',
+        'edited_at',
+        'deleted_at',
     ];
 
     protected function casts(): array
     {
         return [
             'created_at' => 'datetime',
+            'edited_at' => 'datetime',
+            'deleted_at' => 'datetime',
             'lu' => 'boolean',
             'meta' => 'array',
         ];

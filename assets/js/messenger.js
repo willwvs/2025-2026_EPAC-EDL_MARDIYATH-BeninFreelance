@@ -14,6 +14,12 @@ window.BFMessenger = function (opts) {
     pollTimer: null,
     sending: false,
     attachment: null,
+    editingId: null,
+    deletingId: null,
+    editBackup: null,
+    lastMsgSig: '',
+    messagingAllowed: true,
+    messagingBlockedMessage: '',
   };
 
   const el = {
@@ -162,10 +168,61 @@ window.BFMessenger = function (opts) {
       '</div>';
   }
 
-  function renderBubbles(messages) {
+  function messagesSignature(messages) {
+    return (messages || []).map(function (m) {
+      return [
+        m.id,
+        m.kind || 'chat',
+        m.deleted ? 1 : 0,
+        m.edited_at || '',
+        m.contenu || '',
+        m.attachment && m.attachment.name ? m.attachment.name : '',
+      ].join(':');
+    }).join('|');
+  }
+
+  function isNearBottom(container, threshold) {
+    if (!container) return true;
+    threshold = threshold || 100;
+    return container.scrollHeight - container.scrollTop - container.clientHeight <= threshold;
+  }
+
+  function lockBubbleWidth(bubble, minW) {
+    const lockedWidth = Math.max(Math.ceil(bubble.getBoundingClientRect().width), minW || 180);
+    bubble.classList.add('msg-bubble--editing');
+    bubble.style.width = lockedWidth + 'px';
+    bubble.style.minWidth = Math.min(lockedWidth, 220) + 'px';
+    bubble.style.maxWidth = lockedWidth + 'px';
+  }
+
+  function unlockBubbleWidth(bubble) {
+    if (!bubble) return;
+    bubble.classList.remove('msg-bubble--editing');
+    bubble.style.width = '';
+    bubble.style.minWidth = '';
+    bubble.style.maxWidth = '';
+  }
+
+  function renderBubbles(messages, renderOpts) {
+    renderOpts = renderOpts || {};
     if (!el.bubbles) return;
+    if (state.editingId || state.deletingId) return;
+
+    const sig = messagesSignature(messages);
+    const forceBottom = renderOpts.stickBottom === true;
+    if (renderOpts.silent && sig === state.lastMsgSig && !forceBottom) {
+      return;
+    }
+
+    const box = el.bubbles;
+    const wasNearBottom = isNearBottom(box);
+    const savedScrollTop = box.scrollTop;
+    const shouldScrollBottom = forceBottom || (renderOpts.stickBottom === 'auto' && wasNearBottom);
+    state.lastMsgSig = sig;
+
     if (!messages || !messages.length) {
-      el.bubbles.innerHTML = '<p class="text-sm text-muted text-center py-8">Aucun message.</p>';
+      el.bubbles.innerHTML =
+        '<div class="msg-thread-column"><p class="text-sm text-muted text-center py-8">Aucun message.</p></div>';
       return;
     }
     let html = '';
@@ -188,21 +245,348 @@ window.BFMessenger = function (opts) {
       }
 
       const mine = !!m.mine;
-      const hasText = !!(m.contenu && m.contenu.length);
-      html +=
-        '<div class="flex ' + (mine ? 'justify-end' : 'justify-start') + ' mb-1.5">' +
-        '<div class="max-w-[85%] sm:max-w-[65%] rounded-2xl px-3.5 py-2 text-[14px] leading-[1.5] whitespace-pre-wrap break-words shadow-sm ' +
+      const deleted = !!m.deleted;
+      const hasText = !deleted && !!(m.contenu && m.contenu.length);
+      const editedLabel = m.edited_at ? ' · modifié' : '';
+      const showMenu = mine && !deleted && (m.can_edit || m.can_delete);
+      const menuBtn = showMenu ? (
+        '<div class="msg-menu-wrap relative shrink-0 self-center">' +
+        '<button type="button" class="msg-menu-btn w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-tx hover:bg-surface/80 opacity-0 group-hover:opacity-100 max-md:opacity-60 transition-opacity" data-msg-menu-toggle="' + escapeHtml(String(m.id)) + '" aria-label="Options du message">' +
+        '<i class="fa-solid fa-ellipsis-vertical text-[13px]"></i>' +
+        '</button>' +
+        '<div class="msg-menu-panel hidden absolute z-50 min-w-[9.5rem] py-1 rounded-xl border border-brd bg-surface2 shadow-lg ' +
+        (mine ? 'right-0 bottom-full mb-1' : 'left-0 bottom-full mb-1') + '" data-msg-menu-panel="' + escapeHtml(String(m.id)) + '">' +
+        (m.can_edit ? (
+          '<button type="button" data-msg-action="edit" data-msg-id="' + escapeHtml(String(m.id)) + '" class="msg-menu-item w-full text-left px-3.5 py-2 text-[13px] text-tx hover:bg-surface transition-colors flex items-center gap-2">' +
+          '<i class="fa-regular fa-pen-to-square text-[12px] text-muted w-4"></i> Modifier' +
+          '</button>'
+        ) : '') +
+        (m.can_delete ? (
+          '<button type="button" data-msg-action="delete" data-msg-id="' + escapeHtml(String(m.id)) + '" class="msg-menu-item w-full text-left px-3.5 py-2 text-[13px] text-red-400 hover:bg-surface transition-colors flex items-center gap-2">' +
+          '<i class="fa-regular fa-trash-can text-[12px] w-4"></i> Supprimer' +
+          '</button>'
+        ) : '') +
+        '</div></div>'
+      ) : '';
+      const bubbleInner =
+        (deleted
+          ? '<div class="italic opacity-75">Message supprimé</div>'
+          : (hasText ? '<div class="msg-bubble-text">' + escapeHtml(m.contenu) + '</div>' : '')) +
+        (deleted ? '' : renderAttachment(m.attachment, mine)) +
+        '<p class="msg-bubble-footer text-[10px] mt-1 opacity-65 text-right tabular-nums">' + escapeHtml(formatTime(m.created_at) + editedLabel) + '</p>';
+      const bubbleCls =
+        'rounded-2xl px-3.5 py-2 text-[14px] leading-[1.5] whitespace-pre-wrap break-words shadow-sm min-w-0 ' +
         (mine
           ? 'bg-accent text-bg rounded-br-md'
-          : 'bg-surface border border-brd/70 text-tx/95 rounded-bl-md') + '">' +
-        (hasText ? '<div>' + escapeHtml(m.contenu) + '</div>' : '') +
-        renderAttachment(m.attachment, mine) +
-        '<p class="text-[10px] mt-1 opacity-65 text-right tabular-nums">' + escapeHtml(formatTime(m.created_at)) + '</p>' +
+          : 'bg-surface border border-brd/70 text-tx/95 rounded-bl-md');
+      html +=
+        '<div class="flex ' + (mine ? 'justify-end' : 'justify-start') + ' mb-1.5 group" data-msg-row-id="' + escapeHtml(String(m.id || '')) + '">' +
+        '<div class="flex items-end gap-0.5 max-w-[92%] ' + (mine ? 'flex-row-reverse' : 'flex-row') + '">' +
+        (showMenu ? menuBtn : '') +
+        '<div class="max-w-[88%] ' + bubbleCls + '" data-msg-bubble="' + escapeHtml(String(m.id || '')) + '">' + bubbleInner + '</div>' +
         '</div></div>';
     });
-    el.bubbles.innerHTML = html;
+    el.bubbles.innerHTML = '<div class="msg-thread-column">' + html + '</div>';
     bindEventCardActions();
-    el.bubbles.scrollTop = el.bubbles.scrollHeight;
+    bindMessageActions();
+    if (el.bubbles) {
+      el.bubbles.onscroll = function () {
+        closeAllMsgMenus();
+      };
+    }
+    if (shouldScrollBottom) {
+      el.bubbles.scrollTop = el.bubbles.scrollHeight;
+    } else {
+      el.bubbles.scrollTop = savedScrollTop;
+    }
+  }
+
+  function closeAllMsgMenus() {
+    if (!el.bubbles) return;
+    el.bubbles.querySelectorAll('.msg-menu-panel').forEach(function (panel) {
+      panel.classList.add('hidden');
+    });
+  }
+
+  function cancelInlineActions() {
+    cancelInlineEdit();
+    cancelInlineDelete();
+  }
+
+  function bindMessageActions() {
+    if (!el.bubbles || el.bubbles._bfMsgActionsBound) return;
+    el.bubbles._bfMsgActionsBound = true;
+    el.bubbles.addEventListener('click', function (ev) {
+      const menuBtn = ev.target.closest('[data-msg-menu-toggle]');
+      if (menuBtn) {
+        ev.stopPropagation();
+        const id = menuBtn.getAttribute('data-msg-menu-toggle');
+        const panel = el.bubbles.querySelector('[data-msg-menu-panel="' + id + '"]');
+        if (!panel) return;
+        const wasOpen = !panel.classList.contains('hidden');
+        closeAllMsgMenus();
+        if (!wasOpen) panel.classList.remove('hidden');
+        return;
+      }
+      const actionBtn = ev.target.closest('[data-msg-action]');
+      if (actionBtn) {
+        ev.stopPropagation();
+        closeAllMsgMenus();
+        const action = actionBtn.getAttribute('data-msg-action');
+        const id = parseInt(actionBtn.getAttribute('data-msg-id') || '0', 10);
+        if (!id) return;
+        if (action === 'edit') startInlineEdit(id);
+        if (action === 'delete') startInlineDelete(id);
+        return;
+      }
+      if (ev.target.closest('[data-msg-edit-cancel]')) {
+        ev.stopPropagation();
+        cancelInlineEdit();
+        return;
+      }
+      const saveBtn = ev.target.closest('[data-msg-edit-save]');
+      if (saveBtn) {
+        ev.stopPropagation();
+        const id = parseInt(saveBtn.getAttribute('data-msg-edit-save') || '0', 10);
+        if (id) submitInlineEdit(id);
+        return;
+      }
+      if (ev.target.closest('[data-msg-delete-cancel]')) {
+        ev.stopPropagation();
+        cancelInlineDelete();
+        return;
+      }
+      const delBtn = ev.target.closest('[data-msg-delete-confirm]');
+      if (delBtn) {
+        ev.stopPropagation();
+        const id = parseInt(delBtn.getAttribute('data-msg-delete-confirm') || '0', 10);
+        if (id) submitInlineDelete(id);
+      }
+    });
+  }
+
+  function getMsgRow(id) {
+    return el.bubbles ? el.bubbles.querySelector('[data-msg-row-id="' + id + '"]') : null;
+  }
+
+  function getMsgBubble(id) {
+    const row = getMsgRow(id);
+    return row ? row.querySelector('[data-msg-bubble="' + id + '"]') : null;
+  }
+
+  function isMineBubble(bubble) {
+    return bubble && bubble.classList.contains('bg-accent');
+  }
+
+  function inlineBtnCls(mine, primary) {
+    if (primary) {
+      return mine
+        ? 'text-[12px] px-3 py-1 rounded-lg bg-bg text-accent font-semibold hover:opacity-90 disabled:opacity-50'
+        : 'text-[12px] px-3 py-1 rounded-lg bg-accent text-bg font-semibold hover:opacity-90 disabled:opacity-50';
+    }
+    return mine
+      ? 'text-[12px] px-3 py-1 rounded-lg border border-bg/40 text-bg/90 hover:bg-bg/10'
+      : 'text-[12px] px-3 py-1 rounded-lg border border-brd text-muted hover:text-tx hover:border-muted';
+  }
+
+  function startInlineEdit(id) {
+    cancelInlineDelete();
+    const row = getMsgRow(id);
+    const bubble = getMsgBubble(id);
+    if (!row || !bubble || bubble.querySelector('.msg-edit-input')) return;
+    const textEl = bubble.querySelector('.msg-bubble-text');
+    const current = textEl ? textEl.textContent : '';
+    const mine = isMineBubble(bubble);
+    const menu = row.querySelector('.msg-menu-wrap');
+    if (menu) menu.classList.add('invisible', 'pointer-events-none');
+    state.editingId = id;
+    state.editBackup = { id: id, text: current };
+
+    lockBubbleWidth(bubble, 160);
+
+    const host = textEl || document.createElement('div');
+    if (!textEl) {
+      host.className = 'msg-bubble-text';
+      const footer = bubble.querySelector('.msg-bubble-footer');
+      if (footer) bubble.insertBefore(host, footer);
+      else bubble.prepend(host);
+    }
+
+    host.innerHTML =
+      '<textarea class="msg-edit-input block w-full bg-transparent border-0 outline-none resize-none text-[14px] leading-[1.5] p-0 m-0 overflow-hidden ' +
+      (mine ? 'text-bg caret-bg' : 'text-tx caret-accent') + '" maxlength="8000" rows="1"></textarea>' +
+      '<p class="msg-inline-err hidden text-[11px] mt-1 ' + (mine ? 'text-bg/90' : 'text-red-400') + '"></p>' +
+      '<div class="msg-inline-edit-actions flex justify-end gap-1.5 mt-1.5">' +
+      '<button type="button" data-msg-edit-cancel class="' + inlineBtnCls(mine, false) + '">Annuler</button>' +
+      '<button type="button" data-msg-edit-save="' + id + '" class="' + inlineBtnCls(mine, true) + '">OK</button>' +
+      '</div>';
+
+    const ta = host.querySelector('.msg-edit-input');
+    if (ta) {
+      ta.value = current;
+      resizeEditTextarea(ta);
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+      ta.addEventListener('input', function () { resizeEditTextarea(ta); });
+      ta.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { e.preventDefault(); cancelInlineEdit(); }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitInlineEdit(id); }
+      });
+    }
+  }
+
+  function resizeEditTextarea(ta) {
+    ta.style.height = '0';
+    ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+  }
+
+  function cancelInlineEdit() {
+    if (!state.editingId) return;
+    const id = state.editingId;
+    const backup = state.editBackup;
+    state.editingId = null;
+    state.editBackup = null;
+    const row = getMsgRow(id);
+    const bubble = getMsgBubble(id);
+    if (!bubble) return;
+    const textEl = bubble.querySelector('.msg-bubble-text');
+    if (textEl) {
+      textEl.textContent = backup && backup.id === id ? backup.text : (textEl.textContent || '');
+    }
+    unlockBubbleWidth(bubble);
+    if (row) {
+      const menu = row.querySelector('.msg-menu-wrap');
+      if (menu) menu.classList.remove('invisible', 'pointer-events-none');
+    }
+  }
+
+  async function submitInlineEdit(id) {
+    const bubble = getMsgBubble(id);
+    if (!bubble) return;
+    const ta = bubble.querySelector('.msg-edit-input');
+    const errEl = bubble.querySelector('.msg-inline-err');
+    const saveBtn = bubble.querySelector('[data-msg-edit-save="' + id + '"]');
+    const text = ta ? ta.value.trim() : '';
+    if (!text) {
+      if (errEl) {
+        errEl.textContent = 'Le message ne peut pas être vide.';
+        errEl.classList.remove('hidden');
+      }
+      return;
+    }
+    if (saveBtn) saveBtn.disabled = true;
+    if (errEl) errEl.classList.add('hidden');
+    try {
+      const token = await getCsrf();
+      const r = await fetch(opts.apiSend + '/' + id, {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': token,
+        },
+        body: JSON.stringify({ contenu: text }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.ok) {
+        if (errEl) {
+          errEl.textContent = d.message || 'Modification impossible.';
+          errEl.classList.remove('hidden');
+        }
+        if (saveBtn) saveBtn.disabled = false;
+        return;
+      }
+      state.editingId = null;
+      state.editBackup = null;
+      await loadThread(false);
+    } catch (_) {
+      if (errEl) {
+        errEl.textContent = 'Réseau indisponible.';
+        errEl.classList.remove('hidden');
+      }
+      if (saveBtn) saveBtn.disabled = false;
+    }
+  }
+
+  function startInlineDelete(id) {
+    cancelInlineEdit();
+    const row = getMsgRow(id);
+    const bubble = getMsgBubble(id);
+    if (!row || !bubble || bubble.querySelector('.msg-inline-delete')) return;
+    const mine = isMineBubble(bubble);
+    const menu = row.querySelector('.msg-menu-wrap');
+    if (menu) menu.classList.add('invisible', 'pointer-events-none');
+    state.deletingId = id;
+
+    lockBubbleWidth(bubble, 200);
+
+    const textEl = bubble.querySelector('.msg-bubble-text');
+    const footer = bubble.querySelector('.msg-bubble-footer');
+    const attachments = bubble.querySelectorAll('a, img');
+    if (textEl) textEl.classList.add('hidden');
+    if (footer) footer.classList.add('hidden');
+    attachments.forEach(function (n) { n.classList.add('hidden'); });
+
+    const delHtml =
+      '<div class="msg-inline-delete">' +
+      '<p class="text-[13px] leading-snug ' + (mine ? 'text-bg/95' : 'text-tx/90') + '">Supprimer ce message ?</p>' +
+      '<div class="flex justify-end gap-1.5 mt-2">' +
+      '<button type="button" data-msg-delete-cancel class="' + inlineBtnCls(mine, false) + '">Annuler</button>' +
+      '<button type="button" data-msg-delete-confirm="' + id + '" class="text-[12px] px-3 py-1 rounded-lg bg-red-500/90 text-white font-semibold hover:bg-red-500 disabled:opacity-50">Supprimer</button>' +
+      '</div></div>';
+    bubble.insertAdjacentHTML('beforeend', delHtml);
+  }
+
+  function cancelInlineDelete() {
+    if (!state.deletingId) return;
+    const id = state.deletingId;
+    state.deletingId = null;
+    const row = getMsgRow(id);
+    const bubble = getMsgBubble(id);
+    if (!bubble) return;
+    const del = bubble.querySelector('.msg-inline-delete');
+    if (del) del.remove();
+    bubble.querySelectorAll('.hidden').forEach(function (n) {
+      if (n.classList.contains('msg-menu-panel')) return;
+      n.classList.remove('hidden');
+    });
+    unlockBubbleWidth(bubble);
+    if (row) {
+      const menu = row.querySelector('.msg-menu-wrap');
+      if (menu) menu.classList.remove('invisible', 'pointer-events-none');
+    }
+  }
+
+  async function submitInlineDelete(id) {
+    const bubble = getMsgBubble(id);
+    const confirmBtn = bubble && bubble.querySelector('[data-msg-delete-confirm="' + id + '"]');
+    if (confirmBtn) confirmBtn.disabled = true;
+    try {
+      const token = await getCsrf();
+      const r = await fetch(opts.apiSend + '/' + id, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': token,
+        },
+      });
+      const d = await r.json();
+      if (!r.ok || !d.ok) {
+        const errRow = bubble && bubble.querySelector('.msg-inline-delete p');
+        if (errRow) errRow.textContent = d.message || 'Suppression impossible.';
+        if (confirmBtn) confirmBtn.disabled = false;
+        return;
+      }
+      state.deletingId = null;
+      await loadThread(false);
+      try { await loadConversations(true); } catch (_) { /* silent */ }
+    } catch (_) {
+      const errRow = bubble && bubble.querySelector('.msg-inline-delete p');
+      if (errRow) errRow.textContent = 'Réseau indisponible.';
+      if (confirmBtn) confirmBtn.disabled = false;
+    }
   }
 
   function renderEventCard(m) {
@@ -255,7 +639,7 @@ window.BFMessenger = function (opts) {
         '</div>'
       ) : '';
       return (
-        '<div class="my-3">' +
+        '<div class="my-3 w-full">' +
         '<div class="rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3.5">' +
         '<div class="flex items-center gap-2">' +
         '<span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-accent text-bg text-[12px]"><i class="fa-solid fa-truck-fast"></i></span>' +
@@ -278,7 +662,7 @@ window.BFMessenger = function (opts) {
         '</div>'
       ) : '';
       return (
-        '<div class="my-3">' +
+        '<div class="my-3 w-full">' +
         '<div class="rounded-2xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-3.5">' +
         '<div class="flex items-center gap-2">' +
         '<span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-500 text-bg text-[12px]"><i class="fa-solid fa-rotate"></i></span>' +
@@ -296,8 +680,8 @@ window.BFMessenger = function (opts) {
     // Évènements génériques (paiement, validation, refund, litige…)
     const palette = eventPalette(ev);
     return (
-      '<div class="flex justify-center my-3">' +
-      '<div class="max-w-[92%] rounded-xl border ' + palette.cls + ' px-3.5 py-2 text-[12.5px] text-tx/90 flex items-center gap-2">' +
+      '<div class="flex justify-center my-3 w-full">' +
+      '<div class="w-full max-w-[95%] rounded-xl border ' + palette.cls + ' px-3.5 py-2 text-[12.5px] text-tx/90 flex items-center gap-2">' +
       '<i class="fa-solid ' + palette.icon + ' text-[12px] ' + palette.iconCls + '"></i>' +
       '<span class="min-w-0">' + escapeHtml(bodyTxt || 'Mise à jour de la commande.') + '</span>' +
       '<span class="text-[10px] text-muted ml-1 tabular-nums">' + escapeHtml(time) + '</span>' +
@@ -376,6 +760,8 @@ window.BFMessenger = function (opts) {
 
   async function loadThread(silent) {
     if (!state.active) return;
+    if (!silent) cancelInlineActions();
+    if (silent && (state.editingId || state.deletingId)) return;
     try {
       const r = await fetch(opts.apiThread + '?' + threadQuery(state.active), {
         credentials: 'same-origin',
@@ -384,7 +770,10 @@ window.BFMessenger = function (opts) {
       const d = await r.json();
       if (!r.ok || !d.ok) return;
       if (d.thread) renderHeader(d.thread);
-      renderBubbles(d.messages || []);
+      renderBubbles(d.messages || [], {
+        stickBottom: silent ? 'auto' : true,
+        silent: !!silent,
+      });
       if (!silent) await loadConversations(true);
     } catch (_) { /* ignore poll errors */ }
   }
@@ -403,12 +792,38 @@ window.BFMessenger = function (opts) {
         return;
       }
       state.conversations = d.conversations || [];
+      if (typeof d.messaging_allowed === 'boolean') {
+        state.messagingAllowed = d.messaging_allowed;
+        state.messagingBlockedMessage = d.messaging_blocked_message || '';
+      }
+      renderMessagingGate();
       renderConvList();
       syncListLayout();
       notifyUnread();
     } catch (_) {
       el.list.innerHTML = '<p class="text-sm text-muted px-4 py-6">Réseau indisponible.</p>';
     }
+  }
+
+  function renderMessagingGate() {
+    if (!el.form) return;
+    let banner = document.getElementById('msg-trial-banner');
+    if (state.messagingAllowed !== false) {
+      if (banner) banner.remove();
+      el.form.classList.remove('hidden');
+      return;
+    }
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'msg-trial-banner';
+      banner.className = 'border-t border-brd px-4 py-3 text-sm text-accent bg-surface2';
+      if (el.form.parentNode) {
+        el.form.parentNode.insertBefore(banner, el.form);
+      }
+    }
+    banner.textContent = state.messagingBlockedMessage ||
+      'Messagerie bloquée : souscrivez à un plan pour discuter avec les clients.';
+    el.form.classList.add('hidden');
   }
 
   function stopPoll() {
@@ -427,6 +842,10 @@ window.BFMessenger = function (opts) {
 
   async function openThread(c) {
     state.active = c;
+    state.lastMsgSig = '';
+    state.editingId = null;
+    state.deletingId = null;
+    state.editBackup = null;
     if (el.chatActive) el.chatActive.classList.remove('hidden');
     syncListLayout();
     showMobileChat(true);
@@ -453,6 +872,10 @@ window.BFMessenger = function (opts) {
   async function sendMessage(ev) {
     ev.preventDefault();
     if (!state.active || state.sending || !el.input) return;
+    if (role === 'prestataire' && state.messagingAllowed === false) {
+      alert(state.messagingBlockedMessage || 'Messagerie bloquée : abonnement requis.');
+      return;
+    }
     const text = el.input.value.trim();
     if (text.length < 1 && !state.attachment) return;
 
@@ -502,7 +925,12 @@ window.BFMessenger = function (opts) {
 
   function bindCompose() {
     if (!el.form || !el.input) return;
+    if (!window._bfMsgMenuCloser) {
+      window._bfMsgMenuCloser = true;
+      document.addEventListener('click', closeAllMsgMenus);
+    }
     renderEmojiPanel();
+    bindMessageActions();
     el.form.addEventListener('submit', sendMessage);
     el.input.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) {

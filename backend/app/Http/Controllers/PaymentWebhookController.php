@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\OrderWorkflowService;
+use App\Services\SubscriptionService;
 use App\Support\FedapayClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -12,6 +13,7 @@ class PaymentWebhookController extends Controller
 {
     public function __construct(
         private readonly OrderWorkflowService $workflow,
+        private readonly SubscriptionService $subscriptions,
         private readonly FedapayClient $fedapay,
     ) {}
 
@@ -27,7 +29,10 @@ class PaymentWebhookController extends Controller
         }
 
         try {
-            $this->workflow->handlePayinWebhook($request->all());
+            $payload = $request->all();
+            if (! $this->subscriptions->handlePayinWebhook($payload)) {
+                $this->workflow->handlePayinWebhook($payload);
+            }
         } catch (\Throwable $e) {
             Log::error('FedaPay payin webhook : exception traitement', [
                 'e' => $e->getMessage(),
@@ -64,7 +69,15 @@ class PaymentWebhookController extends Controller
     public function paymentReturn(Request $request)
     {
         $commandeId = (int) $request->query('commande_id', 0);
-        if ($commandeId > 0) {
+        $abonnementId = (int) $request->query('abonnement_id', 0);
+
+        if ($abonnementId > 0) {
+            try {
+                $this->subscriptions->syncPaymentStatus($abonnementId);
+            } catch (\Throwable $e) {
+                Log::warning('paymentReturn abonnement sync failed', ['e' => $e->getMessage()]);
+            }
+        } elseif ($commandeId > 0) {
             try {
                 $this->workflow->syncPaymentStatus($commandeId);
             } catch (\Throwable $e) {
@@ -75,6 +88,16 @@ class PaymentWebhookController extends Controller
         $htmlPath = base_path('../payments-return.html');
         if (File::exists($htmlPath)) {
             return response(File::get($htmlPath), 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+        }
+
+        if ($abonnementId > 0) {
+            $redirect = '/dashboard/prestataire?section=abonnement';
+
+            return response(
+                '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta http-equiv="refresh" content="2;url='.$redirect.'"><title>Paiement</title></head><body style="font-family:sans-serif;padding:2rem;background:#0A0A0F;color:#F0EDE8;"><p>Paiement en cours de confirmation. Redirection…</p><p><a href="'.$redirect.'" style="color:#F5A623;">Retour à l\'abonnement</a></p></body></html>',
+                200,
+                ['Content-Type' => 'text/html; charset=UTF-8']
+            );
         }
 
         $redirect = '/dashboard/client?section=commandes'.($commandeId ? '&commande_id='.$commandeId : '');

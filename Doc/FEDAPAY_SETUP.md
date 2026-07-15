@@ -124,20 +124,45 @@ php artisan schedule:work
 
 ---
 
-## 7. Passer en live
+## 6bis. Abonnement mensuel prestataire (Starter / Pro)
+
+L’abonnement remplace la commission 5 % sur les commandes.
+
+| Plan | Prix | Services | Recherche |
+|------|------|----------|-----------|
+| Gratuit | 0 | 2 | Normal |
+| Starter | 3 500 FCFA / 30 j | 10 | Au-dessus du gratuit |
+| Pro | 6 000 FCFA / 30 j | Illimité | Priorité |
+
+1. Dashboard prestataire → **Abonnement** → Souscrire Starter ou Pro  
+2. Checkout FedaPay sandbox : numéro **`64000001`**  
+3. Retour `/payments/return?abonnement_id=…` → plan activé  
+4. Renouveler avant `plan_expires_at` (sinon retour automatique au gratuit)  
+5. Cron : `php artisan subscriptions:expire` (horaire via `schedule:work`)
+
+Le même webhook payin traite commandes **et** abonnements (metadata `type=abonnement`).
+
+---
+
+## 7. Passer en live / Railway
+
+**Déploiement actuel Railway** : `https://web-production-74ea4.up.railway.app`  
+Détails webhooks : voir [`Doc/RAILWAY_DEPLOY.md`](RAILWAY_DEPLOY.md).
 
 1. Activer le **compte live** sur https://live.fedapay.com (formulaire + pièces IFU/RCCM)
-2. Dans le dashboard live, créer les mêmes webhooks avec ton domaine de production
-3. `.env` :
+2. Dans le dashboard (sandbox puis live), créer les webhooks :
+   - Payin : `https://beninfreelance.up.railway.app/api/webhooks/fedapay/payin`
+   - Payout : `https://beninfreelance.up.railway.app/api/webhooks/fedapay/payout`
+3. Variables Railway (service `web`) :
    ```env
-   FEDAPAY_ENVIRONMENT=live
-   FEDAPAY_PUBLIC_KEY=pk_live_xxx
-   FEDAPAY_SECRET_KEY=sk_live_xxx
-   FEDAPAY_WEBHOOK_SECRET=secret_webhook_payin_live
-   FEDAPAY_WEBHOOK_SECRET_PAYOUT=secret_webhook_payout_live
-   APP_URL=https://beninfreelance.com
+   FEDAPAY_ENVIRONMENT=sandbox   # ou live
+   FEDAPAY_PUBLIC_KEY=pk_xxx
+   FEDAPAY_SECRET_KEY=sk_xxx
+   FEDAPAY_WEBHOOK_SECRET=…     # secret payin
+   FEDAPAY_WEBHOOK_SECRET_PAYOUT=…
+   APP_URL=https://web-production-74ea4.up.railway.app
    ```
-4. `php artisan config:clear`
+4. Domaine custom : mettre à jour `APP_URL` + les 2 URLs webhooks FedaPay
 
 Aucune modification de code nécessaire : `config/fedapay.php` bascule automatiquement entre `https://sandbox-api.fedapay.com` et `https://api.fedapay.com` selon `FEDAPAY_ENVIRONMENT`.
 
@@ -145,7 +170,7 @@ Aucune modification de code nécessaire : `config/fedapay.php` bascule automatiq
 
 ## 8. Notes importantes
 
-- **Versement au prestataire (95 %)** : à la validation client (ou auto 14 j), on appelle l'API Payout FedaPay (`POST /v1/payouts` + `PUT /v1/payouts/start`). Le payout passe à `completed` quand FedaPay renvoie l'événement `payout.sent` (webhook 2) ou via le bouton « Marquer payé » en admin.
+- **Versement au prestataire (100 %)** : plus de commission plateforme sur les commandes (modèle abonnement). À la validation client (ou auto 14 j), payout FedaPay du montant total `net_prestataire_fcfa` (= montant commande). Le payout passe à `completed` quand FedaPay renvoie `payout.sent` ou via « Marquer payé » en admin.
 - **Remboursement client** : pas d'API refund FedaPay ; on fait un **payout sortant** depuis ta balance vers le numéro Mobile Money du client. Même flux que le payout prestataire.
 - **Modes supportés** : MTN Bénin (`mtn_open`) et Moov Bénin (`moov`). Le mapping `mm_mode` se fait dans `FedapayClient::mapPayoutMode`.
 - **Sécurité** : ne jamais committer `.env`. Les clés `sk_*` sont sensibles.

@@ -6,6 +6,7 @@ use App\Models\Avis;
 use App\Models\Category;
 use App\Models\Prestataire;
 use App\Models\Service;
+use App\Services\SubscriptionService;
 use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,10 @@ use Illuminate\Support\Facades\Schema;
 
 class MarketplaceController extends Controller
 {
+    public function __construct(
+        private readonly SubscriptionService $subscriptions,
+    ) {}
+
     public function meta()
     {
         $categories = Category::activeNames();
@@ -40,6 +45,15 @@ class MarketplaceController extends Controller
             ->values()
             ->all();
 
+        $localites = collect(config('marketplace.localites_suggestees', []))
+            ->merge($localites)
+            ->map(fn ($v) => trim((string) $v))
+            ->filter(fn ($v) => $v !== '')
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
         return response()->json([
             'ok' => true,
             'categories' => $categories,
@@ -57,6 +71,7 @@ class MarketplaceController extends Controller
             ->join('prestataires as p', 'p.id', '=', 's.prestataire_id')
             ->where('p.statut_verification', 'valide');
         $this->scopeActiveAccount($query, 'p');
+        $this->scopeDiscoverableSubscription($query, 'p');
 
         $categorie = trim((string) $request->query('categorie', ''));
         if ($categorie !== '') {
@@ -113,6 +128,8 @@ class MarketplaceController extends Controller
 
         $total = (clone $query)->count('s.id');
         $rows = $query
+            ->selectRaw($this->planPrioritySql('p').' as plan_priority')
+            ->orderByDesc('plan_priority')
             ->orderByDesc('p.note_moyenne')
             ->orderByDesc('s.id')
             ->offset(($page - 1) * $perPage)
@@ -167,6 +184,7 @@ class MarketplaceController extends Controller
             ->where('s.id', $id)
             ->where('p.statut_verification', 'valide');
         $this->scopeActiveAccount($query, 'p');
+        $this->scopeDiscoverableSubscription($query, 'p');
 
         $query->select([
             's.id',
@@ -237,6 +255,7 @@ class MarketplaceController extends Controller
             ->from('prestataires', 'p')
             ->where('p.statut_verification', 'valide');
         $this->scopeActiveAccount($query, 'p');
+        $this->scopeDiscoverableSubscription($query, 'p');
 
         if ($request->boolean('only_with_services')) {
             $query->whereExists(function ($sub) {
@@ -309,6 +328,8 @@ class MarketplaceController extends Controller
 
         $total = (clone $query)->count();
         $rows = $query
+            ->selectRaw($this->planPrioritySql('p').' as plan_priority')
+            ->orderByDesc('plan_priority')
             ->orderByDesc('p.note_moyenne')
             ->orderByDesc('p.id')
             ->offset(($page - 1) * $perPage)
@@ -621,13 +642,14 @@ class MarketplaceController extends Controller
 
     private function prestataireIsPubliclyVisible(Prestataire $p): bool
     {
-        if (! Schema::hasColumn('prestataires', 'statut')) {
-            return true;
+        if (Schema::hasColumn('prestataires', 'statut')) {
+            $statut = (string) ($p->statut ?? 'actif');
+            if ($statut !== 'actif' && $statut !== '') {
+                return false;
+            }
         }
 
-        $statut = (string) ($p->statut ?? 'actif');
-
-        return $statut === 'actif' || $statut === '';
+        return $this->subscriptions->isDiscoverable($p);
     }
 
     /**
@@ -643,5 +665,39 @@ class MarketplaceController extends Controller
         $query->where(function ($w) use ($col) {
             $w->where($col, 'actif')->orWhereNull($col);
         });
+    }
+
+    /**
+     * Masque les prestataires dont l'essai est terminé sans abonnement payant.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $query
+     */
+    private function scopeDiscoverableSubscription($query, string $alias = 'p'): void
+    {
+        $sql = SubscriptionService::discoverableSqlCondition($alias);
+        if ($sql === null) {
+            return;
+        }
+
+        $query->whereRaw($sql);
+    }
+
+    /**
+     * Priorité d'affichage selon le plan actif (Pro > Starter > Gratuit / expiré).
+     */
+    private function planPrioritySql(string $alias = 'p'): string
+    {
+        if (! Schema::hasColumn('prestataires', 'plan')) {
+            return '0';
+        }
+
+        $plan = $alias.'.plan';
+        $exp = $alias.'.plan_expires_at';
+
+        return "CASE
+            WHEN {$plan} = 'pro' AND {$exp} IS NOT NULL AND {$exp} > NOW() THEN 2
+            WHEN {$plan} = 'starter' AND {$exp} IS NOT NULL AND {$exp} > NOW() THEN 1
+            ELSE 0
+        END";
     }
 }

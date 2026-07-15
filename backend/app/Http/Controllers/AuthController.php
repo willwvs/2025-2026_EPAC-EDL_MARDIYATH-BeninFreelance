@@ -68,7 +68,7 @@ class AuthController extends Controller
         $cvPath = $cvFile->storeAs('verification/cv', $cvName, 'local');
         $idPath = $idFile->storeAs('verification/identite', $idName, 'local');
 
-        $prestataire = Prestataire::create([
+        $create = [
             'nom' => $data['nom'],
             'prenom' => $data['prenom'],
             'email' => $data['email'],
@@ -78,7 +78,15 @@ class AuthController extends Controller
             'chemin_cv' => $cvPath,
             'chemin_identite' => $idPath,
             'statut_verification' => 'en_attente',
-        ]);
+        ];
+        if (Schema::hasColumn('prestataires', 'plan')) {
+            $create['plan'] = 'gratuit';
+        }
+        if (Schema::hasColumn('prestataires', 'trial_ends_at')) {
+            $create['trial_ends_at'] = now()->addDays((int) config('marketplace.trial_days', 7));
+        }
+
+        $prestataire = Prestataire::create($create);
         $id = $prestataire->id;
         $row = Prestataire::find($id);
 

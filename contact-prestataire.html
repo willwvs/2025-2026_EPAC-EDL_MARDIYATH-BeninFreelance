@@ -240,6 +240,10 @@
           if (sv.delai_execution) svcLine += ' · ' + sv.delai_execution;
           if (sv.prix_indicatif != null) svcLine += ' · ' + Number(sv.prix_indicatif).toLocaleString('fr-FR') + ' F';
           document.getElementById('ctx-svc').textContent = svcLine;
+          if (d.can_reply === false || d.messaging_allowed === false) {
+            showErr('load-err', d.message || 'Ce prestataire ne peut pas recevoir de messages pour le moment.');
+            return;
+          }
           document.getElementById('panel-form').classList.remove('hidden');
         } catch (_) {
           showErr('load-err', 'Réseau indisponible.');

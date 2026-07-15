@@ -40,8 +40,12 @@
     #view-messages {
       flex: 1;
       min-height: 0;
+      width: 100%;
+      max-width: none;
       height: calc(100dvh - 3.5rem);
       max-height: calc(100dvh - 3.5rem);
+      padding: 0;
+      margin: 0;
     }
     #msg-layout {
       display: flex;
@@ -49,7 +53,11 @@
       min-height: 0;
       height: 100%;
       max-height: 100%;
+      width: 100%;
       overflow: hidden;
+      border-radius: 0;
+      border: none;
+      background: #13131A;
     }
     #msg-sidebar {
       width: 100%;
@@ -93,7 +101,8 @@
     }
     #msg-layout:has(#msg-chat-active:not(.hidden)) #msg-chat-panel { display: flex !important; }
     #msg-layout.msg-chat-open #msg-sidebar { display: none; }
-    #msg-layout.msg-chat-open #msg-chat-panel { display: flex !important; }
+    #msg-layout.msg-chat-open #msg-chat-panel { display: flex !important; width: 100%; flex: 1 1 0%; }
+    #msg-layout.msg-chat-open { height: 100%; }
     #msg-chat-active { flex: 1 1 0%; min-height: 0; overflow: hidden; }
     #msg-chat-active:not(.hidden) { display: flex !important; flex-direction: column; }
     #msg-bubbles {
@@ -102,6 +111,12 @@
       overflow-y: auto;
       overflow-x: hidden;
       scroll-behavior: smooth;
+    }
+    .msg-thread-column {
+      max-width: 42rem;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
     }
     .msg-compose-dock { flex: 0 0 auto; flex-shrink: 0; }
     #msg-compose-input { resize: none; min-height: 24px; line-height: 1.5; }
@@ -113,6 +128,7 @@
     .msg-thin-scroll { scrollbar-width: thin; scrollbar-color: rgba(122,122,154,.25) transparent; }
     #msg-compose-input:focus { border-color: transparent !important; box-shadow: none !important; }
     </style>
+  <script src="/assets/js/localites.js"></script>
   <script src="/assets/js/marketplace.js"></script>
   <script src="/assets/js/messenger.js"></script>
   <script src="/assets/js/orders.js"></script>
@@ -328,16 +344,16 @@
         </div>
       </section>
 
-      <section id="view-messages" class="hidden flex flex-col px-4 sm:px-6 lg:px-10 py-3 md:py-4 flex-1 min-h-0 max-w-5xl w-full mx-auto">
-        <div id="msg-layout" class="rounded-2xl border border-brd bg-surface2 overflow-hidden flex-1 min-h-0 h-full">
-          <aside id="msg-sidebar" class="bg-surface/30 flex flex-col min-h-0 h-full">
+      <section id="view-messages" class="hidden flex flex-col flex-1 min-h-0 w-full">
+        <div id="msg-layout" class="overflow-hidden flex-1 min-h-0 h-full w-full">
+          <aside id="msg-sidebar" class="bg-surface flex flex-col min-h-0 h-full border-r border-brd">
             <div id="msg-sidebar-header" class="px-4 py-4 border-b border-brd shrink-0 w-full">
               <h1 class="font-syne font-bold text-xl text-tx">Messages</h1>
               <p class="text-xs text-muted mt-1">Échanges liés à vos demandes de services</p>
             </div>
             <div id="msg-conv-list" class="flex-1 overflow-y-auto min-h-0"></div>
           </aside>
-          <div id="msg-chat-panel" class="bg-bg/40 h-full min-h-0">
+          <div id="msg-chat-panel" class="bg-bg flex flex-col min-h-0 h-full flex-1 min-w-0">
             <div id="msg-chat-active" class="hidden flex-1 flex flex-col min-h-0 h-full">
               <header class="shrink-0 flex items-center gap-3 px-3 py-3 border-b border-brd bg-surface/80">
                 <button type="button" id="msg-btn-back" class="shrink-0 w-9 h-9 rounded-lg border border-brd text-muted hover:text-tx" aria-label="Retour">
@@ -348,6 +364,7 @@
               </header>
               <div id="msg-bubbles" class="msg-thin-scroll px-3 sm:px-4 py-4"></div>
               <div class="msg-compose-dock border-t border-brd/70 bg-surface/40 px-3 sm:px-4 pt-3 pb-3">
+              <div class="msg-thread-column">
               <form id="msg-compose-form" class="m-0">
                 <input id="msg-file-input" type="file" class="hidden" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" />
                 <div id="msg-emoji-panel" class="hidden mb-2 flex flex-wrap gap-1 rounded-2xl border border-brd bg-surface2 p-2"></div>
@@ -370,6 +387,7 @@
                   </div>
                 </div>
               </form>
+              </div>
               </div>
             </div>
           </div>
@@ -420,9 +438,6 @@
             <label class="block text-xs text-muted font-medium mb-1.5" for="f-loc">Ville / localité</label>
             <select id="f-loc" required class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl appearance-none">
               <option value="">Sélectionner</option>
-              <option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option>
-              <option>Abomey-Calavi</option><option>Djougou</option><option>Bohicon</option>
-              <option>Kandi</option><option>Lokossa</option><option>Ouidah</option><option>Autre</option>
             </select>
           </div>
           <button type="submit" class="bg-accent text-bg font-syne font-bold text-sm py-3 px-6 rounded-xl hover:opacity-88 transition-opacity">Enregistrer</button>
@@ -876,6 +891,7 @@
         const user = await rUser.json();
         if (!user.ok) { window.location.href = '/login'; return; }
         setUserUI(user);
+        if (window.BFCities) BFCities.fillSelect('f-loc', 'Sélectionner');
         fillForm(user);
         let categories = [];
         let localites = [];

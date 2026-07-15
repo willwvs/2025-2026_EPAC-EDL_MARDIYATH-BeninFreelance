@@ -89,9 +89,6 @@
             <label class="block text-xs text-muted font-medium mb-1.5">Ville / Localité</label>
             <select id="ville" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl appearance-none transition-colors">
               <option value="">Sélectionner une ville</option>
-              <option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option>
-              <option>Abomey-Calavi</option><option>Djougou</option><option>Bohicon</option>
-              <option>Kandi</option><option>Lokossa</option><option>Ouidah</option><option>Autre</option>
             </select>
           </div>
           <div class="mb-6"><label class="block text-xs text-muted font-medium mb-1.5">Quartier (optionnel)</label><input id="quartier" type="text" placeholder="Ex: Akpakpa, Godomey..." class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl placeholder-muted transition-colors"/></div>
@@ -147,6 +144,12 @@
     </div>
   </div>
 
+  <script src="/assets/js/localites.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.BFCities) BFCities.fillSelect('ville', 'Sélectionner une ville');
+    });
+  </script>
   <script>
     let cur=1;
     const titles=['','Qui êtes-vous ?','Où êtes-vous ?','Sécurité du compte'];

@@ -102,9 +102,6 @@
             <label class="block text-xs text-muted font-medium mb-1.5">Ville / Localité</label>
             <select id="ville" class="w-full bg-surface border border-brd text-tx text-sm px-4 py-3 rounded-xl appearance-none transition-colors">
               <option value="">Sélectionner</option>
-              <option>Cotonou</option><option>Porto-Novo</option><option>Parakou</option>
-              <option>Abomey-Calavi</option><option>Djougou</option><option>Bohicon</option>
-              <option>Kandi</option><option>Lokossa</option><option>Ouidah</option><option>Autre</option>
             </select>
           </div>
           <button onclick="goStep(2)" class="w-full bg-accent text-bg font-syne font-bold py-3 rounded-xl hover:opacity-88 hover:-translate-y-px transition-all">Continuer →</button>
@@ -227,6 +224,12 @@
     </div>
   </div>
 
+  <script src="/assets/js/localites.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.BFCities) BFCities.fillSelect('ville', 'Sélectionner');
+    });
+  </script>
   <script>
     let cur=1, selCatVal='';
     const titles=['','Vos informations','Vos compétences','Vos documents','Sécurité'];

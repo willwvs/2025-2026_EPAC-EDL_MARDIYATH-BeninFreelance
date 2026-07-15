@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Prestataire;
 use App\Models\Service;
+use App\Services\SubscriptionService;
 use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -11,6 +13,10 @@ use Illuminate\Validation\Rule;
 
 class ServiceController extends Controller
 {
+    public function __construct(
+        private readonly SubscriptionService $subscriptions,
+    ) {}
+
     public function indexMine(Request $request)
     {
         $prestataireId = (int) $request->session()->get('auth_id');
@@ -34,11 +40,17 @@ class ServiceController extends Controller
             'delai_execution' => 'nullable|string|max:100',
         ], $this->categoryRules()));
 
+        $prestataire = Prestataire::query()->find($prestataireId);
+        $plan = $prestataire ? $this->subscriptions->effectivePlan($prestataire) : 'gratuit';
+        $max = SubscriptionService::servicesMax($plan);
         $existing = (int) Service::query()->where('prestataire_id', $prestataireId)->count();
-        if ($existing >= 2) {
+
+        if ($max !== null && $existing >= $max) {
+            $label = SubscriptionService::planLabel($plan);
+
             return response()->json([
                 'ok' => false,
-                'message' => 'Limite du plan gratuit (2 services) atteinte. Supprimez un service pour en ajouter un autre.',
+                'message' => "Limite du plan {$label} ({$max} services) atteinte. Passez à un plan supérieur ou supprimez un service.",
             ], 422);
         }
 

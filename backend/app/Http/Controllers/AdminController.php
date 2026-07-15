@@ -79,6 +79,8 @@ class AdminController extends Controller
                 'email' => $r->email,
                 'statut' => $r->statut_verification ?? '',
                 'statut_compte' => $r->statut ?? AccountStatus::ACTIF,
+                'plan' => $r->plan ?? 'gratuit',
+                'plan_expires_at' => $r->plan_expires_at?->format('d/m/Y'),
             ]);
 
         return response()->json(['ok' => true, 'rows' => $rows]);
@@ -678,7 +680,7 @@ class AdminController extends Controller
     public function listCategories()
     {
         if (! Schema::hasTable('categories')) {
-            return response()->json(['ok' => true, 'rows' => []]);
+            return response()->json(['ok' => true, 'rows' => [], 'next_ordre' => 1]);
         }
 
         $rows = Category::query()
@@ -693,25 +695,50 @@ class AdminController extends Controller
                 'active' => (bool) $c->active,
             ]);
 
-        return response()->json(['ok' => true, 'rows' => $rows]);
+        return response()->json([
+            'ok' => true,
+            'rows' => $rows,
+            'next_ordre' => (int) Category::query()->max('ordre') + 1,
+        ]);
     }
 
     public function storeCategory(Request $request)
     {
         $data = $request->validate([
             'nom' => 'required|string|max:100',
-            'ordre' => 'nullable|integer|min:0|max:9999',
+            'ordre' => 'nullable|integer|min:1|max:9999',
             'active' => 'nullable|boolean',
         ]);
+
+        $next = (int) Category::query()->max('ordre') + 1;
+        if ($next < 1) {
+            $next = 1;
+        }
+
+        $ordre = array_key_exists('ordre', $data) && $data['ordre'] !== null
+            ? (int) $data['ordre']
+            : $next;
+
+        if ($ordre < 1) {
+            $ordre = $next;
+        }
+
+        if (Category::query()->where('ordre', $ordre)->exists()) {
+            $ordre = $next;
+        }
 
         $cat = Category::create([
             'nom' => trim($data['nom']),
             'slug' => Str::slug($data['nom']),
-            'ordre' => (int) ($data['ordre'] ?? 0),
+            'ordre' => $ordre,
             'active' => $data['active'] ?? true,
         ]);
 
-        return response()->json(['ok' => true, 'category' => ['id' => $cat->id, 'nom' => $cat->nom]], 201);
+        return response()->json([
+            'ok' => true,
+            'category' => ['id' => $cat->id, 'nom' => $cat->nom, 'ordre' => $cat->ordre],
+            'next_ordre' => (int) Category::query()->max('ordre') + 1,
+        ], 201);
     }
 
     public function updateCategory(Request $request, int $id)
@@ -723,7 +750,7 @@ class AdminController extends Controller
 
         $data = $request->validate([
             'nom' => 'sometimes|required|string|max:100',
-            'ordre' => 'nullable|integer|min:0|max:9999',
+            'ordre' => 'nullable|integer|min:1|max:9999',
             'active' => 'nullable|boolean',
         ]);
 
@@ -732,8 +759,29 @@ class AdminController extends Controller
             $cat->nom = trim($data['nom']);
             $cat->slug = Str::slug($cat->nom);
         }
-        if (array_key_exists('ordre', $data)) {
-            $cat->ordre = (int) $data['ordre'];
+        if (array_key_exists('ordre', $data) && $data['ordre'] !== null) {
+            $newOrdre = (int) $data['ordre'];
+            if ($newOrdre !== (int) $cat->ordre) {
+                $occupant = Category::query()
+                    ->where('ordre', $newOrdre)
+                    ->where('id', '!=', $cat->id)
+                    ->first();
+                if ($occupant) {
+                    $oldOrdre = (int) $cat->ordre;
+                    // Swap via ordre temporaire pour respecter l'UNIQUE
+                    $tmp = 9000 + (int) $cat->id;
+                    while (Category::query()->where('ordre', $tmp)->exists()) {
+                        $tmp++;
+                    }
+                    $cat->ordre = $tmp;
+                    $cat->save();
+                    $occupant->ordre = $oldOrdre;
+                    $occupant->save();
+                    $cat->ordre = $newOrdre;
+                } else {
+                    $cat->ordre = $newOrdre;
+                }
+            }
         }
         if (array_key_exists('active', $data)) {
             $cat->active = (bool) $data['active'];

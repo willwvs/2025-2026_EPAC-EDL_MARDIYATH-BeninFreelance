@@ -6,6 +6,7 @@ use App\Models\Avis;
 use App\Models\Client;
 use App\Models\Prestataire;
 use App\Models\Service;
+use App\Services\SubscriptionService;
 use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -14,6 +15,9 @@ use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
 {
+    public function __construct(
+        private readonly SubscriptionService $subscriptions,
+    ) {}
     public function me(Request $request)
     {
         $id = (int) $request->session()->get('auth_id');
@@ -70,7 +74,7 @@ class ClientController extends Controller
             ->where('id', $id)
             ->where('statut_verification', 'valide')
             ->first();
-        if (! $p) {
+        if (! $p || ! $this->subscriptions->isDiscoverable($p)) {
             return response()->json(['ok' => false], 404);
         }
 
@@ -178,7 +182,7 @@ class ClientController extends Controller
             ->where('id', $id)
             ->where('statut_verification', 'valide')
             ->first();
-        if (! $p || empty($p->chemin_cv) || ! Storage::disk('local')->exists((string) $p->chemin_cv)) {
+        if (! $p || ! $this->subscriptions->isDiscoverable($p) || empty($p->chemin_cv) || ! Storage::disk('local')->exists((string) $p->chemin_cv)) {
             abort(404);
         }
 

@@ -398,9 +398,12 @@
     }
 
     function summaryHtml(c) {
+      const commission = Number(c.commission_fcfa || 0);
       const fees = role === 'prestataire'
-        ? ('<div><p class="text-[11px] uppercase tracking-wider text-muted font-bold">Net à recevoir</p><p class="text-sm font-bold text-emerald-300 mt-1">' + escapeHtml(formatMoney(c.net_prestataire_fcfa)) + '</p><p class="text-[10px] text-muted mt-0.5">après commission ' + escapeHtml(formatMoney(c.commission_fcfa)) + '</p></div>')
-        : ('<div><p class="text-[11px] uppercase tracking-wider text-muted font-bold">Commission plateforme</p><p class="text-sm font-bold text-tx mt-1">' + escapeHtml(formatMoney(c.commission_fcfa)) + '</p><p class="text-[10px] text-muted mt-0.5">prestataire reçoit ' + escapeHtml(formatMoney(c.net_prestataire_fcfa)) + '</p></div>');
+        ? ('<div><p class="text-[11px] uppercase tracking-wider text-muted font-bold">Vous recevez</p><p class="text-sm font-bold text-emerald-300 mt-1">' + escapeHtml(formatMoney(c.net_prestataire_fcfa || c.montant_fcfa)) + '</p>' +
+          (commission > 0 ? '<p class="text-[10px] text-muted mt-0.5">après commission ' + escapeHtml(formatMoney(commission)) + '</p>' : '<p class="text-[10px] text-muted mt-0.5">100 % du montant (sans commission)</p>') + '</div>')
+        : ('<div><p class="text-[11px] uppercase tracking-wider text-muted font-bold">' + (commission > 0 ? 'Commission plateforme' : 'Frais plateforme') + '</p><p class="text-sm font-bold text-tx mt-1">' + escapeHtml(formatMoney(commission)) + '</p>' +
+          (commission > 0 ? '<p class="text-[10px] text-muted mt-0.5">prestataire reçoit ' + escapeHtml(formatMoney(c.net_prestataire_fcfa)) + '</p>' : '<p class="text-[10px] text-muted mt-0.5">financé par l’abonnement prestataire</p>') + '</div>');
       return (
         '<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 rounded-2xl border border-brd bg-surface/40 p-4 sm:p-5">' +
         '<div><p class="text-[11px] uppercase tracking-wider text-muted font-bold">Montant</p><p class="text-sm font-bold text-tx mt-1">' + escapeHtml(formatMoney(c.montant_fcfa)) + '</p></div>' +
@@ -689,8 +692,10 @@
         body:
           '<div class="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-3">' +
           '<div class="flex items-center justify-between text-sm"><span class="text-muted">Montant total payé</span><span class="font-bold text-tx">' + escapeHtml(formatMoney(c.montant_fcfa)) + '</span></div>' +
-          '<div class="flex items-center justify-between text-sm"><span class="text-muted">Commission plateforme</span><span class="text-tx">− ' + escapeHtml(formatMoney(c.commission_fcfa)) + '</span></div>' +
-          '<div class="flex items-center justify-between text-base font-bold border-t border-emerald-500/20 pt-3"><span class="text-emerald-200">Versé au prestataire</span><span class="text-emerald-200">' + escapeHtml(formatMoney(c.net_prestataire_fcfa)) + '</span></div>' +
+          (Number(c.commission_fcfa || 0) > 0
+            ? '<div class="flex items-center justify-between text-sm"><span class="text-muted">Commission plateforme</span><span class="text-tx">− ' + escapeHtml(formatMoney(c.commission_fcfa)) + '</span></div>'
+            : '') +
+          '<div class="flex items-center justify-between text-base font-bold border-t border-emerald-500/20 pt-3"><span class="text-emerald-200">Versé au prestataire</span><span class="text-emerald-200">' + escapeHtml(formatMoney(c.net_prestataire_fcfa || c.montant_fcfa)) + '</span></div>' +
           '</div>' +
           '<p class="text-xs text-muted mt-3 leading-relaxed"><i class="fa-solid fa-circle-info mr-1"></i> Cette action est <strong>irréversible</strong>. Pour des modifications, choisissez « Demander une retouche » à la place.</p>',
         footer:

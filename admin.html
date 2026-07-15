@@ -105,6 +105,7 @@
                   <th class="px-4 py-3 whitespace-nowrap">Email</th>
                   <th class="px-4 py-3 whitespace-nowrap">Dossier</th>
                   <th class="px-4 py-3 whitespace-nowrap">Compte</th>
+                  <th class="px-4 py-3 whitespace-nowrap">Plan</th>
                   <th class="px-4 py-3 whitespace-nowrap w-28"></th>
                 </tr>
               </thead>
@@ -275,9 +276,10 @@
                 class="bg-bg border border-brd rounded-xl px-3 py-2 text-sm w-48" />
             </div>
             <div>
-              <label class="block text-xs text-muted mb-1" for="cat-ordre">Ordre</label>
-              <input id="cat-ordre" type="number" min="0" value="0"
-                class="bg-bg border border-brd rounded-xl px-3 py-2 text-sm w-20" />
+              <label class="block text-xs text-muted mb-1" for="cat-ordre">Ordre (unique)</label>
+              <input id="cat-ordre" type="number" min="1" value="1"
+                class="bg-bg border border-brd rounded-xl px-3 py-2 text-sm w-20" title="Doit être unique ; si pris, le prochain libre est utiliséé" />
+              <p class="text-[10px] text-muted mt-1">Si l’ordre est déjà pris, le suivant libre est attribué.</p>
             </div>
             <button type="button" onclick="addCategory()"
               class="bg-accent text-bg font-bold text-sm py-2 px-4 rounded-xl hover:opacity-90">Ajouter</button>
@@ -831,6 +833,7 @@
           '<td class="px-4 py-3 text-sm text-muted">' + escapeHtml(x.email) + '</td>' +
           '<td class="px-4 py-3"><span class="inline-block text-xs px-2 py-0.5 rounded-full border ' + st.cls + '">' + escapeHtml(st.label) + '</span></td>' +
           '<td class="px-4 py-3"><span class="inline-block text-xs px-2 py-0.5 rounded-full border ' + cs.cls + '">' + escapeHtml(cs.label) + '</span></td>' +
+          '<td class="px-4 py-3 text-xs text-muted">' + escapeHtml((x.plan || 'gratuit') + (x.plan_expires_at ? ' · ' + x.plan_expires_at : '')) + '</td>' +
           '<td class="px-4 py-3"><button type="button" class="text-[13px] font-medium text-accent hover:underline">Détail</button></td>';
         tr.querySelector('button').onclick = function () { openDetail(x.id); };
         tb.appendChild(tr);
@@ -1009,6 +1012,9 @@
       const r = await api('/admin/api/categories');
       if (r.status === 401 || r.status === 403) { showLogin(); return; }
       const d = await r.json();
+      const next = d.next_ordre || 1;
+      const ordreInput = document.getElementById('cat-ordre');
+      if (ordreInput) ordreInput.value = String(next);
       const tb = document.getElementById('category-rows');
       tb.innerHTML = '';
       (d.rows || []).forEach(function (c) {
@@ -1016,7 +1022,7 @@
         tr.className = 'hover:bg-surface2/50';
         tr.innerHTML =
           '<td class="px-4 py-3"><input type="text" data-cat-nom="' + c.id + '" value="' + escapeHtml(c.nom) + '" class="bg-bg border border-brd rounded-lg px-2 py-1 text-sm w-full max-w-[200px]" /></td>' +
-          '<td class="px-4 py-3"><input type="number" data-cat-ordre="' + c.id + '" value="' + c.ordre + '" class="bg-bg border border-brd rounded-lg px-2 py-1 text-sm w-16" /></td>' +
+          '<td class="px-4 py-3"><input type="number" min="1" data-cat-ordre="' + c.id + '" value="' + c.ordre + '" class="bg-bg border border-brd rounded-lg px-2 py-1 text-sm w-16" title="Échange avec la catégorie qui a déjà cet ordre" /></td>' +
           '<td class="px-4 py-3"><input type="checkbox" data-cat-active="' + c.id + '" ' + (c.active ? 'checked' : '') + ' class="accent-accent" /></td>' +
           '<td class="px-4 py-3 space-x-2"></td>';
         const actions = tr.querySelector('td:last-child');
@@ -1044,19 +1050,23 @@
 
     async function addCategory() {
       const nom = document.getElementById('cat-nom').value.trim();
-      const ordre = parseInt(document.getElementById('cat-ordre').value, 10) || 0;
+      const ordreRaw = document.getElementById('cat-ordre').value;
+      const ordre = parseInt(ordreRaw, 10);
       if (!nom) { alert('Nom requis.'); return; }
       await getCsrf();
-      const r = await api('/admin/api/categories', { method: 'POST', body: { nom: nom, ordre: ordre, active: true } });
+      const body = { nom: nom, active: true };
+      if (!Number.isNaN(ordre) && ordre >= 1) body.ordre = ordre;
+      const r = await api('/admin/api/categories', { method: 'POST', body: body });
       const d = await r.json();
       if (!d.ok) { alert(d.message || 'Erreur'); return; }
       document.getElementById('cat-nom').value = '';
+      if (d.next_ordre) document.getElementById('cat-ordre').value = String(d.next_ordre);
       loadCategories();
     }
 
     async function saveCategory(id) {
       const nom = document.querySelector('[data-cat-nom="' + id + '"]').value.trim();
-      const ordre = parseInt(document.querySelector('[data-cat-ordre="' + id + '"]').value, 10) || 0;
+      const ordre = Math.max(1, parseInt(document.querySelector('[data-cat-ordre="' + id + '"]').value, 10) || 1);
       const active = document.querySelector('[data-cat-active="' + id + '"]').checked;
       await getCsrf();
       const r = await api('/admin/api/categories/' + id, {

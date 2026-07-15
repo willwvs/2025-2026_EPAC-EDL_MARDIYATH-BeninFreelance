@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('prestataires:finalize-ia-decisions')->hourly();
 Schedule::command('commandes:auto-release')->everyTenMinutes();
 Schedule::command('commandes:expire-unaccepted')->hourly();
+Schedule::command('subscriptions:expire')->hourly();

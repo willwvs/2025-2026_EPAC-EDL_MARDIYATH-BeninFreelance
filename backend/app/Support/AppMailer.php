@@ -219,4 +219,62 @@ HTML;
 
         return self::send($to, 'Avis signalé — modération requise', $html);
     }
+
+    public static function sendAdminLitige(
+        int $commandeId,
+        string $titre,
+        string $clientLabel,
+        string $prestataireLabel,
+        int $montantFcfa,
+        string $motif,
+    ): bool {
+        $to = (string) config('services.admin_email', '');
+        if ($to === '') {
+            Log::info('ADMIN_EMAIL non défini — notification litige ignorée.', ['commande_id' => $commandeId]);
+
+            return false;
+        }
+
+        $adminUrl = url('/admin');
+        $titreHtml = htmlspecialchars($titre !== '' ? $titre : 'Commande #'.$commandeId, ENT_QUOTES, 'UTF-8');
+        $client = htmlspecialchars($clientLabel, ENT_QUOTES, 'UTF-8');
+        $presta = htmlspecialchars($prestataireLabel, ENT_QUOTES, 'UTF-8');
+        $motifHtml = htmlspecialchars(trim($motif), ENT_QUOTES, 'UTF-8');
+        $montant = number_format($montantFcfa, 0, ',', ' ');
+
+        $html = <<<HTML
+<p style="font-family:sans-serif;color:#333;">Un litige a été ouvert sur BéninFreelance.</p>
+<ul style="font-family:sans-serif;color:#333;font-size:14px;">
+<li><strong>Commande #</strong>{$commandeId} — {$titreHtml}</li>
+<li><strong>Montant :</strong> {$montant} FCFA</li>
+<li><strong>Client :</strong> {$client}</li>
+<li><strong>Prestataire :</strong> {$presta}</li>
+</ul>
+<p style="font-family:sans-serif;color:#555;"><strong>Motif :</strong> {$motifHtml}</p>
+<p><a href="{$adminUrl}" style="display:inline-block;background:#F5A623;color:#0A0A0F;padding:12px 20px;border-radius:8px;font-weight:bold;text-decoration:none;">Traiter le litige</a></p>
+HTML;
+
+        return self::send($to, 'Litige ouvert — médiation requise', $html);
+    }
+
+    public static function sendAbonnementConfirme(
+        string $email,
+        string $prenom,
+        string $plan,
+        string $planLabel,
+        \DateTimeInterface $endsAt,
+    ): bool {
+        $name = htmlspecialchars($prenom !== '' ? $prenom : '', ENT_QUOTES, 'UTF-8');
+        $label = htmlspecialchars($planLabel, ENT_QUOTES, 'UTF-8');
+        $until = htmlspecialchars($endsAt->format('d/m/Y'), ENT_QUOTES, 'UTF-8');
+        $url = url('/dashboard/prestataire?section=abonnement');
+        $html = <<<HTML
+<p style="font-family:sans-serif;color:#333;">Bonjour {$name},</p>
+<p style="font-family:sans-serif;color:#333;">Votre abonnement <strong>{$label}</strong> est actif jusqu'au <strong>{$until}</strong>.</p>
+<p style="font-family:sans-serif;color:#333;">Vous bénéficiez des avantages de ce plan (quota de services et visibilité accrue).</p>
+<p><a href="{$url}" style="display:inline-block;background:#F5A623;color:#0A0A0F;padding:12px 20px;border-radius:8px;font-weight:bold;text-decoration:none;">Voir mon abonnement</a></p>
+HTML;
+
+        return self::send($email, 'Abonnement '.$planLabel.' activé — BéninFreelance', $html);
+    }
 }

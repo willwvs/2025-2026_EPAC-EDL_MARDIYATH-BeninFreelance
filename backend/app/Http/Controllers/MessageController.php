@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Message;
 use App\Models\Prestataire;
 use App\Models\Service;
+use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +14,10 @@ use Illuminate\Support\Str;
 
 class MessageController extends Controller
 {
+    public function __construct(
+        private readonly SubscriptionService $subscriptions,
+    ) {}
+
     public function contactContext(Request $request)
     {
         $prestataireId = (int) $request->query('prestataire_id', 0);
@@ -26,11 +31,18 @@ class MessageController extends Controller
             return response()->json(['ok' => false, 'message' => 'Prestataire ou service introuvable.'], 404);
         }
 
+        $prestataire = Prestataire::query()->find($prestataireId);
+        $canMessage = $prestataire ? $this->subscriptions->canMessage($prestataire) : false;
+
         return response()->json([
             'ok' => true,
             'prestataire' => $ctx['prestataire'],
             'service' => $ctx['service'],
-            'can_reply' => true,
+            'can_reply' => $canMessage,
+            'messaging_allowed' => $canMessage,
+            'message' => $canMessage
+                ? null
+                : 'Ce prestataire ne peut pas recevoir de messages pour le moment (essai gratuit terminé ou abonnement requis).',
         ]);
     }
 
@@ -55,9 +67,15 @@ class MessageController extends Controller
         }
 
         $prestataireId = (int) $request->session()->get('auth_id');
+        $prestataire = Prestataire::query()->find($prestataireId);
+        $messagingAllowed = $prestataire ? $this->subscriptions->canMessage($prestataire) : false;
 
         return response()->json([
             'ok' => true,
+            'messaging_allowed' => $messagingAllowed,
+            'messaging_blocked_message' => $messagingAllowed
+                ? null
+                : $this->subscriptions->messagingBlockedMessage(),
             'conversations' => $this->buildConversationsForPrestataire($prestataireId),
         ]);
     }
@@ -144,6 +162,14 @@ class MessageController extends Controller
             return response()->json(['ok' => false, 'message' => 'Prestataire ou service introuvable.'], 404);
         }
 
+        $prestataire = Prestataire::query()->find($prestataireId);
+        if (! $prestataire || ! $this->subscriptions->canMessage($prestataire)) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Ce prestataire ne peut pas recevoir de messages pour le moment (essai gratuit terminé ou abonnement requis).',
+            ], 403);
+        }
+
         $isFirst = ! $this->threadExists($clientId, $prestataireId, $serviceId);
         $body = trim((string) ($data['contenu'] ?? ''));
         $attachment = $this->storeAttachment($request);
@@ -188,6 +214,14 @@ class MessageController extends Controller
             'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,txt,zip',
         ]);
 
+        $prestataire = Prestataire::query()->find($prestataireId);
+        if (! $prestataire || ! $this->subscriptions->canMessage($prestataire)) {
+            return response()->json([
+                'ok' => false,
+                'message' => $this->subscriptions->messagingBlockedMessage(),
+            ], 403);
+        }
+
         $clientId = (int) $data['client_id'];
         $serviceId = (int) $data['service_id'];
 
@@ -213,6 +247,26 @@ class MessageController extends Controller
         );
 
         return response()->json(['ok' => true, 'message' => 'Message envoyé.']);
+    }
+
+    public function updateClientMessage(Request $request, int $id)
+    {
+        return $this->updateChatMessage($request, $id, 'client');
+    }
+
+    public function deleteClientMessage(Request $request, int $id)
+    {
+        return $this->deleteChatMessage($request, $id, 'client');
+    }
+
+    public function updatePrestataireMessage(Request $request, int $id)
+    {
+        return $this->updateChatMessage($request, $id, 'prestataire');
+    }
+
+    public function deletePrestataireMessage(Request $request, int $id)
+    {
+        return $this->deleteChatMessage($request, $id, 'prestataire');
     }
 
     public function attachment(Request $request, int $id)
@@ -272,6 +326,7 @@ class MessageController extends Controller
                 'm.attachment_name',
                 'm.created_at',
                 'm.expediteur',
+                'm.deleted_at',
                 'p.nom as prestataire_nom',
                 'p.prenom as prestataire_prenom',
                 's.titre as service_titre',
@@ -283,7 +338,11 @@ class MessageController extends Controller
                 'service_id' => (int) $r->service_id,
                 'peer_label' => trim($r->prestataire_prenom.' '.$r->prestataire_nom),
                 'service_titre' => $r->service_titre,
-                'last_excerpt' => $this->excerptForList((string) $r->contenu, $r->attachment_name),
+                'last_excerpt' => $this->excerptForList(
+                    (string) $r->contenu,
+                    $r->attachment_name,
+                    Schema::hasColumn('messages', 'deleted_at') && ! empty($r->deleted_at)
+                ),
                 'last_at' => $r->created_at,
                 'last_is_mine' => $this->senderOf($r) === 'client',
                 'unread_count' => $this->unreadCount($clientId, (int) $r->prestataire_id, (int) $r->service_id, 'client'),
@@ -318,6 +377,7 @@ class MessageController extends Controller
                 'm.attachment_name',
                 'm.created_at',
                 'm.expediteur',
+                'm.deleted_at',
                 'c.nom as client_nom',
                 'c.prenom as client_prenom',
                 's.titre as service_titre',
@@ -330,7 +390,11 @@ class MessageController extends Controller
                 'service_id' => (int) $r->service_id,
                 'peer_label' => trim($r->client_prenom.' '.$r->client_nom),
                 'service_titre' => $r->service_titre,
-                'last_excerpt' => $this->excerptForList((string) $r->contenu, $r->attachment_name),
+                'last_excerpt' => $this->excerptForList(
+                    (string) $r->contenu,
+                    $r->attachment_name,
+                    Schema::hasColumn('messages', 'deleted_at') && ! empty($r->deleted_at)
+                ),
                 'last_at' => $r->created_at,
                 'last_is_mine' => $this->senderOf($r) === 'prestataire',
                 'unread_count' => $this->unreadCount((int) $r->client_id, $prestataireId, (int) $r->service_id, 'prestataire'),
@@ -359,17 +423,25 @@ class MessageController extends Controller
             $sender = $this->senderOf($m);
             $kind = Schema::hasColumn('messages', 'kind') ? ((string) ($m->kind ?: 'chat')) : 'chat';
             $meta = Schema::hasColumn('messages', 'meta') && $m->meta ? $m->meta : null;
+            $deleted = Schema::hasColumn('messages', 'deleted_at') && $m->deleted_at !== null;
+            $editedAt = Schema::hasColumn('messages', 'edited_at') ? $m->edited_at : null;
+            $isChat = $kind === 'chat' || $kind === '';
+            $mine = $sender === $viewerRole;
 
             return [
                 'id' => $m->id,
                 'expediteur' => $sender,
                 'kind' => $kind,
                 'commande_id' => Schema::hasColumn('messages', 'commande_id') ? ($m->commande_id ?? null) : null,
-                'contenu' => $this->bodyForBubble((string) $m->contenu),
+                'contenu' => $deleted ? '' : $this->bodyForBubble((string) $m->contenu),
+                'deleted' => $deleted,
+                'edited_at' => $editedAt,
+                'can_edit' => $mine && $isChat && ! $deleted,
+                'can_delete' => $mine && $isChat && ! $deleted,
                 'meta' => $meta,
-                'attachment' => $this->attachmentPayload($m),
+                'attachment' => $deleted ? null : $this->attachmentPayload($m),
                 'created_at' => $m->created_at,
-                'mine' => $sender === $viewerRole,
+                'mine' => $mine,
             ];
         })->values()->all();
     }
@@ -580,8 +652,12 @@ class MessageController extends Controller
         ];
     }
 
-    private function excerptForList(string $contenu, ?string $attachmentName = null): string
+    private function excerptForList(string $contenu, ?string $attachmentName = null, bool $deleted = false): string
     {
+        if ($deleted) {
+            return 'Message supprimé';
+        }
+
         $cut = $this->bodyForBubble($contenu);
         $cut = trim(preg_replace('/\s+/', ' ', $cut));
         if ($cut === '' && $attachmentName) {
@@ -602,5 +678,110 @@ class MessageController extends Controller
         }
 
         return trim($contenu);
+    }
+
+    private function updateChatMessage(Request $request, int $id, string $role)
+    {
+        if (! Schema::hasTable('messages')) {
+            return response()->json(['ok' => false, 'message' => 'Messagerie non disponible.'], 503);
+        }
+
+        $message = $this->resolveOwnedChatMessage($request, $id, $role);
+        if ($message instanceof \Illuminate\Http\JsonResponse) {
+            return $message;
+        }
+
+        $data = $request->validate([
+            'contenu' => 'required|string|max:8000',
+        ]);
+
+        $body = trim((string) $data['contenu']);
+        if ($body === '') {
+            return response()->json(['ok' => false, 'message' => 'Le message ne peut pas être vide.'], 422);
+        }
+
+        $update = ['contenu' => $this->mergeEditedBody((string) $message->contenu, $body)];
+        if (Schema::hasColumn('messages', 'edited_at')) {
+            $update['edited_at'] = now();
+        }
+
+        $message->update($update);
+
+        return response()->json(['ok' => true, 'message' => 'Message modifié.']);
+    }
+
+    private function deleteChatMessage(Request $request, int $id, string $role)
+    {
+        if (! Schema::hasTable('messages')) {
+            return response()->json(['ok' => false, 'message' => 'Messagerie non disponible.'], 503);
+        }
+
+        $message = $this->resolveOwnedChatMessage($request, $id, $role);
+        if ($message instanceof \Illuminate\Http\JsonResponse) {
+            return $message;
+        }
+
+        if (! empty($message->attachment_path)) {
+            Storage::disk('local')->delete((string) $message->attachment_path);
+        }
+
+        $update = ['contenu' => ''];
+        if (Schema::hasColumn('messages', 'deleted_at')) {
+            $update['deleted_at'] = now();
+        }
+        if (Schema::hasColumn('messages', 'attachment_path')) {
+            $update['attachment_path'] = null;
+            $update['attachment_name'] = null;
+            $update['attachment_mime'] = null;
+            $update['attachment_size'] = null;
+        }
+
+        $message->update($update);
+
+        return response()->json(['ok' => true, 'message' => 'Message supprimé.']);
+    }
+
+    /** @return Message|\Illuminate\Http\JsonResponse */
+    private function resolveOwnedChatMessage(Request $request, int $id, string $role)
+    {
+        $authId = (int) $request->session()->get('auth_id');
+        $message = Message::query()->where('id', $id)->first();
+
+        if (! $message) {
+            return response()->json(['ok' => false, 'message' => 'Message introuvable.'], 404);
+        }
+
+        if (Schema::hasColumn('messages', 'deleted_at') && $message->deleted_at !== null) {
+            return response()->json(['ok' => false, 'message' => 'Message déjà supprimé.'], 422);
+        }
+
+        $kind = Schema::hasColumn('messages', 'kind') ? ((string) ($message->kind ?: 'chat')) : 'chat';
+        if ($kind !== 'chat' && $kind !== '') {
+            return response()->json(['ok' => false, 'message' => 'Ce message ne peut pas être modifié.'], 422);
+        }
+
+        $sender = $this->senderOf($message);
+        if ($sender !== $role) {
+            return response()->json(['ok' => false, 'message' => 'Action non autorisée.'], 403);
+        }
+
+        if ($role === 'client' && (int) $message->client_id !== $authId) {
+            return response()->json(['ok' => false, 'message' => 'Action non autorisée.'], 403);
+        }
+        if ($role === 'prestataire' && (int) $message->prestataire_id !== $authId) {
+            return response()->json(['ok' => false, 'message' => 'Action non autorisée.'], 403);
+        }
+
+        return $message;
+    }
+
+    private function mergeEditedBody(string $stored, string $newVisibleBody): string
+    {
+        $pos = mb_strpos($stored, "\n\n—\n");
+        if ($pos !== false && $pos > 0) {
+            return trim($newVisibleBody).mb_substr($stored, $pos);
+        }
+
+        return trim($newVisibleBody);
     }
 }

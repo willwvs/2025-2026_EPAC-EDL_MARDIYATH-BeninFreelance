@@ -6,6 +6,7 @@ use App\Models\Avis;
 use App\Models\Message;
 use App\Models\Prestataire;
 use App\Models\Service;
+use App\Services\SubscriptionService;
 use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -14,6 +15,10 @@ use Illuminate\Validation\Rule;
 
 class PrestataireController extends Controller
 {
+    public function __construct(
+        private readonly SubscriptionService $subscriptions,
+    ) {}
+
     public function me(Request $request)
     {
         $id = (int) $request->session()->get('auth_id');
@@ -21,6 +26,8 @@ class PrestataireController extends Controller
         if (! $row) {
             return response()->json(['ok' => false], 404);
         }
+
+        $sub = $this->subscriptions->statusPayload($row);
 
         $photoUrl = null;
         if (! empty($row->photo_profil)) {
@@ -58,8 +65,14 @@ class PrestataireController extends Controller
             'nb_avis' => $nbAvis,
             'messages_non_lus' => $messagesNonLus,
             'services_actifs' => $servicesActifs,
-            'plan' => 'gratuit',
-            'services_max' => 2,
+            'plan' => $sub['plan'],
+            'plan_label' => $sub['plan_label'],
+            'plan_expires_at' => $sub['plan_expires_at'],
+            'trial_ends_at' => $sub['trial_ends_at'] ?? null,
+            'trial_active' => $sub['trial_active'] ?? false,
+            'messaging_allowed' => $sub['messaging_allowed'] ?? true,
+            'messaging_blocked_message' => $sub['messaging_blocked_message'] ?? null,
+            'services_max' => $sub['services_max'],
             'has_cv' => $hasCv,
             'cv_preview_url' => $hasCv ? '/api/prestataire/cv' : null,
             'mm_phone' => Schema::hasColumn('prestataires', 'mm_phone') ? ($row->mm_phone ?? null) : null,

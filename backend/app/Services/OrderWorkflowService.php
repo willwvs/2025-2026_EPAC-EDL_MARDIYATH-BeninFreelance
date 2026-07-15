@@ -27,7 +27,7 @@ class OrderWorkflowService
 
     public function computeCommission(int $montantFcfa): array
     {
-        $rate = (float) config('marketplace.commission_rate', 0.05);
+        $rate = (float) config('marketplace.commission_rate', 0);
         $commission = (int) round($montantFcfa * $rate);
         $net = max(0, $montantFcfa - $commission);
 
@@ -844,7 +844,19 @@ class OrderWorkflowService
             ['event' => 'order.dispute_opened', 'motif' => $motif]
         );
 
-        return ['ok' => true, 'commande' => $commande->fresh()];
+        $fresh = $commande->fresh(['client', 'prestataire']);
+        $client = $fresh?->client;
+        $presta = $fresh?->prestataire;
+        AppMailer::sendAdminLitige(
+            (int) $fresh->id,
+            (string) ($fresh->titre ?? ''),
+            $client ? trim($client->prenom.' '.$client->nom) : 'Client',
+            $presta ? trim($presta->prenom.' '.$presta->nom) : 'Prestataire',
+            (int) ($fresh->montant_fcfa ?? 0),
+            $motif,
+        );
+
+        return ['ok' => true, 'commande' => $fresh];
     }
 
     /**
@@ -928,7 +940,7 @@ class OrderWorkflowService
 
         // Si remboursement partiel : verser le reste au prestataire
         if ($partial && $remaining > 0) {
-            $netRate = (float) config('marketplace.commission_rate', 0.05);
+            $netRate = (float) config('marketplace.commission_rate', 0);
             $commission = (int) round($remaining * $netRate);
             $net = max(0, $remaining - $commission);
             $commande->update([

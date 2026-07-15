@@ -11,6 +11,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\PrestataireController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
@@ -87,6 +88,8 @@ Route::middleware('app.auth:client')->group(function () {
     Route::get('/api/client/messages', [MessageController::class, 'indexClient']);
     Route::get('/api/client/messages/thread', [MessageController::class, 'threadClient']);
     Route::post('/api/client/messages', [MessageController::class, 'storeClientMessage']);
+    Route::patch('/api/client/messages/{id}', [MessageController::class, 'updateClientMessage'])->whereNumber('id');
+    Route::delete('/api/client/messages/{id}', [MessageController::class, 'deleteClientMessage'])->whereNumber('id');
     Route::get('/api/client/commandes', [OrderController::class, 'indexClient']);
     Route::post('/api/client/commandes', [OrderController::class, 'proposer']);
     Route::get('/api/client/commandes/{id}', [OrderController::class, 'showClient'])->whereNumber('id');
@@ -124,6 +127,8 @@ Route::middleware('app.auth:prestataire')->group(function () {
     Route::get('/api/prestataire/messages', [MessageController::class, 'indexPrestataire']);
     Route::get('/api/prestataire/messages/thread', [MessageController::class, 'threadPrestataire']);
     Route::post('/api/prestataire/messages', [MessageController::class, 'storePrestataireMessage']);
+    Route::patch('/api/prestataire/messages/{id}', [MessageController::class, 'updatePrestataireMessage'])->whereNumber('id');
+    Route::delete('/api/prestataire/messages/{id}', [MessageController::class, 'deletePrestataireMessage'])->whereNumber('id');
     Route::get('/api/prestataire/commandes', [OrderController::class, 'indexPrestataire']);
     Route::get('/api/prestataire/commandes/{id}', [OrderController::class, 'showPrestataire'])->whereNumber('id');
     Route::post('/api/prestataire/commandes/{id}/accepter', [OrderController::class, 'accepter'])->whereNumber('id');
@@ -133,9 +138,12 @@ Route::middleware('app.auth:prestataire')->group(function () {
         ->whereNumber(['commandeId', 'livraisonId']);
     Route::get('/api/prestataire/counters', [OrderController::class, 'countersPrestataire']);
     Route::get('/api/prestataire/avis', [PrestataireController::class, 'avisIndex']);
+    Route::get('/api/prestataire/subscription', [SubscriptionController::class, 'show']);
+    Route::post('/api/prestataire/subscription/checkout', [SubscriptionController::class, 'checkout']);
 });
 
 Route::get('/api/messages/{id}/attachment', [MessageController::class, 'attachment'])->whereNumber('id');
+Route::get('/api/abonnements/{id}/status', [SubscriptionController::class, 'statusPublic'])->whereNumber('id');
 
 Route::post('/api/webhooks/fedapay/payin', [PaymentWebhookController::class, 'payinWebhook']);
 Route::post('/api/webhooks/fedapay/payout', [PaymentWebhookController::class, 'payoutWebhook']);

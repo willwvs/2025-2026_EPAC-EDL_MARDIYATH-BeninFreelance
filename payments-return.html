@@ -39,7 +39,6 @@
 <body class="bg-bg text-tx min-h-screen flex items-center justify-center p-4 sm:p-6">
   <main class="w-full max-w-md">
     <div class="rounded-3xl border border-brd bg-surface2 p-7 sm:p-9 text-center shadow-2xl">
-      <!-- État dynamique : loading / success / pending / error -->
       <div id="state-loading" class="anim-up">
         <div class="w-20 h-20 mx-auto mb-5 rounded-full bg-accent/15 flex items-center justify-center glow">
           <i class="fa-solid fa-spinner spinner text-accent text-3xl"></i>
@@ -54,8 +53,8 @@
             <path class="check-path" d="M5 12.5l4 4L19 7"/>
           </svg>
         </div>
-        <h1 class="font-syne font-bold text-2xl text-tx mb-2 anim-up d1">Paiement confirmé</h1>
-        <p class="text-sm text-muted leading-relaxed anim-up d2">Votre paiement est sécurisé sur la plateforme. Il sera libéré au prestataire dès que vous validerez la livraison.</p>
+        <h1 id="success-title" class="font-syne font-bold text-2xl text-tx mb-2 anim-up d1">Paiement confirmé</h1>
+        <p id="success-desc" class="text-sm text-muted leading-relaxed anim-up d2">Votre paiement est sécurisé sur la plateforme.</p>
 
         <div id="success-details" class="hidden mt-5 rounded-2xl border border-brd bg-bg/40 p-4 text-left anim-up d2">
           <p id="sd-title" class="font-syne font-bold text-sm text-tx truncate"></p>
@@ -65,15 +64,15 @@
               <p id="sd-amount" class="font-bold text-tx">—</p>
             </div>
             <div>
-              <p class="text-[10px] uppercase tracking-wider text-muted font-bold mb-0.5">Délai prestataire</p>
+              <p id="sd-meta-label" class="text-[10px] uppercase tracking-wider text-muted font-bold mb-0.5">Délai prestataire</p>
               <p id="sd-delai" class="font-bold text-tx">—</p>
             </div>
           </div>
         </div>
 
-        <div class="mt-5 rounded-xl border border-accent/30 bg-accent/5 p-3 text-left text-xs text-tx/90 anim-up d3">
+        <div id="success-next-steps" class="mt-5 rounded-xl border border-accent/30 bg-accent/5 p-3 text-left text-xs text-tx/90 anim-up d3">
           <p class="font-bold text-accent mb-1.5"><i class="fa-solid fa-list-check mr-1.5"></i> Prochaines étapes</p>
-          <ol class="space-y-1.5 list-decimal list-inside text-[11px] leading-relaxed text-muted">
+          <ol id="success-steps" class="space-y-1.5 list-decimal list-inside text-[11px] leading-relaxed text-muted">
             <li>Le prestataire commence le travail.</li>
             <li>Il soumet sa livraison avec les fichiers via la plateforme.</li>
             <li>Vous validez (ou demandez une retouche) sous 14 jours.</li>
@@ -94,7 +93,7 @@
         <p class="text-sm text-muted leading-relaxed anim-up d2">Votre opérateur Mobile Money confirme la transaction. Le statut sera mis à jour automatiquement dès réception.</p>
         <p class="text-[11px] text-muted mt-3 anim-up d3">Vous pouvez fermer cette page sans risque — vous recevrez une notification.</p>
         <a id="btn-pending" href="/dashboard/client?section=commandes" class="mt-5 inline-flex items-center justify-center gap-2 w-full border border-brd text-tx text-sm px-6 py-3 rounded-xl hover:border-accent hover:text-accent anim-up d4">
-          <i class="fa-solid fa-arrow-right"></i> Aller à mes commandes
+          <i class="fa-solid fa-arrow-right"></i> Continuer
         </a>
       </div>
 
@@ -124,10 +123,21 @@
     (function () {
       const qs = new URLSearchParams(window.location.search);
       const commandeId = parseInt(qs.get('commande_id') || '0', 10);
-      const dashUrl = '/dashboard/client?section=commandes' + (commandeId ? '&commande_id=' + commandeId : '');
+      const abonnementId = parseInt(qs.get('abonnement_id') || '0', 10);
+      const isSub = abonnementId > 0;
+      const dashUrl = isSub
+        ? '/dashboard/prestataire?section=abonnement'
+        : ('/dashboard/client?section=commandes' + (commandeId ? '&commande_id=' + commandeId : ''));
+
       document.getElementById('btn-success').href = dashUrl;
       document.getElementById('btn-pending').href = dashUrl;
       document.getElementById('btn-retry').href = dashUrl;
+      document.getElementById('btn-success').innerHTML = isSub
+        ? '<i class="fa-solid fa-crown"></i> Voir mon abonnement'
+        : '<i class="fa-solid fa-file-contract"></i> Voir ma commande';
+      document.getElementById('btn-pending').innerHTML = isSub
+        ? '<i class="fa-solid fa-arrow-right"></i> Aller à mon abonnement'
+        : '<i class="fa-solid fa-arrow-right"></i> Aller à mes commandes';
 
       function show(stateId) {
         ['state-loading', 'state-success', 'state-pending', 'state-error'].forEach(function (id) {
@@ -139,12 +149,32 @@
         return Number(n || 0).toLocaleString('fr-FR') + ' FCFA';
       }
 
-      function populateDetails(c) {
+      function populateCommande(c) {
         if (!c) return;
+        document.getElementById('success-title').textContent = 'Paiement confirmé';
+        document.getElementById('success-desc').textContent = 'Votre paiement est sécurisé sur la plateforme. Il sera libéré au prestataire dès que vous validerez la livraison.';
         document.getElementById('sd-title').textContent = c.titre || '';
         document.getElementById('sd-amount').textContent = formatMoney(c.montant_fcfa);
+        document.getElementById('sd-meta-label').textContent = 'Délai prestataire';
         document.getElementById('sd-delai').textContent = (c.delai_jours || 0) + ' jours';
         document.getElementById('success-details').classList.remove('hidden');
+      }
+
+      function populateAbonnement(a) {
+        if (!a) return;
+        document.getElementById('success-title').textContent = 'Abonnement activé';
+        document.getElementById('success-desc').textContent = 'Votre plan ' + (a.plan_label || a.plan) + ' est maintenant actif.';
+        document.getElementById('sd-title').textContent = 'Plan ' + (a.plan_label || a.plan);
+        document.getElementById('sd-amount').textContent = formatMoney(a.montant_fcfa);
+        document.getElementById('sd-meta-label').textContent = 'Valable jusqu’au';
+        document.getElementById('sd-delai').textContent = a.ends_at
+          ? new Date(a.ends_at).toLocaleDateString('fr-FR')
+          : '—';
+        document.getElementById('success-details').classList.remove('hidden');
+        document.getElementById('success-steps').innerHTML =
+          '<li>Votre quota de services est mis à jour immédiatement.</li>' +
+          '<li>En Pro, vous gagnez la priorité dans la recherche.</li>' +
+          '<li>Renouvelez avant la date d’échéance pour rester sur ce plan.</li>';
       }
 
       async function fetchCommande() {
@@ -160,21 +190,47 @@
         } catch (_) { return null; }
       }
 
+      async function fetchAbonnement() {
+        if (!abonnementId) return null;
+        try {
+          const r = await fetch('/api/abonnements/' + abonnementId + '/status', {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+          });
+          if (!r.ok) return null;
+          const d = await r.json();
+          return d.ok ? d.abonnement : null;
+        } catch (_) { return null; }
+      }
+
       let attempts = 0;
       const MAX_ATTEMPTS = 8;
 
       async function poll() {
         attempts++;
-        const c = await fetchCommande();
-        if (c) {
-          if (['payee', 'livree', 'en_revision', 'terminee', 'paid_out'].indexOf(c.statut) !== -1) {
-            populateDetails(c);
+        if (isSub) {
+          const a = await fetchAbonnement();
+          if (a && a.statut === 'paye') {
+            populateAbonnement(a);
             show('state-success');
             return;
           }
-          if (c.statut === 'annulee' || c.statut === 'remboursee') {
+          if (a && a.statut === 'echoue') {
             show('state-error');
             return;
+          }
+        } else {
+          const c = await fetchCommande();
+          if (c) {
+            if (['payee', 'livree', 'en_revision', 'terminee', 'paid_out'].indexOf(c.statut) !== -1) {
+              populateCommande(c);
+              show('state-success');
+              return;
+            }
+            if (c.statut === 'annulee' || c.statut === 'remboursee') {
+              show('state-error');
+              return;
+            }
           }
         }
         if (attempts >= MAX_ATTEMPTS) {
@@ -184,7 +240,7 @@
         setTimeout(poll, 1500);
       }
 
-      if (!commandeId) {
+      if (!commandeId && !abonnementId) {
         show('state-pending');
       } else {
         setTimeout(poll, 800);

@@ -26,6 +26,9 @@ class Prestataire extends Model
         'chemin_cv',
         'chemin_identite',
         'statut_verification',
+        'plan',
+        'plan_expires_at',
+        'trial_ends_at',
         'motif_refus_ia',
         'email_verified_at',
         'email_verify_token',
@@ -53,12 +56,19 @@ class Prestataire extends Model
             'ia_decided_at' => 'datetime',
             'admin_decided_at' => 'datetime',
             'verification_email_sent_at' => 'datetime',
+            'plan_expires_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
     }
 
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);
+    }
+
+    public function abonnements(): HasMany
+    {
+        return $this->hasMany(Abonnement::class);
     }
 
     public function messages(): HasMany
