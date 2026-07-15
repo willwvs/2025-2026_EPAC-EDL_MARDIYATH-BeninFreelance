@@ -99,6 +99,8 @@ Route::middleware('app.auth:client')->group(function () {
     Route::post('/api/client/commandes/{id}/annuler', [OrderController::class, 'annuler'])->whereNumber('id');
     Route::post('/api/client/commandes/{id}/litige', [OrderController::class, 'ouvrirLitige'])->whereNumber('id');
     Route::post('/api/client/commandes/{id}/avis', [AvisController::class, 'storeForCommande'])->whereNumber('id');
+    Route::put('/api/client/commandes/{id}/avis', [AvisController::class, 'updateForCommande'])->whereNumber('id');
+    Route::patch('/api/client/commandes/{id}/avis', [AvisController::class, 'updateForCommande'])->whereNumber('id');
     Route::get('/api/client/commandes/{commandeId}/livraisons/{livraisonId}/fichier', [OrderController::class, 'downloadLivraison'])
         ->whereNumber(['commandeId', 'livraisonId']);
     Route::get('/api/client/counters', [OrderController::class, 'countersClient']);

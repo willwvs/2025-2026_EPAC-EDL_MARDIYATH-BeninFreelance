@@ -358,7 +358,7 @@
               <li>Messagerie clients (après essai)</li>
               <li>Meilleure visibilité qu’en gratuit</li>
             </ul>
-            <button type="button" onclick="checkoutPlan('starter')" class="mt-5 w-full bg-accent text-bg font-syne font-bold text-sm py-2.5 rounded-xl hover:opacity-90">Souscrire Starter</button>
+            <button type="button" id="btn-checkout-starter" onclick="checkoutPlan('starter')" class="mt-5 w-full bg-accent text-bg font-syne font-bold text-sm py-2.5 rounded-xl hover:opacity-90">Souscrire Starter</button>
           </div>
           <div class="border border-accent/50 rounded-2xl bg-accent/5 p-5 flex flex-col">
             <p class="font-syne font-bold text-lg text-tx">Pro</p>
@@ -367,7 +367,7 @@
               <li>Services illimités</li>
               <li>Priorité dans les résultats de recherche</li>
             </ul>
-            <button type="button" onclick="checkoutPlan('pro')" class="mt-5 w-full bg-accent text-bg font-syne font-bold text-sm py-2.5 rounded-xl hover:opacity-90">Souscrire Pro</button>
+            <button type="button" id="btn-checkout-pro" onclick="checkoutPlan('pro')" class="mt-5 w-full bg-accent text-bg font-syne font-bold text-sm py-2.5 rounded-xl hover:opacity-90">Souscrire Pro</button>
           </div>
         </div>
 
@@ -726,6 +726,7 @@
           lastUser.services_max = d.services_max;
           renderDashboard();
         }
+        syncCheckoutButtons(d.plan);
         const hist = d.history || [];
         if (!box) return;
         if (!hist.length) {
@@ -733,20 +734,42 @@
           return;
         }
         box.innerHTML = hist.map(function (h) {
-          const st = h.statut === 'paye' ? 'Payé' : (h.statut === 'pending' ? 'En attente' : h.statut);
+          const st = h.statut === 'paye' ? 'Payé' : (h.statut === 'pending' ? 'En attente' : (h.statut === 'echoue' ? 'Annulé' : h.statut));
           const when = h.created_at ? new Date(h.created_at).toLocaleDateString('fr-FR') : '';
           return '<div class="flex justify-between gap-3 border border-brd rounded-xl px-3 py-2 bg-surface2">' +
-            '<span><span class="font-medium text-tx">' + escapeHtml(h.plan_label || h.plan) + '</span> · ' +
+            '<span class="min-w-0"><span class="font-medium text-tx">' + escapeHtml(h.plan_label || h.plan) + '</span> · ' +
             escapeHtml(String(h.montant_fcfa || 0)) + ' FCFA</span>' +
-            '<span class="text-muted text-xs">' + escapeHtml(st) + (when ? ' · ' + when : '') + '</span></div>';
+            '<span class="text-muted text-xs shrink-0 text-right">' + escapeHtml(st) + (when ? ' · ' + when : '') + '</span></div>';
         }).join('');
       } catch (_) {
         if (box) box.innerHTML = '<p class="text-muted">Réseau indisponible.</p>';
       }
     }
 
+    function syncCheckoutButtons(plan) {
+      const starter = document.getElementById('btn-checkout-starter');
+      const pro = document.getElementById('btn-checkout-pro');
+      if (!starter || !pro) return;
+      const current = plan || 'gratuit';
+      [
+        { el: starter, key: 'starter', label: 'Souscrire Starter', currentLabel: 'Plan actuel' },
+        { el: pro, key: 'pro', label: 'Souscrire Pro', currentLabel: 'Plan actuel' },
+      ].forEach(function (item) {
+        const same = current === item.key;
+        item.el.disabled = same;
+        item.el.textContent = same ? item.currentLabel : item.label;
+        item.el.classList.toggle('opacity-50', same);
+        item.el.classList.toggle('cursor-not-allowed', same);
+        item.el.classList.toggle('hover:opacity-90', !same);
+      });
+    }
+
     async function checkoutPlan(plan) {
       hideMessages();
+      if (lastUser && (lastUser.plan === plan)) {
+        showErr('Vous êtes déjà abonné à ce plan.');
+        return;
+      }
       try {
         const t = await getCsrfToken();
         const r = await fetch('/api/prestataire/subscription/checkout', {

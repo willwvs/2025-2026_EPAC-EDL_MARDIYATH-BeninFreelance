@@ -200,6 +200,7 @@ class SubscriptionService
                 'prix' => (int) ($c['prix'] ?? 0),
                 'services_max' => $c['services_max'] ?? null,
                 'priority' => (int) ($c['priority'] ?? 0),
+                'is_current' => $plan === $p && $this->hasPaidPlan($prestataire),
             ];
         }
 
@@ -237,6 +238,21 @@ class SubscriptionService
         }
 
         $this->expireIfNeeded($prestataire);
+
+        $current = $this->effectivePlan($prestataire);
+        if ($this->hasPaidPlan($prestataire) && $current === $plan) {
+            return [
+                'ok' => false,
+                'message' => 'Vous êtes déjà abonné au plan '.self::planLabel($plan).'. Choisissez un autre plan ou attendez le renouvellement.',
+            ];
+        }
+
+        if (Schema::hasTable('abonnements')) {
+            Abonnement::query()
+                ->where('prestataire_id', $prestataire->id)
+                ->where('statut', 'pending')
+                ->update(['statut' => 'echoue']);
+        }
 
         $cfg = self::planConfig($plan);
         $amount = (int) ($cfg['prix'] ?? 0);

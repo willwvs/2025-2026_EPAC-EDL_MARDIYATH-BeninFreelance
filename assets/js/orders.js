@@ -343,6 +343,9 @@
         ? '<p class="text-sm leading-relaxed text-tx/90 mt-2 whitespace-pre-wrap">' + escapeHtml(a.commentaire) + '</p>'
         : '<p class="text-xs text-muted italic mt-2">Note laissée sans commentaire.</p>';
       const who = role === 'prestataire' ? 'Avis du client' : 'Votre avis';
+      const editBtn = (role === 'client' && c.can_edit_review)
+        ? '<button type="button" data-action="edit-review" class="text-[11px] text-amber-200 border border-amber-400/30 rounded-lg px-2.5 py-1 hover:bg-amber-500/10 inline-flex items-center gap-1"><i class="fa-solid fa-pen"></i> Modifier</button>'
+        : '';
       return (
         '<div class="rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4 sm:p-5">' +
         '<div class="flex items-center justify-between flex-wrap gap-2">' +
@@ -351,7 +354,10 @@
         '<p class="font-syne font-bold text-sm text-tx">' + who + '</p>' +
         '<div class="flex items-center gap-0.5 ml-2">' + avisStarsHtml(a.note) + '</div>' +
         '</div>' +
+        '<div class="flex items-center gap-2">' +
+        editBtn +
         '<p class="text-[11px] text-muted">' + escapeHtml(formatDate(a.created_at)) + '</p>' +
+        '</div>' +
         '</div>' +
         body +
         '</div>'
@@ -514,7 +520,12 @@
       }
 
       if (action === 'review') {
-        openReviewModal(c);
+        openReviewModal(c, false);
+        return;
+      }
+
+      if (action === 'edit-review') {
+        openReviewModal(c, true);
         return;
       }
 
@@ -770,27 +781,33 @@
     }
 
     // ─── Modale avis client ───────────────────────────────────────────────────
-    function openReviewModal(c) {
+    function openReviewModal(c, editing) {
+      const isEdit = !!editing && !!c.avis;
+      const initialNote = isEdit ? (Number(c.avis.note) || 5) : 5;
+      const initialComment = isEdit ? (c.avis.commentaire || '') : '';
       const html = modalShell('review', {
         icon: 'fa-star',
         iconTone: 'text-amber-300',
-        title: 'Laisser un avis',
-        subtitle: 'Votre retour aide la communauté à choisir le bon prestataire.',
+        title: isEdit ? 'Modifier votre avis' : 'Laisser un avis',
+        subtitle: isEdit
+          ? 'Mettez à jour votre note ou votre commentaire.'
+          : 'Votre retour aide la communauté à choisir le bon prestataire.',
         body:
           '<div class="space-y-3">' +
-          '<div class="flex items-center justify-center gap-1.5" id="bf-stars" data-note="5">' +
+          '<div class="flex items-center justify-center gap-1.5" id="bf-stars" data-note="' + initialNote + '">' +
           [1, 2, 3, 4, 5].map(function (i) {
-            return '<button type="button" data-i="' + i + '" class="text-3xl text-amber-300 transition-transform hover:scale-110">★</button>';
+            const dim = i > initialNote ? ' opacity-30' : '';
+            return '<button type="button" data-i="' + i + '" class="text-3xl text-amber-300 transition-transform hover:scale-110' + dim + '">★</button>';
           }).join('') +
           '</div>' +
           '<label class="block">' +
           '<span class="text-[11px] uppercase tracking-wider text-muted font-bold">Commentaire (optionnel)</span>' +
-          '<textarea id="bf-avis-comment" rows="3" maxlength="2000" placeholder="Qu\'avez-vous apprécié ?" class="mt-1 w-full bg-surface border border-brd rounded-xl px-3 py-2.5 text-sm text-tx placeholder:text-muted/70 focus:border-accent transition-colors"></textarea>' +
+          '<textarea id="bf-avis-comment" rows="3" maxlength="2000" placeholder="Qu\'avez-vous apprécié ?" class="mt-1 w-full bg-surface border border-brd rounded-xl px-3 py-2.5 text-sm text-tx placeholder:text-muted/70 focus:border-accent transition-colors">' + escapeHtml(initialComment) + '</textarea>' +
           '</label>' +
           '</div>',
         footer:
           '<button type="button" data-modal-close class="border border-brd text-muted px-4 py-2 rounded-xl text-sm hover:text-tx">Annuler</button>' +
-          '<button type="button" id="bf-avis-submit" class="bg-amber-500 text-bg font-syne font-bold px-5 py-2 rounded-xl text-sm inline-flex items-center gap-2"><i class="fa-solid fa-star"></i> Publier l\'avis</button>',
+          '<button type="button" id="bf-avis-submit" class="bg-amber-500 text-bg font-syne font-bold px-5 py-2 rounded-xl text-sm inline-flex items-center gap-2"><i class="fa-solid fa-star"></i> ' + (isEdit ? 'Enregistrer' : 'Publier l\'avis') + '</button>',
       });
       mountModal(html);
       const starsEl = document.getElementById('bf-stars');
@@ -810,14 +827,15 @@
         try {
           const token = await getCsrf();
           const r = await fetch('/api/client/commandes/' + c.id + '/avis', {
-            method: 'POST', credentials: 'same-origin',
+            method: isEdit ? 'PUT' : 'POST',
+            credentials: 'same-origin',
             headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
             body: JSON.stringify({ note: note, commentaire: comment }),
           });
           const d = await r.json();
           if (d.ok) {
             closeModal();
-            toast('Merci pour votre avis !', true);
+            toast(isEdit ? 'Avis mis à jour.' : 'Merci pour votre avis !', true);
             await openDetail(c.id, true);
           } else {
             toast(d.message || 'Erreur.', false);
@@ -843,7 +861,8 @@
           if (action === 'validate') openValidateModal(c);
           else if (action === 'revision') openRevisionModal(c);
           else if (action === 'redeliver' || action === 'deliver') openDeliverModal(c);
-          else if (action === 'review') openReviewModal(c);
+          else if (action === 'review') openReviewModal(c, false);
+          else if (action === 'edit-review') openReviewModal(c, true);
           else if (action === 'dispute') openDisputeModal(c);
         } catch (_) { toast('Réseau indisponible.', false); }
       },

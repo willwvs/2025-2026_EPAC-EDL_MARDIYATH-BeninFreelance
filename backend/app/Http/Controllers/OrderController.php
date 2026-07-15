@@ -462,10 +462,13 @@ class OrderController extends Controller
             $avis = Avis::query()->where('commande_id', $c->id)->first();
             if ($avis) {
                 $row['avis'] = [
+                    'id' => (int) $avis->id,
                     'note' => (int) $avis->note,
                     'commentaire' => $avis->commentaire ? (string) $avis->commentaire : null,
                     'created_at' => $avis->created_at?->toIso8601String(),
                 ];
+                $row['can_edit_review'] = $viewerRole === 'client'
+                    && (int) $avis->client_id === (int) $c->client_id;
             }
         }
 

@@ -66,6 +66,53 @@ class AvisController extends Controller
         ]);
     }
 
+    public function updateForCommande(Request $request, int $commandeId)
+    {
+        if (! Schema::hasTable('avis') || ! Schema::hasColumn('avis', 'commande_id')) {
+            return response()->json(['ok' => false, 'message' => 'Avis indisponible.'], 503);
+        }
+
+        $clientId = (int) $request->session()->get('auth_id');
+        $commande = Commande::query()
+            ->where('id', $commandeId)
+            ->where('client_id', $clientId)
+            ->first();
+
+        if (! $commande) {
+            return response()->json(['ok' => false, 'message' => 'Commande introuvable.'], 404);
+        }
+
+        $avis = Avis::query()
+            ->where('commande_id', $commande->id)
+            ->where('client_id', $clientId)
+            ->first();
+
+        if (! $avis) {
+            return response()->json(['ok' => false, 'message' => 'Aucun avis à modifier pour cette commande.'], 404);
+        }
+
+        $data = $request->validate([
+            'note' => 'required|integer|min:1|max:5',
+            'commentaire' => 'nullable|string|max:2000',
+        ]);
+
+        $avis->update([
+            'note' => (int) $data['note'],
+            'commentaire' => $data['commentaire'] ?? null,
+        ]);
+
+        $this->workflow->recalculatePrestataireRating($commande->prestataire_id);
+
+        return response()->json([
+            'ok' => true,
+            'avis' => [
+                'id' => $avis->id,
+                'note' => (int) $avis->note,
+                'commentaire' => $avis->commentaire,
+            ],
+        ]);
+    }
+
     public function signaler(Request $request, int $id)
     {
         if (! Schema::hasTable('avis') || ! Schema::hasColumn('avis', 'signale')) {
