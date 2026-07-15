@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GuideController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AvisController;
@@ -34,6 +35,9 @@ Route::get('/login', function () {
 Route::get('/login.html', function () {
     return redirect('/login');
 });
+
+Route::get('/guide', [GuideController::class, 'show']);
+Route::get('/guide/pdf', [GuideController::class, 'pdf']);
 
 Route::get('/register/client', function () {
     return response(
