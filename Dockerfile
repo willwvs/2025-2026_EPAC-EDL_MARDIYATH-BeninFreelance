@@ -32,7 +32,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
     && chmod -R ug+rwx storage bootstrap/cache public/uploads /app/seed
 
 COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV PORT=8080
 EXPOSE 8080
