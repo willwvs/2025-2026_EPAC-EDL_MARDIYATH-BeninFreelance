@@ -57,8 +57,8 @@
     <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
       <span class="border border-brd rounded-full px-3 py-1">Version {{ $meta['version'] }}</span>
       <span class="border border-brd rounded-full px-3 py-1">Mis à jour le {{ $meta['updated'] }}</span>
-      <a href="#client-recherche" class="border border-brd rounded-full px-3 py-1 hover:border-accent hover:text-accent transition-colors">Je suis client →</a>
-      <a href="#presta-profil" class="border border-brd rounded-full px-3 py-1 hover:border-accent hover:text-accent transition-colors">Je suis prestataire →</a>
+      <a href="#client-section" class="border border-brd rounded-full px-3 py-1 hover:border-accent hover:text-accent transition-colors">Je suis client →</a>
+      <a href="#presta-section" class="border border-brd rounded-full px-3 py-1 hover:border-accent hover:text-accent transition-colors">Je suis prestataire →</a>
     </div>
   </div>
 </header>
@@ -69,13 +69,59 @@
     <aside class="lg:sticky lg:top-20 lg:self-start">
       <p class="text-[11px] uppercase tracking-wider text-muted font-bold mb-3">Sommaire</p>
       <nav id="toc" class="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0 -mx-1 px-1">
-        @foreach ($chapters as $chapter)
+        @php
+          $topCommonChapters = [];
+          $bottomCommonChapters = [];
+          $clientChapters = [];
+          $prestaChapters = [];
+          foreach ($chapters as $chapter) {
+            $role = $chapter['role'] ?? null;
+            if ($role === 'client') $clientChapters[] = $chapter;
+            elseif ($role === 'prestataire') $prestaChapters[] = $chapter;
+            else {
+              if (($chapter['id'] ?? '') === 'aide') $bottomCommonChapters[] = $chapter;
+              else $topCommonChapters[] = $chapter;
+            }
+          }
+        @endphp
+
+        {{-- Tronc commun (Bienvenue / Démarrer / Aller plus loin) --}}
+        @foreach ($topCommonChapters as $chapter)
           <a href="#{{ $chapter['id'] }}"
              data-toc="{{ $chapter['id'] }}"
              class="toc-link shrink-0 text-sm text-muted hover:text-tx border-l-2 border-transparent lg:pl-3 py-1.5 transition-colors whitespace-nowrap lg:whitespace-normal">
             {{ $chapter['title'] }}
           </a>
         @endforeach
+        @foreach ($bottomCommonChapters as $chapter)
+          <a href="#{{ $chapter['id'] }}"
+             data-toc="{{ $chapter['id'] }}"
+             class="toc-link shrink-0 text-sm text-muted hover:text-tx border-l-2 border-transparent lg:pl-3 py-1.5 transition-colors whitespace-nowrap lg:whitespace-normal">
+            {{ $chapter['title'] }}
+          </a>
+        @endforeach
+
+        @if (!empty($clientChapters))
+          <div class="hidden lg:block text-[10px] uppercase tracking-wider text-muted font-bold mt-3 mb-1 px-3">Client</div>
+          @foreach ($clientChapters as $chapter)
+            <a href="#{{ $chapter['id'] }}"
+               data-toc="{{ $chapter['id'] }}"
+               class="toc-link shrink-0 text-sm text-muted hover:text-tx border-l-2 border-transparent lg:pl-3 py-1.5 transition-colors whitespace-nowrap lg:whitespace-normal">
+              {{ $chapter['title'] }}
+            </a>
+          @endforeach
+        @endif
+
+        @if (!empty($prestaChapters))
+          <div class="hidden lg:block text-[10px] uppercase tracking-wider text-muted font-bold mt-3 mb-1 px-3">Prestataire</div>
+          @foreach ($prestaChapters as $chapter)
+            <a href="#{{ $chapter['id'] }}"
+               data-toc="{{ $chapter['id'] }}"
+               class="toc-link shrink-0 text-sm text-muted hover:text-tx border-l-2 border-transparent lg:pl-3 py-1.5 transition-colors whitespace-nowrap lg:whitespace-normal">
+              {{ $chapter['title'] }}
+            </a>
+          @endforeach
+        @endif
       </nav>
       <a href="/guide/pdf"
          class="hidden lg:flex mt-6 items-center gap-2 text-sm text-accent hover:underline">
@@ -84,17 +130,62 @@
     </aside>
 
     <main class="guide-prose min-w-0 space-y-14">
-      @foreach ($chapters as $chapter)
+      {{-- Tronc commun --}}
+      @foreach ($topCommonChapters as $chapter)
         <section id="{{ $chapter['id'] }}" class="scroll-mt-24">
           <div class="flex flex-wrap items-center gap-2 mb-4">
             <h2 class="font-syne font-bold text-2xl text-tx">{{ $chapter['title'] }}</h2>
-            @if (($chapter['role'] ?? null) === 'client')
-              <span class="text-[10px] uppercase tracking-wider font-bold text-ok border border-ok/30 bg-ok/10 rounded-full px-2 py-0.5">Client</span>
-            @elseif (($chapter['role'] ?? null) === 'prestataire')
-              <span class="text-[10px] uppercase tracking-wider font-bold text-accent border border-accent/30 bg-accent/10 rounded-full px-2 py-0.5">Prestataire</span>
-            @endif
           </div>
+          <div class="space-y-5">
+            @foreach ($chapter['blocks'] as $block)
+              @include('guide.partials.block', ['block' => $block, 'mode' => 'web'])
+            @endforeach
+          </div>
+        </section>
+      @endforeach
 
+      {{-- Section Client --}}
+      <div id="client-section" class="pt-4">
+        <h2 class="font-syne font-extrabold text-3xl text-tx mb-8">Guide Client</h2>
+        @foreach ($clientChapters as $chapter)
+          <section id="{{ $chapter['id'] }}" class="scroll-mt-24 mb-14">
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+              <h2 class="font-syne font-bold text-2xl text-tx">{{ $chapter['title'] }}</h2>
+              <span class="text-[10px] uppercase tracking-wider font-bold text-ok border border-ok/30 bg-ok/10 rounded-full px-2 py-0.5">Client</span>
+            </div>
+            <div class="space-y-5">
+              @foreach ($chapter['blocks'] as $block)
+                @include('guide.partials.block', ['block' => $block, 'mode' => 'web'])
+              @endforeach
+            </div>
+          </section>
+        @endforeach
+      </div>
+
+      {{-- Section Prestataire --}}
+      <div id="presta-section" class="pt-4">
+        <h2 class="font-syne font-extrabold text-3xl text-tx mb-8">Guide Prestataire</h2>
+        @foreach ($prestaChapters as $chapter)
+          <section id="{{ $chapter['id'] }}" class="scroll-mt-24 mb-14">
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+              <h2 class="font-syne font-bold text-2xl text-tx">{{ $chapter['title'] }}</h2>
+              <span class="text-[10px] uppercase tracking-wider font-bold text-accent border border-accent/30 bg-accent/10 rounded-full px-2 py-0.5">Prestataire</span>
+            </div>
+            <div class="space-y-5">
+              @foreach ($chapter['blocks'] as $block)
+                @include('guide.partials.block', ['block' => $block, 'mode' => 'web'])
+              @endforeach
+            </div>
+          </section>
+        @endforeach
+      </div>
+
+      {{-- Aller plus loin --}}
+      @foreach ($bottomCommonChapters as $chapter)
+        <section id="{{ $chapter['id'] }}" class="scroll-mt-24">
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <h2 class="font-syne font-bold text-2xl text-tx">{{ $chapter['title'] }}</h2>
+          </div>
           <div class="space-y-5">
             @foreach ($chapter['blocks'] as $block)
               @include('guide.partials.block', ['block' => $block, 'mode' => 'web'])

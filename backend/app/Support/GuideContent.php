@@ -13,8 +13,8 @@ final class GuideContent
         return [
             'title' => 'Guide d\'utilisation — BéninFreelance',
             'subtitle' => 'Tout ce qu\'il faut savoir pour utiliser la plateforme, pas à pas',
-            'version' => '1.0',
-            'updated' => '15 juillet 2026',
+            'version' => '1.1',
+            'updated' => '16 juillet 2026',
             'brand' => 'BéninFreelance',
         ];
     }
@@ -29,308 +29,486 @@ final class GuideContent
         return [
             [
                 'id' => 'bienvenue',
-                'title' => 'Bienvenue sur BéninFreelance',
+                'title' => 'Bienvenue — comprendre la plateforme',
                 'blocks' => [
                     [
                         'type' => 'p',
-                        'text' => 'BéninFreelance est une marketplace de services freelances au Bénin. Elle met en relation des clients qui cherchent un professionnel (développeur, graphiste, artisan, consultant…) et des prestataires vérifiés qui proposent leurs compétences.',
+                        'text' => 'BéninFreelance est une marketplace de services freelances. Un client décrit son besoin, choisit un prestataire, et la plateforme sécurise le paiement jusqu’à validation du livrable.',
                     ],
                     [
                         'type' => 'p',
-                        'text' => 'Ce guide vous explique comment utiliser la plateforme selon votre objectif : trouver un prestataire et commander un service, ou publier vos offres et être payé en toute sécurité. Chaque section est conçue pour être lue indépendamment : allez directement à celle qui vous concerne.',
+                        'text' => 'Ce guide est écrit pour les débutants. Il est structuré en 2 parcours séparés : si vous êtes Client, suivez la section Client ; si vous êtes Prestataire, suivez la section Prestataire.',
                     ],
                     [
                         'type' => 'callout',
                         'tone' => 'info',
-                        'title' => 'Deux espaces distincts',
-                        'text' => 'Le compte Client et le compte Prestataire sont séparés. Si vous souhaitez les deux rôles, créez deux inscriptions avec le même e-mail seulement si la plateforme le permet — en pratique, utilisez le parcours adapté à chaque besoin depuis l\'accueil.',
+                        'title' => 'Deux rôles, deux espaces',
+                        'text' => 'Le compte Client et le compte Prestataire sont séparés. La messagerie, les commandes et l’abonnement suivent le rôle que vous avez choisi lors de la connexion.',
                     ],
                     [
                         'type' => 'list',
-                        'title' => 'Ce que vous pouvez faire sur la plateforme',
+                        'title' => 'Vue d’ensemble (même logique côté Client et Prestataire)',
                         'items' => [
-                            'Rechercher des services et des prestataires par catégorie, localité et note',
-                            'Discuter en messagerie avant de commander',
-                            'Passer commande, payer en Mobile Money via FedaPay, suivre la livraison',
-                            'Valider le travail, laisser un avis ou ouvrir un litige si nécessaire',
-                            'Côté prestataire : publier des services, accepter des commandes, livrer et gérer son abonnement',
+                            'Client : chercher → échanger → commander → payer → livrer/valider → noter',
+                            'Prestataire : compléter le profil → créer des services → répondre en messagerie → accepter/ livrer → être payé',
+                            'Paiements : passent par FedaPay, et le statut des commandes guide les actions autorisées',
                         ],
                     ],
                 ],
             ],
             [
                 'id' => 'demarrer',
-                'title' => 'Démarrer : créer un compte',
+                'title' => 'Démarrer — créer un compte et se connecter',
                 'blocks' => [
                     [
                         'type' => 'p',
-                        'text' => 'Depuis la page d\'accueil, cliquez sur « Commencer » ou « Connexion ». Sur l\'écran de connexion, choisissez d\'abord votre profil (Client ou Prestataire), puis connectez-vous — ou créez un compte via les liens d\'inscription.',
-                    ],
-                    [
-                        'type' => 'h',
-                        'text' => 'Inscription client',
+                        'text' => 'Avant toute action, choisissez votre rôle puis connectez-vous. Utilisez toujours une adresse e-mail à laquelle vous avez accès : elle sert aux notifications importantes.',
                     ],
                     [
                         'type' => 'steps',
                         'items' => [
-                            ['title' => 'Ouvrir l\'inscription', 'text' => 'Allez sur /register/client ou choisissez « Trouver un prestataire » / le parcours client depuis l\'accueil.'],
-                            ['title' => 'Identité', 'text' => 'Renseignez prénom, nom, adresse e-mail et téléphone. Utilisez une adresse e-mail à laquelle vous avez accès : elle servira à vérifier le compte et recevoir les notifications importantes.'],
-                            ['title' => 'Localisation', 'text' => 'Indiquez votre ville et votre quartier. Cela aide les prestataires à situer le besoin (surtout pour les services de proximité).'],
-                            ['title' => 'Mot de passe', 'text' => 'Choisissez un mot de passe solide, acceptez les conditions, puis validez. Suivez le lien de confirmation e-mail si la plateforme le demande.'],
-                            ['title' => 'Connexion', 'text' => 'Connectez-vous en mode Client. Vous arrivez sur votre espace : Accueil, Recherche, Mon compte, Messages, Commandes.'],
-                        ],
-                    ],
-                    [
-                        'type' => 'h',
-                        'text' => 'Inscription prestataire',
-                    ],
-                    [
-                        'type' => 'steps',
-                        'items' => [
-                            ['title' => 'Ouvrir l\'inscription', 'text' => 'Allez sur /register/prestataire ou « Proposer mes services » depuis l\'accueil.'],
-                            ['title' => 'Vos informations', 'text' => 'Complétez identité, contact et localisation professionnelle.'],
-                            ['title' => 'Vos compétences', 'text' => 'Décrivez votre métier, vos spécialités et ce que vous proposez aux clients.'],
-                            ['title' => 'Vos documents', 'text' => 'Joignez un CV au format PDF et une pièce d\'identité. Ces pièces sont examinées pour valider votre profil (vérification humaine et/ou assistée).'],
-                            ['title' => 'Sécurité', 'text' => 'Définissez votre mot de passe et validez l\'inscription. Comptez en général jusqu\'à 24 h pour l\'activation après étude du dossier.'],
+                            ['title' => 'Étape 1 — Aller au bon parcours', 'text' => 'Depuis l’accueil, choisissez « Trouver un prestataire » (Client) ou « Proposer mes services » (Prestataire).'],
+                            ['title' => 'Étape 2 — Renseigner les informations', 'text' => 'Complétez identité, localisation et contact. Pour le prestataire, ajoutez les documents (CV PDF + pièce d’identité).'],
+                            ['title' => 'Étape 3 — Finaliser et vérifier', 'text' => 'Validez l’inscription puis attendez la validation si vous êtes prestataire. Ensuite, connectez-vous avec le mode correspondant.'],
                         ],
                     ],
                     [
                         'type' => 'callout',
                         'tone' => 'warn',
-                        'title' => 'Compte en attente de validation',
-                        'text' => 'Tant que votre dossier prestataire n\'est pas validé, vous ne pouvez pas souscrire à un abonnement payant ni apparaître pleinement comme prestataire actif. Surveillez vos e-mails et l\'état du compte dans « Mon profil ».',
+                        'title' => 'Prestataire : dossier en attente',
+                        'text' => 'Tant que votre dossier prestataire n’est pas validé, vous ne pourrez pas souscrire à un abonnement payant ni apparaître pleinement dans la recherche.',
+                    ],
+                    [
+                        'type' => 'visual',
+                        'title' => 'Repères d’écran',
+                        'caption' => 'Après connexion, repérez rapidement les menus principaux.',
+                        'kind' => 'sidebar-mock',
+                        'zones' => [
+                            ['label' => 'Accueil / Tableau de bord', 'hint' => 'Vue d’ensemble'],
+                            ['label' => 'Messages', 'hint' => 'Conversations'],
+                            ['label' => 'Commandes', 'hint' => 'Statuts et suivi'],
+                        ],
                     ],
                 ],
             ],
+
+            // ============================
+            // CLIENT
+            // ============================
             [
                 'id' => 'client-recherche',
-                'title' => 'Client — Chercher et choisir un prestataire',
+                'title' => 'Client — Trouver un prestataire et décider',
                 'role' => 'client',
                 'blocks' => [
                     [
                         'type' => 'p',
-                        'text' => 'Connecté en tant que client (ou depuis la recherche publique), ouvrez « Explorer » / « Recherche ». Vous pouvez filtrer par catégorie de service, localité et note.',
+                        'text' => 'Objectif : repérer un prestataire adapté, puis démarrer la conversation avant de proposer une commande.',
                     ],
                     [
                         'type' => 'steps',
                         'items' => [
-                            ['title' => 'Parcourir les résultats', 'text' => 'Les profils Pro apparaissent en priorité dans la recherche. Chaque carte montre les infos essentielles (métier, note, localité).'],
-                            ['title' => 'Voir le teaser', 'text' => 'Cliquez sur un prestataire pour ouvrir sa fiche courte, puis « Voir le profil complet » pour le détail, les services et les avis.'],
-                            ['title' => 'Ouvrir un service', 'text' => 'Depuis un service (/service/…), lisez la description, le délai typique et le tarif indicatif avant de contacter.'],
-                            ['title' => 'Contacter', 'text' => 'Le bouton « Contacter » vous amène à démarrer une conversation (connexion client requise). Exposez clairement votre besoin dès le premier message.'],
+                            ['title' => 'Étape 1 — Ouvrir la recherche', 'text' => 'Dans votre espace, allez sur « Recherche » (ou via l’exploration publique).'],
+                            ['title' => 'Étape 2 — Utiliser les filtres', 'text' => 'Filtrez par catégorie, localité et note. Commencez par 2–3 profils pertinents pour comparer.'],
+                            ['title' => 'Étape 3 — Ouvrir une fiche complète', 'text' => 'Cliquez sur un prestataire puis ouvrez le profil complet pour lire les services et les avis.'],
+                            ['title' => 'Étape 4 — Contacter avec précision', 'text' => 'Depuis le service, démarrez « Contacter ». Envoyez dès le premier message : besoin, délais souhaités, budget indicatif, et contraintes (ex. fichiers, format).'],
+                        ],
+                    ],
+                    [
+                        'type' => 'visual',
+                        'title' => 'Ce que vous devez préparer avant de commander',
+                        'caption' => 'Une commande claire = moins d’allers-retours.',
+                        'kind' => 'check-mock',
+                        'zones' => [
+                            ['label' => 'Le besoin exact', 'hint' => 'Description courte + précision'],
+                            ['label' => 'Le délai', 'hint' => 'Nombre de jours'],
+                            ['label' => 'Le budget', 'hint' => 'Montant en FCFA'],
+                            ['label' => 'Le livrable attendu', 'hint' => 'Formats / fichiers'],
                         ],
                     ],
                     [
                         'type' => 'callout',
                         'tone' => 'tip',
-                        'title' => 'Conseil',
-                        'text' => 'Avant de commander, échangez sur le scope, le délai et le budget. Une discussion claire évite les malentendus et les retouches inutiles.',
+                        'title' => 'Astuce',
+                        'text' => 'Si vous discutez d’abord, vous réduisez le risque de retouche et vous accélérez le passage au statut « En attente de paiement ».',
                     ],
                 ],
             ],
             [
                 'id' => 'client-commande',
-                'title' => 'Client — Commander, payer, valider',
+                'title' => 'Client — Proposer une commande, payer, valider',
                 'role' => 'client',
                 'blocks' => [
                     [
                         'type' => 'p',
-                        'text' => 'Une fois le fil de discussion ouvert, vous pouvez proposer une commande au prestataire. Le paiement n\'est demandé qu\'après acceptation par le prestataire.',
+                        'text' => 'Quand le prestataire est convaincu, vous pouvez proposer une commande. Le paiement n’est demandé qu’après acceptation par le prestataire.',
                     ],
                     [
                         'type' => 'h',
-                        'text' => 'Cycle de vie d\'une commande',
+                        'text' => 'Étapes d’une commande (dans l’ordre)',
                     ],
                     [
                         'type' => 'steps',
                         'items' => [
-                            ['title' => 'Proposer une commande', 'text' => 'Renseignez un titre clair, une description détaillée, le budget en FCFA et le délai (en jours). La commande passe en « En attente du prestataire » (délai typique d\'acceptation : 48 h).'],
-                            ['title' => 'Acceptation', 'text' => 'Si le prestataire accepte, le statut devient « En attente de paiement ». Vous pouvez alors cliquer sur « Payer maintenant ».'],
-                            ['title' => 'Paiement Mobile Money', 'text' => 'Vous êtes redirigé vers FedaPay. Payez avec le moyen proposé (sandbox ou live selon l\'environnement). Au retour sur la plateforme, le statut passe à « Travail en cours ».'],
-                            ['title' => 'Livraison', 'text' => 'Le prestataire soumet le livrable (fichiers). La commande passe « À valider ». Vous disposez d\'environ 14 jours pour approuver ; passé ce délai, le paiement peut être libéré automatiquement.'],
-                            ['title' => 'Approuver ou demander une retouche', 'text' => '« Approuver et libérer le paiement » clôture positivement. « Demander une retouche » renvoie le prestataire en révision pour une nouvelle version.'],
-                            ['title' => 'Laisser un avis', 'text' => 'Après clôture, notez le prestataire (1 à 5 étoiles) et ajoutez un commentaire. Vous pourrez modifier votre avis plus tard depuis le détail de la commande.'],
+                            ['title' => '1) Proposer la commande', 'text' => 'Depuis la messagerie ou le détail de la discussion, cliquez pour créer une commande : donnez un titre clair, une description précise, le budget (FCFA) et un délai (en jours).'],
+                            ['title' => '2) Attendre l’acceptation', 'text' => 'La commande passe « En attente du prestataire ». Si le prestataire accepte (environ 48 h), le statut devient « En attente de paiement ».'],
+                            ['title' => '3) Payer via FedaPay', 'text' => 'Cliquez « Payer maintenant » : vous êtes redirigé vers FedaPay. Finalisez le paiement puis revenez sur la plateforme. Le statut passe à « Travail en cours ».'],
+                            ['title' => '4) Recevoir et demander une retouche si besoin', 'text' => 'Après livraison, la commande passe « À valider ». Si le résultat ne correspond pas, demandez une retouche ; le prestataire soumet une nouvelle version.'],
+                            ['title' => '5) Valider et libérer', 'text' => 'Quand c’est bon : utilisez « Approuver et libérer le paiement ». La commande est clôturée.'],
+                            ['title' => '6) Laisser un avis', 'text' => 'Après clôture, notez le prestataire (1 à 5) et ajoutez un commentaire. Vous pourrez modifier votre avis plus tard depuis le détail de la commande.'],
                         ],
                     ],
                     [
+                        'type' => 'callout',
+                        'tone' => 'warn',
+                        'title' => 'Important : ne lancez pas le paiement trop tôt',
+                        'text' => 'Si vous n’avez pas le bouton « Payer maintenant », c’est normal : tant que le prestataire n’a pas accepté, le paiement n’est pas autorisé.',
+                    ],
+                    [
                         'type' => 'h',
-                        'text' => 'Litige',
+                        'text' => 'Litige (quand ça ne se passe pas comme prévu)',
                     ],
                     [
                         'type' => 'p',
-                        'text' => 'Si un désaccord sérieux survient (qualité, non-livraison, etc.), vous pouvez ouvrir un litige depuis la commande. L\'équipe de moderation examine les échanges et tranche (remboursement total/partiel ou libération au prestataire). Utilisez le litige en dernier recours après avoir tenté une résolution en messagerie.',
+                        'text' => 'En cas de désaccord sérieux (non-livraison, qualité très insuffisante…), ouvrez un litige depuis la commande. L’équipe examine les échanges et tranche (remboursement ou libération). Le litige sert de dernier recours après tentative en messagerie.',
                     ],
+                    [
+                        'type' => 'visual',
+                        'title' => 'Où regarder pour savoir quoi faire',
+                        'caption' => 'Votre “tableau de bord d’action”.',
+                        'kind' => 'status-mock',
+                        'zones' => [
+                            ['label' => 'Commandes', 'hint' => 'Statut et boutons'],
+                            ['label' => 'Messagerie', 'hint' => 'Brief + retouches'],
+                            ['label' => 'Retour FedaPay', 'hint' => 'Confirmation paiement'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'id' => 'client-cas-pratique',
+                'title' => 'Client — Cas pratique : du message à la validation',
+                'role' => 'client',
+                'blocks' => [
                     [
                         'type' => 'callout',
                         'tone' => 'info',
-                        'title' => 'Argent sécurisé',
-                        'text' => 'Quand vous payez, les fonds sont sécurisés jusqu\'à validation (ou décision de litige / auto-libération). La plateforme ne prélève pas de commission sur vos commandes : le modèle repose sur l\'abonnement des prestataires.',
+                        'title' => 'Exemple',
+                        'text' => 'Vous voulez faire créer une bannière. Vous discutez d’abord en messagerie, puis vous transformez le brief en commande pour activer le paiement sécurisé.',
+                    ],
+                    [
+                        'type' => 'steps',
+                        'items' => [
+                            ['title' => 'Étape 1 — Brief dans la messagerie', 'text' => 'Décrivez le besoin (dimensions, style), donnez le délai souhaité et le budget indicatif.'],
+                            ['title' => 'Étape 2 — Créer la commande', 'text' => 'Dans le fil, renseignez le titre, la description, le budget (FCFA) et le délai (jours). La commande devient “En attente du prestataire”.'],
+                            ['title' => 'Étape 3 — Attendre l’acceptation', 'text' => 'Quand le prestataire accepte, vérifiez que le statut passe “En attente de paiement”. Sans ce statut, le bouton paiement peut ne pas être disponible.'],
+                            ['title' => 'Étape 4 — Payer sur FedaPay', 'text' => 'Cliquez “Payer maintenant”, complétez le paiement, puis revenez sur la plateforme. Le statut doit passer “Travail en cours”.'],
+                            ['title' => 'Étape 5 — Livrer/valider', 'text' => 'Après livraison, la commande passe “À valider”. Si c’est parfait, “Approuver et libérer”. Sinon, demandez une retouche et suivez la nouvelle version.'],
+                        ],
+                    ],
+                    [
+                        'type' => 'visual',
+                        'title' => 'Checkpoints (à vérifier à chaque étape)',
+                        'caption' => 'Si l’un des points n’est pas bon, stoppez et relisez avant d’aller plus loin.',
+                        'kind' => 'check-mock',
+                        'zones' => [
+                            ['label' => 'Statut = “En attente de paiement”', 'hint' => 'Autorise le paiement'],
+                            ['label' => 'Budget et délai cohérents', 'hint' => 'Réduit les retouches'],
+                            ['label' => 'Livrable reçu + aperçu', 'hint' => 'Avant “Approuver”'],
+                        ],
                     ],
                 ],
             ],
             [
                 'id' => 'client-espace',
-                'title' => 'Client — Votre espace',
+                'title' => 'Client — Votre espace : quoi utiliser, dans quel ordre',
                 'role' => 'client',
                 'blocks' => [
                     [
                         'type' => 'list',
-                        'title' => 'Menu de l\'espace client',
+                        'title' => 'Menu principal',
                         'items' => [
-                            'Accueil — vue d\'ensemble et raccourcis',
-                            'Recherche — retrouver des services et profils',
-                            'Mon compte — informations personnelles',
-                            'Messages — toutes vos discussions',
-                            'Commandes — suivi, paiement, validation, avis',
-                        ],
-                    ],
-                    [
-                        'type' => 'p',
-                        'text' => 'Gardez un œil sur Messages et Commandes : les étapes critiques (acceptation, paiement, livraison à valider) s\'y reflètent. Vérifiez aussi votre boîte e-mail pour les confirmations importantes.',
-                    ],
-                ],
-            ],
-            [
-                'id' => 'presta-profil',
-                'title' => 'Prestataire — Profil, CV et services',
-                'role' => 'prestataire',
-                'blocks' => [
-                    [
-                        'type' => 'p',
-                        'text' => 'Après validation de votre compte, complétez votre vitrine : photo, présentation, CV et services publiés. C\'est ce que les clients voient avant de vous écrire.',
-                    ],
-                    [
-                        'type' => 'steps',
-                        'items' => [
-                            ['title' => 'Mon profil', 'text' => 'Mettez à jour photo, bio et informations. Vérifiez que votre CV PDF est accessible (aperçu dans le tableau de bord).'],
-                            ['title' => 'Mes services', 'text' => 'Créez des fiches service (titre, description, catégorie, photo, tarif / délai). Respectez le plafond de votre plan (2 en essai, 10 en Starter, illimité en Pro).'],
-                            ['title' => 'Prévisualiser', 'text' => 'Ouvrez vos fiches publiques pour contrôler le rendu côté client. Des services clairs et illustrés convertissent mieux.'],
-                        ],
-                    ],
-                    [
-                        'type' => 'callout',
-                        'tone' => 'tip',
-                        'title' => 'Qualité des annonces',
-                        'text' => 'Un titre précis, une description sans jargon superflu, et une photo réelle du type de prestation augmentent vos chances d\'être contacté.',
-                    ],
-                ],
-            ],
-            [
-                'id' => 'presta-abo',
-                'title' => 'Prestataire — Essai gratuit et abonnements',
-                'role' => 'prestataire',
-                'blocks' => [
-                    [
-                        'type' => 'p',
-                        'text' => 'À l\'inscription validée, vous bénéficiez d\'un essai gratuit de 7 jours : visibilité dans la recherche, messagerie avec les clients, jusqu\'à 2 services. Aucune commission n\'est prise sur vos commandes.',
-                    ],
-                    [
-                        'type' => 'list',
-                        'title' => 'Plans',
-                        'items' => [
-                            'Essai gratuit — 0 FCFA / 7 jours — 2 services max — messagerie et visibilité pendant l\'essai',
-                            'Starter — 3 500 FCFA / mois — jusqu\'à 10 services — messagerie et bonne visibilité',
-                            'Pro — 6 000 FCFA / mois — services illimités — priorité maximale dans les résultats de recherche',
-                        ],
-                    ],
-                    [
-                        'type' => 'p',
-                        'text' => 'Souscrivez depuis « Abonnement ». Le paiement passe par FedaPay. Si vous êtes déjà sur un plan payant actif (Starter ou Pro), le bouton du même plan est désactivé : pas de double souscription au plan courant. Vous pouvez en revanche passer d\'un plan à l\'autre.',
-                    ],
-                    [
-                        'type' => 'callout',
-                        'tone' => 'warn',
-                        'title' => 'Après l\'essai sans abonnement',
-                        'text' => 'Sans Starter ou Pro actif à la fin de l\'essai, votre profil n\'apparaît plus dans la recherche client et la messagerie est bloquée jusqu\'à souscription. Souscrivez à temps pour ne pas perdre de contacts.',
-                    ],
-                ],
-            ],
-            [
-                'id' => 'presta-commandes',
-                'title' => 'Prestataire — Messagerie et commandes',
-                'role' => 'prestataire',
-                'blocks' => [
-                    [
-                        'type' => 'steps',
-                        'items' => [
-                            ['title' => 'Répondre aux messages', 'text' => 'Dans « Messagerie », répondez rapidement. Un client convaincu propose ensuite une commande depuis le fil.'],
-                            ['title' => 'Accepter ou refuser', 'text' => 'Dans « Commandes », acceptez si le brief et le budget vous conviennent, ou refusez avec un motif. Respectez le délai d\'environ 48 h pour répondre.'],
-                            ['title' => 'Attendre le paiement', 'text' => 'Après acceptation, le client paie. Ne commencez le travail important qu\'une fois le statut « Travail en cours » (paiement confirmé).'],
-                            ['title' => 'Livrer', 'text' => 'Soumettez le résultat (fichiers, jusqu\'à plusieurs pièces selon les limites indiquées). En cas de retouche demandée, soumettez une nouvelle version.'],
-                            ['title' => 'Encaissement', 'text' => 'Quand le client valide (ou après auto-libération / résolution favorable), le payout Mobile Money est déclenché vers le numéro associé à votre profil.'],
+                            'Accueil : repères et raccourcis',
+                            'Recherche : trouver des prestataires',
+                            'Mon compte : vos informations',
+                            'Messages : discuter avant la commande',
+                            'Commandes : suivre tout le cycle et valider',
                         ],
                     ],
                     [
                         'type' => 'callout',
                         'tone' => 'info',
-                        'title' => 'Téléphone Mobile Money',
-                        'text' => 'Assurez-vous que le numéro renseigné pour recevoir les paiements est correct et actif. Un mauvais numéro bloque ou retarde le payout.',
+                        'title' => 'Routine recommandée',
+                        'text' => 'Toujours commencer par Recherche, passer ensuite par Messagerie, puis seulement proposer une commande quand tout est clair. Sur Commandes, surveillez le bouton “Payer maintenant” puis “À valider”.',
+                    ],
+                    [
+                        'type' => 'visual',
+                        'title' => 'Ordre conseillé (pour ne pas se perdre)',
+                        'caption' => 'Un chemin simple à suivre à chaque commande.',
+                        'kind' => 'flow-mock',
+                        'zones' => [
+                            ['label' => '1. Recherche', 'hint' => 'Choisir un prestataire'],
+                            ['label' => '2. Messagerie', 'hint' => 'Valider le brief'],
+                            ['label' => '3. Commandes', 'hint' => 'Créer → payer → valider'],
+                        ],
                     ],
                 ],
             ],
             [
-                'id' => 'paiements',
-                'title' => 'Paiements, délais et sécurité',
+                'id' => 'client-paiements',
+                'title' => 'Client — Paiement sécurisé : délais et bonnes pratiques',
+                'role' => 'client',
                 'blocks' => [
                     [
                         'type' => 'list',
-                        'title' => 'Repères utiles',
+                        'title' => 'Repères à connaître',
                         'items' => [
-                            'Paiements via FedaPay (Mobile Money et moyens proposés sur la page de checkout)',
-                            'Délai d\'acceptation d\'une commande par le prestataire : environ 48 heures',
-                            'Délai de validation client après livraison : environ 14 jours (puis libération automatique possible)',
-                            'Commission commande : 0 % — la rémunération de la plateforme vient des abonnements prestataires',
-                            'Litiges tranchés par l\'administration après examen du dossier',
+                            'Paiement : FedaPay (Mobile Money et options proposées au checkout)',
+                            'Acceptation prestataire : environ 48 heures',
+                            'Validation client après livraison : environ 14 jours',
+                            'Commission sur vos commandes : 0 % (modèle basé sur les abonnements prestataires)',
+                            'Litiges : tranchés par l’administration après examen',
                         ],
                     ],
                     [
                         'type' => 'p',
-                        'text' => 'Ne partagez jamais vos mots de passe. Méfiez-vous des demandes de paiement hors plateforme : le parcours sécurisé est conçu pour protéger client et prestataire. En cas d\'anomalie de paiement, utilisez la page de retour FedaPay et le détail de commande ; contactez le support si le statut reste incohérent.',
+                        'text' => 'Ne partagez jamais vos mots de passe. Payez uniquement via FedaPay sur la plateforme. Si le statut ne semble pas correct après retour, revenez au détail de la commande et comparez avec la confirmation de FedaPay.',
+                    ],
+                    [
+                        'type' => 'callout',
+                        'tone' => 'warn',
+                        'title' => 'Erreur fréquente',
+                        'text' => 'Si vous payez “en dehors”, vous perdez la protection du cycle de commande. La plateforme ne peut pas sécuriser un paiement non effectué via son parcours.',
                     ],
                 ],
             ],
             [
-                'id' => 'faq',
-                'title' => 'Questions fréquentes',
+                'id' => 'client-faq',
+                'title' => 'Client — Questions fréquentes',
+                'role' => 'client',
                 'blocks' => [
                     [
                         'type' => 'faq',
                         'items' => [
                             [
+                                'q' => 'Pourquoi je ne vois pas le bouton “Payer maintenant” ?',
+                                'a' => 'Parce que le prestataire n’a pas encore accepté la commande. Une fois acceptée, le statut passe “En attente de paiement”.',
+                            ],
+                            [
                                 'q' => 'Puis-je modifier un avis déjà publié ?',
-                                'a' => 'Oui. En tant que client, ouvrez la commande concernée et utilisez « Modifier » sur votre avis pour changer la note ou le commentaire.',
+                                'a' => 'Oui. Ouvrez la commande concernée et utilisez “Modifier” sur votre avis pour changer note ou commentaire.',
                             ],
                             [
-                                'q' => 'Pourquoi mon profil prestataire a disparu de la recherche ?',
-                                'a' => 'L\'essai gratuit est probablement terminé sans abonnement Starter ou Pro actif. Souscrivez dans « Abonnement » pour réapparaître et rouvrir la messagerie.',
-                            ],
-                            [
-                                'q' => 'Le prestataire ne répond pas à ma proposition',
-                                'a' => 'Il dispose d\'un délai limité pour accepter. Passé ce délai, la proposition peut expirer. Relancez poliment en message ou cherchez un autre profil.',
-                            ],
-                            [
-                                'q' => 'Comment changer de plan (Starter ↔ Pro) ?',
-                                'a' => 'Depuis Abonnement, souscrivez au plan souhaité. Vous ne pouvez pas racheter le même plan déjà actif, mais vous pouvez passer à l\'autre offre.',
-                            ],
-                            [
-                                'q' => 'Puis-je annuler une commande ?',
-                                'a' => 'Oui tant qu\'elle n\'est pas payée (par ex. en attente d\'acceptation ou de paiement). Après paiement, utilisez la messagerie, la retouche, ou le litige selon le cas.',
+                                'q' => 'Que faire si le prestataire ne répond pas ?',
+                                'a' => 'Vérifiez d’abord le statut de la commande (acceptation/paiement). Si une proposition expire, contactez à nouveau ou choisissez un autre prestataire après comparaison.',
                             ],
                         ],
                     ],
                 ],
             ],
+
+            // ============================
+            // PRESTATAIRE
+            // ============================
             [
-                'id' => 'aide',
-                'title' => 'Aller plus loin',
+                'id' => 'presta-profil',
+                'title' => 'Prestataire — Compléter votre profil et vos services',
+                'role' => 'prestataire',
                 'blocks' => [
                     [
                         'type' => 'p',
-                        'text' => 'Gardez ce guide sous la main (page web ou PDF). Les libellés de l\'interface peuvent légèrement évoluer, mais le parcours reste le même : rechercher → échanger → commander → payer → livrer → valider → noter.',
+                        'text' => 'Objectif : rendre votre vitrine claire pour les clients, puis publier des services conformes à vos limites de plan.',
+                    ],
+                    [
+                        'type' => 'steps',
+                        'items' => [
+                            ['title' => 'Étape 1 — Remplir “Mon profil”', 'text' => 'Ajoutez une photo, une bio, et vérifiez vos documents (CV PDF, etc.). Les clients voient ces éléments avant de vous écrire.'],
+                            ['title' => 'Étape 2 — Créer “Mes services”', 'text' => 'Pour chaque service : titre, catégorie, description, photo, tarif indicatif et délai. Respectez le plafond autorisé par votre formule.'],
+                            ['title' => 'Étape 3 — Prévisualiser', 'text' => 'Ouvrez vos services côté public pour contrôler rendu et cohérence (titre lisible, description compréhensible, photo pertinente).'],
+                        ],
+                    ],
+                    [
+                        'type' => 'visual',
+                        'title' => 'Checklist avant de publier un service',
+                        'caption' => 'Un service “complet” diminue les retouches.',
+                        'kind' => 'check-mock',
+                        'zones' => [
+                            ['label' => 'Titre précis', 'hint' => 'Ce que vous faites, en 1 phrase'],
+                            ['label' => 'Description claire', 'hint' => 'Étendue du travail'],
+                            ['label' => 'Délai réaliste', 'hint' => 'En jours'],
+                            ['label' => 'Tarif indicatif', 'hint' => 'FCFA'],
+                        ],
+                    ],
+                    [
+                        'type' => 'callout',
+                        'tone' => 'tip',
+                        'title' => 'Astuce',
+                        'text' => 'Une photo représentative et une description sans jargon augmentent la conversion des clients vers la messagerie puis les commandes.',
+                    ],
+                ],
+            ],
+            [
+                'id' => 'presta-abo',
+                'title' => 'Prestataire — Essai gratuit et abonnements (Starter / Pro)',
+                'role' => 'prestataire',
+                'blocks' => [
+                    [
+                        'type' => 'p',
+                        'text' => 'Après validation de votre compte, vous démarrez avec un essai gratuit de 7 jours : visibilité, messagerie et capacité de publication limitée.',
                     ],
                     [
                         'type' => 'list',
-                        'title' => 'Liens utiles',
+                        'title' => 'Plans (repères)',
+                        'items' => [
+                            'Essai gratuit : 0 FCFA / 7 jours — 2 services max',
+                            'Starter : 3 500 FCFA / mois — jusqu’à 10 services',
+                            'Pro : 6 000 FCFA / mois — services illimités',
+                        ],
+                    ],
+                    [
+                        'type' => 'steps',
+                        'items' => [
+                            ['title' => 'Étape 1 — Aller sur “Abonnement”', 'text' => 'Depuis votre dashboard prestataire, ouvrez le menu Abonnement.'],
+                            ['title' => 'Étape 2 — Choisir le plan', 'text' => 'Sélectionnez Starter ou Pro. Le bouton du plan déjà actif est désactivé pour éviter la double souscription.'],
+                            ['title' => 'Étape 3 — Payer via FedaPay', 'text' => 'Finalisez sur FedaPay puis revenez sur la plateforme. Le statut s’actualise.'],
+                        ],
+                    ],
+                    [
+                        'type' => 'callout',
+                        'tone' => 'warn',
+                        'title' => 'Après l’essai',
+                        'text' => 'Sans abonnement Starter ou Pro actif, votre profil peut disparaître de la recherche et la messagerie peut être bloquée. Souscrivez avant la fin de l’essai pour éviter la perte de contacts.',
+                    ],
+                ],
+            ],
+            [
+                'id' => 'presta-commandes',
+                'title' => 'Prestataire — Gérer les commandes et être payé',
+                'role' => 'prestataire',
+                'blocks' => [
+                    [
+                        'type' => 'steps',
+                        'items' => [
+                            ['title' => 'Étape 1 — Répondre en messagerie', 'text' => 'Dans “Messagerie”, répondez rapidement. Un bon échange mène à la création de la commande.'],
+                            ['title' => 'Étape 2 — Accepter ou refuser', 'text' => 'Dans “Commandes”, acceptez si budget et brief conviennent, sinon refusez avec un motif.'],
+                            ['title' => 'Étape 3 — Attendre le paiement', 'text' => 'Ne commencez le gros du travail qu’une fois la commande en “Travail en cours” (paiement confirmé).'],
+                            ['title' => 'Étape 4 — Livrer', 'text' => 'Soumettez le livrable (fichiers). En cas de retouche, soumettez une nouvelle version.'],
+                            ['title' => 'Étape 5 — Encaissement', 'text' => 'Le paiement est déclenché après validation client (ou décision favorable après litige).'],
+                        ],
+                    ],
+                    [
+                        'type' => 'visual',
+                        'title' => 'Ne pas rater les statuts',
+                        'caption' => 'Vos actions autorisées dépendent du statut.',
+                        'kind' => 'status-mock',
+                        'zones' => [
+                            ['label' => 'En attente du prestataire', 'hint' => 'Accepter/refuser'],
+                            ['label' => 'En attente de paiement', 'hint' => 'Préparer livraison'],
+                            ['label' => 'Travail en cours', 'hint' => 'Démarrer effectivement'],
+                            ['label' => 'À valider', 'hint' => 'Attendre validation/retouche'],
+                        ],
+                    ],
+                    [
+                        'type' => 'callout',
+                        'tone' => 'info',
+                        'title' => 'Mobile Money : vérifier votre numéro',
+                        'text' => 'Assurez-vous que le numéro associé à votre compte pour recevoir les paiements est correct et actif.',
+                    ],
+                ],
+            ],
+            [
+                'id' => 'presta-cas-pratique',
+                'title' => 'Prestataire — Cas pratique : de l’acceptation au payout',
+                'role' => 'prestataire',
+                'blocks' => [
+                    [
+                        'type' => 'callout',
+                        'tone' => 'info',
+                        'title' => 'Exemple',
+                        'text' => 'Vous recevez une commande pour une prestation de design. Vous suivez le cycle de statut : accepter, attendre le paiement, livrer, puis être payé après validation client ou résolution favorable en cas de litige.',
+                    ],
+                    [
+                        'type' => 'steps',
+                        'items' => [
+                            ['title' => 'Étape 1 — Accepter rapidement', 'text' => 'Dans “Commandes”, acceptez si le brief et le budget vous conviennent.'],
+                            ['title' => 'Étape 2 — Préparer après paiement', 'text' => 'Attendez que la commande passe “Travail en cours”. C’est le signal que le paiement est confirmé.'],
+                            ['title' => 'Étape 3 — Livrer une version complète', 'text' => 'Soumettez le livrable dans “Commandes”. Si une retouche est demandée, renvoyez une nouvelle version.'],
+                            ['title' => 'Étape 4 — Suivre “À valider”', 'text' => 'Le client vérifie. Vous devez rester disponible en messagerie si des ajustements sont nécessaires.'],
+                            ['title' => 'Étape 5 — Être payé', 'text' => 'Quand la validation client (ou décision favorable) arrive, le paiement est déclenché vers le numéro Mobile Money lié à votre profil.'],
+                        ],
+                    ],
+                    [
+                        'type' => 'visual',
+                        'title' => 'À surveiller (pour éviter les erreurs)',
+                        'caption' => 'Ces vérifications réduisent les risques de conflit et retard.',
+                        'kind' => 'check-mock',
+                        'zones' => [
+                            ['label' => 'Statut “En attente de paiement”', 'hint' => 'Ne commencez pas le gros travail'],
+                            ['label' => 'Numéro Mobile Money correct', 'hint' => 'Sur votre profil'],
+                            ['label' => 'Livrable soumis à temps', 'hint' => 'Avec format attendu'],
+                        ],
+                    ],
+                ],
+            ],
+            [
+                'id' => 'presta-paiements',
+                'title' => 'Prestataire — Paiement, délais et protection',
+                'role' => 'prestataire',
+                'blocks' => [
+                    [
+                        'type' => 'list',
+                        'title' => 'Repères',
+                        'items' => [
+                            'Paiement : FedaPay (confirmé avant “Travail en cours”)',
+                            'Acceptation prestataire : environ 48 heures',
+                            'Validation client après livraison : environ 14 jours',
+                            'Litiges : examinateur/administration tranche en cas de problème',
+                        ],
+                    ],
+                    [
+                        'type' => 'p',
+                        'text' => 'Ne demandez pas un paiement en dehors de la plateforme. Si le client ne valide pas, communiquez via la messagerie et utilisez le statut/les actions autorisées. En cas d’anomalie, utilisez le détail de commande comme référence.',
+                    ],
+                ],
+            ],
+            [
+                'id' => 'presta-faq',
+                'title' => 'Prestataire — Questions fréquentes',
+                'role' => 'prestataire',
+                'blocks' => [
+                    [
+                        'type' => 'faq',
+                        'items' => [
+                            [
+                                'q' => 'Pourquoi je n’apparais plus dans la recherche ?',
+                                'a' => 'Votre essai gratuit est probablement terminé sans abonnement Starter ou Pro actif. Ouvrez “Abonnement” et souscrivez pour réactiver la visibilité.',
+                            ],
+                            [
+                                'q' => 'Puis-je repayer le même plan si je suis déjà dessus ?',
+                                'a' => 'Non : le bouton du plan actif est désactivé. Vous pouvez en revanche passer de Starter à Pro (ou inversement selon les règles).',
+                            ],
+                            [
+                                'q' => 'Quand je suis payé ?',
+                                'a' => 'Après validation client (ou décision favorable). La commande doit passer par les statuts et actions du cycle normal.',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+
+            // ============================
+            // FIN COMMUNE
+            // ============================
+            [
+                'id' => 'aide',
+                'title' => 'Aller plus loin — liens utiles',
+                'blocks' => [
+                    [
+                        'type' => 'p',
+                        'text' => 'Gardez ce guide sous la main (page web ou PDF). Les libellés peuvent évoluer, mais le parcours reste : rechercher → échanger → commander → payer → livrer → valider → noter.',
+                    ],
+                    [
+                        'type' => 'list',
+                        'title' => 'Liens',
                         'items' => [
                             'Accueil — /',
                             'Recherche — /search',
@@ -344,7 +522,7 @@ final class GuideContent
                         'type' => 'callout',
                         'tone' => 'info',
                         'title' => 'Projet',
-                        'text' => 'BéninFreelance — EPAC / UAC — Groupe 5. Guide version 1.0 · juillet 2026.',
+                        'text' => 'BéninFreelance — EPAC / UAC — Groupe 5. Guide version 1.1 · juillet 2026.',
                     ],
                 ],
             ],

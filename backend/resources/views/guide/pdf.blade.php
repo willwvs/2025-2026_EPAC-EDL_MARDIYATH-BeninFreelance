@@ -19,7 +19,7 @@
     .cover {
       text-align: center;
       padding: 48px 12px 36px;
-      border-bottom: 2px solid #F5A623;
+      border-bottom: 2px solid #44444f;
       margin-bottom: 28px;
       page-break-after: always;
     }
@@ -29,7 +29,7 @@
       letter-spacing: -0.02em;
       margin: 0 0 8px;
     }
-    .cover .brand span { color: #F5A623; }
+    .cover .brand span { color: #2c2c35; }
     .cover .kicker {
       font-size: 9pt;
       text-transform: uppercase;
@@ -82,7 +82,7 @@
       color: #0A0A0F;
       margin: 0 0 10px;
       padding: 8px 0 6px;
-      border-bottom: 1.5px solid #F5A623;
+      border-bottom: 1.5px solid #44444f;
       page-break-after: avoid;
     }
     .chapter-wrap {
@@ -100,8 +100,8 @@
       margin-left: 6px;
       vertical-align: middle;
     }
-    .badge-client { background: #e8f8ef; color: #1a7a45; }
-    .badge-presta { background: #fff4e0; color: #b06a00; }
+    .badge-client { background: #e9eaee; color: #33333f; }
+    .badge-presta { background: #e9eaee; color: #33333f; }
     h3 {
       font-size: 11pt;
       margin: 14px 0 6px;
@@ -127,7 +127,7 @@
     .steps .num {
       width: 22px;
       height: 18px;
-      background: #F5A623;
+      background: #d6d6e2;
       color: #0A0A0F;
       border-radius: 50%;
       font-size: 8pt;
@@ -146,15 +146,15 @@
     }
     .callout {
       border: 1px solid #dddde8;
-      border-left: 3px solid #F5A623;
+      border-left: 3px solid #666673;
       background: #faf9f7;
       padding: 9px 11px;
       margin: 10px 0 12px;
       page-break-inside: avoid;
       border-radius: 2px;
     }
-    .callout.warn { border-left-color: #d97706; background: #fffbeb; }
-    .callout.tip { border-left-color: #2ECC71; background: #f0fdf6; }
+    .callout.warn { border-left-color: #666673; background: #f7f7f7; }
+    .callout.tip { border-left-color: #666673; background: #f7f7f7; }
     .callout .ctitle {
       font-size: 8.5pt;
       font-weight: bold;
@@ -176,6 +176,73 @@
       margin: 0;
       color: #444455;
       font-size: 10pt;
+    }
+
+    /* Visuels pédagogiques (mockups HTML -> PDF). */
+    .visual {
+      border: 1px solid #dddde8;
+      background: #f7f7fa;
+      padding: 12px;
+      margin: 12px 0 16px;
+      page-break-inside: avoid;
+      border-radius: 2px;
+    }
+    .visual-title {
+      font-size: 10.5pt;
+      margin: 0 0 6px;
+      color: #0A0A0F;
+      font-weight: bold;
+    }
+    .visual-caption {
+      margin: 0 0 10px;
+      color: #55556a;
+      font-size: 10pt;
+    }
+    .visual-grid {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .visual-grid td {
+      vertical-align: top;
+      padding: 0 12px 0 0;
+    }
+    .visual-grid td:last-child { padding-right: 0; }
+    .visual-label {
+      font-size: 8.5pt;
+      color: #7A7A9A;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 0 8px;
+      font-weight: bold;
+    }
+    .visual-zone {
+      margin: 0 0 6px;
+      padding: 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .visual-num {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #e3e3ee;
+      color: #0A0A0F;
+      font-weight: bold;
+      font-size: 8.5pt;
+      text-align: center;
+      line-height: 18px;
+      flex: 0 0 18px;
+    }
+    .visual-zone p {
+      margin: 0 0 3px;
+      font-size: 10pt;
+      color: #1a1a1f;
+    }
+    .visual-zone small {
+      display: block;
+      font-size: 9.5pt;
+      color: #55556a;
     }
     .footer-note {
       margin-top: 28px;
@@ -199,49 +266,78 @@
 </div>
 
 {{-- Sommaire --}}
+@php
+  $topCommonChapters = [];
+  $bottomCommonChapters = [];
+  $clientChapters = [];
+  $prestaChapters = [];
+  foreach ($chapters as $chapter) {
+    $role = $chapter['role'] ?? null;
+    if ($role === 'client') $clientChapters[] = $chapter;
+    elseif ($role === 'prestataire') $prestaChapters[] = $chapter;
+    else {
+      if (($chapter['id'] ?? '') === 'aide') $bottomCommonChapters[] = $chapter;
+      else $topCommonChapters[] = $chapter;
+    }
+  }
+@endphp
+
 <div class="toc">
   <h2>Sommaire</h2>
+  <p style="margin: 0 0 6px; color:#7A7A9A; font-size:9.5pt;">Tronc commun</p>
   <ol>
-    @foreach ($chapters as $i => $chapter)
+    @foreach ($topCommonChapters as $chapter)
       <li>
         {{ $chapter['title'] }}
-        @if (($chapter['role'] ?? null) === 'client')
-          <span class="role"> — Client</span>
-        @elseif (($chapter['role'] ?? null) === 'prestataire')
-          <span class="role"> — Prestataire</span>
-        @endif
+      </li>
+    @endforeach
+  </ol>
+  <p style="margin: 10px 0 6px; color:#7A7A9A; font-size:9.5pt;">Client</p>
+  <ol>
+    @foreach ($clientChapters as $chapter)
+      <li>
+        {{ $chapter['title'] }}
+        <span class="role"> — Client</span>
+      </li>
+    @endforeach
+  </ol>
+  <p style="margin: 10px 0 6px; color:#7A7A9A; font-size:9.5pt;">Prestataire</p>
+  <ol>
+    @foreach ($prestaChapters as $chapter)
+      <li>
+        {{ $chapter['title'] }}
+        <span class="role"> — Prestataire</span>
+      </li>
+    @endforeach
+  </ol>
+  <p style="margin: 10px 0 6px; color:#7A7A9A; font-size:9.5pt;">Aller plus loin</p>
+  <ol>
+    @foreach ($bottomCommonChapters as $chapter)
+      <li>
+        {{ $chapter['title'] }}
       </li>
     @endforeach
   </ol>
 </div>
 
 {{-- Chapitres --}}
-@foreach ($chapters as $chapter)
+{{-- Tronc commun (haut) --}}
+@foreach ($topCommonChapters as $chapter)
   <div class="chapter-wrap">
-    <h2 class="chapter">
-      {{ $chapter['title'] }}
-      @if (($chapter['role'] ?? null) === 'client')
-        <span class="badge badge-client">Client</span>
-      @elseif (($chapter['role'] ?? null) === 'prestataire')
-        <span class="badge badge-presta">Prestataire</span>
-      @endif
-    </h2>
+    <h2 class="chapter">{{ $chapter['title'] }}</h2>
 
     @foreach ($chapter['blocks'] as $block)
       @php $type = $block['type'] ?? 'p'; @endphp
 
       @if ($type === 'p')
         <p>{{ $block['text'] }}</p>
-
       @elseif ($type === 'h')
         <h3>{{ $block['text'] }}</h3>
-
       @elseif ($type === 'callout')
         <div class="callout {{ $block['tone'] ?? 'info' }}">
           <div class="ctitle">{{ $block['title'] }}</div>
           <p>{{ $block['text'] }}</p>
         </div>
-
       @elseif ($type === 'list')
         @if (!empty($block['title']))
           <h3>{{ $block['title'] }}</h3>
@@ -251,7 +347,6 @@
             <li>{{ $item }}</li>
           @endforeach
         </ul>
-
       @elseif ($type === 'steps')
         <table class="steps">
           @foreach ($block['items'] as $i => $step)
@@ -264,7 +359,307 @@
             </tr>
           @endforeach
         </table>
+      @elseif ($type === 'visual')
+        @php
+          $zones = $block['zones'] ?? [];
+        @endphp
+        <div class="visual">
+          <div class="visual-title">{{ $block['title'] ?? 'Visuel' }}</div>
+          @if (!empty($block['caption']))
+            <div class="visual-caption">{{ $block['caption'] }}</div>
+          @endif
+          <table class="visual-grid">
+            <tr>
+              <td width="50%">
+                <div class="visual-label">Zone à repérer</div>
+                @if (!empty($zones))
+                  @foreach ($zones as $i => $zone)
+                    <div class="visual-zone">
+                      <div class="visual-num">{{ $i + 1 }}</div>
+                      <div>
+                        <p>{{ $zone['label'] ?? '' }}</p>
+                        @if (!empty($zone['hint']))
+                          <small>{{ $zone['hint'] }}</small>
+                        @endif
+                      </div>
+                    </div>
+                  @endforeach
+                @else
+                  <p>Aucun visuel défini.</p>
+                @endif
+              </td>
+              <td width="50%">
+                <div class="visual-label">Ce que ça déclenche</div>
+                @foreach ($zones as $i => $zone)
+                  <div class="visual-zone" style="margin-bottom:6px;">
+                    <div class="visual-num">{{ $i + 1 }}</div>
+                    <div><p>{{ $zone['label'] ?? '' }}</p></div>
+                  </div>
+                @endforeach
+              </td>
+            </tr>
+          </table>
+        </div>
+      @elseif ($type === 'faq')
+        @foreach ($block['items'] as $faq)
+          <div class="faq-item">
+            <p class="faq-q">{{ $faq['q'] }}</p>
+            <p class="faq-a">{{ $faq['a'] }}</p>
+          </div>
+        @endforeach
+      @endif
+    @endforeach
+  </div>
+@endforeach
 
+<h2 class="chapter">Section Client</h2>
+
+@foreach ($clientChapters as $chapter)
+  <div class="chapter-wrap">
+    <h2 class="chapter">
+      {{ $chapter['title'] }}
+      <span class="badge badge-client">Client</span>
+    </h2>
+    @foreach ($chapter['blocks'] as $block)
+      @php $type = $block['type'] ?? 'p'; @endphp
+
+      @if ($type === 'p')
+        <p>{{ $block['text'] }}</p>
+      @elseif ($type === 'h')
+        <h3>{{ $block['text'] }}</h3>
+      @elseif ($type === 'callout')
+        <div class="callout {{ $block['tone'] ?? 'info' }}">
+          <div class="ctitle">{{ $block['title'] }}</div>
+          <p>{{ $block['text'] }}</p>
+        </div>
+      @elseif ($type === 'list')
+        @if (!empty($block['title']))
+          <h3>{{ $block['title'] }}</h3>
+        @endif
+        <ul>
+          @foreach ($block['items'] as $item)
+            <li>{{ $item }}</li>
+          @endforeach
+        </ul>
+      @elseif ($type === 'steps')
+        <table class="steps">
+          @foreach ($block['items'] as $i => $step)
+            <tr>
+              <td style="width:24px;"><div class="num">{{ $i + 1 }}</div></td>
+              <td>
+                <div class="stitle">{{ $step['title'] }}</div>
+                <div class="stext">{{ $step['text'] }}</div>
+              </td>
+            </tr>
+          @endforeach
+        </table>
+      @elseif ($type === 'visual')
+        @php $zones = $block['zones'] ?? []; @endphp
+        <div class="visual">
+          <div class="visual-title">{{ $block['title'] ?? 'Visuel' }}</div>
+          @if (!empty($block['caption']))
+            <div class="visual-caption">{{ $block['caption'] }}</div>
+          @endif
+          <table class="visual-grid">
+            <tr>
+              <td width="50%">
+                <div class="visual-label">Zone à repérer</div>
+                @if (!empty($zones))
+                  @foreach ($zones as $i => $zone)
+                    <div class="visual-zone">
+                      <div class="visual-num">{{ $i + 1 }}</div>
+                      <div>
+                        <p>{{ $zone['label'] ?? '' }}</p>
+                        @if (!empty($zone['hint']))<small>{{ $zone['hint'] }}</small>@endif
+                      </div>
+                    </div>
+                  @endforeach
+                @else <p>Aucun visuel défini.</p> @endif
+              </td>
+              <td width="50%">
+                <div class="visual-label">Ce que ça déclenche</div>
+                @foreach ($zones as $i => $zone)
+                  <div class="visual-zone" style="margin-bottom:6px;">
+                    <div class="visual-num">{{ $i + 1 }}</div>
+                    <div><p>{{ $zone['label'] ?? '' }}</p></div>
+                  </div>
+                @endforeach
+              </td>
+            </tr>
+          </table>
+        </div>
+      @elseif ($type === 'faq')
+        @foreach ($block['items'] as $faq)
+          <div class="faq-item">
+            <p class="faq-q">{{ $faq['q'] }}</p>
+            <p class="faq-a">{{ $faq['a'] }}</p>
+          </div>
+        @endforeach
+      @endif
+    @endforeach
+  </div>
+@endforeach
+
+<h2 class="chapter">Section Prestataire</h2>
+
+@foreach ($prestaChapters as $chapter)
+  <div class="chapter-wrap">
+    <h2 class="chapter">
+      {{ $chapter['title'] }}
+      <span class="badge badge-presta">Prestataire</span>
+    </h2>
+    @foreach ($chapter['blocks'] as $block)
+      @php $type = $block['type'] ?? 'p'; @endphp
+
+      @if ($type === 'p')
+        <p>{{ $block['text'] }}</p>
+      @elseif ($type === 'h')
+        <h3>{{ $block['text'] }}</h3>
+      @elseif ($type === 'callout')
+        <div class="callout {{ $block['tone'] ?? 'info' }}">
+          <div class="ctitle">{{ $block['title'] }}</div>
+          <p>{{ $block['text'] }}</p>
+        </div>
+      @elseif ($type === 'list')
+        @if (!empty($block['title']))
+          <h3>{{ $block['title'] }}</h3>
+        @endif
+        <ul>
+          @foreach ($block['items'] as $item)
+            <li>{{ $item }}</li>
+          @endforeach
+        </ul>
+      @elseif ($type === 'steps')
+        <table class="steps">
+          @foreach ($block['items'] as $i => $step)
+            <tr>
+              <td style="width:24px;"><div class="num">{{ $i + 1 }}</div></td>
+              <td>
+                <div class="stitle">{{ $step['title'] }}</div>
+                <div class="stext">{{ $step['text'] }}</div>
+              </td>
+            </tr>
+          @endforeach
+        </table>
+      @elseif ($type === 'visual')
+        @php $zones = $block['zones'] ?? []; @endphp
+        <div class="visual">
+          <div class="visual-title">{{ $block['title'] ?? 'Visuel' }}</div>
+          @if (!empty($block['caption']))
+            <div class="visual-caption">{{ $block['caption'] }}</div>
+          @endif
+          <table class="visual-grid">
+            <tr>
+              <td width="50%">
+                <div class="visual-label">Zone à repérer</div>
+                @if (!empty($zones))
+                  @foreach ($zones as $i => $zone)
+                    <div class="visual-zone">
+                      <div class="visual-num">{{ $i + 1 }}</div>
+                      <div>
+                        <p>{{ $zone['label'] ?? '' }}</p>
+                        @if (!empty($zone['hint']))<small>{{ $zone['hint'] }}</small>@endif
+                      </div>
+                    </div>
+                  @endforeach
+                @else <p>Aucun visuel défini.</p> @endif
+              </td>
+              <td width="50%">
+                <div class="visual-label">Ce que ça déclenche</div>
+                @foreach ($zones as $i => $zone)
+                  <div class="visual-zone" style="margin-bottom:6px;">
+                    <div class="visual-num">{{ $i + 1 }}</div>
+                    <div><p>{{ $zone['label'] ?? '' }}</p></div>
+                  </div>
+                @endforeach
+              </td>
+            </tr>
+          </table>
+        </div>
+      @elseif ($type === 'faq')
+        @foreach ($block['items'] as $faq)
+          <div class="faq-item">
+            <p class="faq-q">{{ $faq['q'] }}</p>
+            <p class="faq-a">{{ $faq['a'] }}</p>
+          </div>
+        @endforeach
+      @endif
+    @endforeach
+  </div>
+@endforeach
+
+{{-- Aller plus loin --}}
+@foreach ($bottomCommonChapters as $chapter)
+  <div class="chapter-wrap">
+    <h2 class="chapter">{{ $chapter['title'] }}</h2>
+    @foreach ($chapter['blocks'] as $block)
+      @php $type = $block['type'] ?? 'p'; @endphp
+
+      @if ($type === 'p')
+        <p>{{ $block['text'] }}</p>
+      @elseif ($type === 'h')
+        <h3>{{ $block['text'] }}</h3>
+      @elseif ($type === 'callout')
+        <div class="callout {{ $block['tone'] ?? 'info' }}">
+          <div class="ctitle">{{ $block['title'] }}</div>
+          <p>{{ $block['text'] }}</p>
+        </div>
+      @elseif ($type === 'list')
+        @if (!empty($block['title']))
+          <h3>{{ $block['title'] }}</h3>
+        @endif
+        <ul>
+          @foreach ($block['items'] as $item)
+            <li>{{ $item }}</li>
+          @endforeach
+        </ul>
+      @elseif ($type === 'steps')
+        <table class="steps">
+          @foreach ($block['items'] as $i => $step)
+            <tr>
+              <td style="width:24px;"><div class="num">{{ $i + 1 }}</div></td>
+              <td>
+                <div class="stitle">{{ $step['title'] }}</div>
+                <div class="stext">{{ $step['text'] }}</div>
+              </td>
+            </tr>
+          @endforeach
+        </table>
+      @elseif ($type === 'visual')
+        @php $zones = $block['zones'] ?? []; @endphp
+        <div class="visual">
+          <div class="visual-title">{{ $block['title'] ?? 'Visuel' }}</div>
+          @if (!empty($block['caption']))
+            <div class="visual-caption">{{ $block['caption'] }}</div>
+          @endif
+          <table class="visual-grid">
+            <tr>
+              <td width="50%">
+                <div class="visual-label">Zone à repérer</div>
+                @if (!empty($zones))
+                  @foreach ($zones as $i => $zone)
+                    <div class="visual-zone">
+                      <div class="visual-num">{{ $i + 1 }}</div>
+                      <div>
+                        <p>{{ $zone['label'] ?? '' }}</p>
+                        @if (!empty($zone['hint']))<small>{{ $zone['hint'] }}</small>@endif
+                      </div>
+                    </div>
+                  @endforeach
+                @else <p>Aucun visuel défini.</p> @endif
+              </td>
+              <td width="50%">
+                <div class="visual-label">Ce que ça déclenche</div>
+                @foreach ($zones as $i => $zone)
+                  <div class="visual-zone" style="margin-bottom:6px;">
+                    <div class="visual-num">{{ $i + 1 }}</div>
+                    <div><p>{{ $zone['label'] ?? '' }}</p></div>
+                  </div>
+                @endforeach
+              </td>
+            </tr>
+          </table>
+        </div>
       @elseif ($type === 'faq')
         @foreach ($block['items'] as $faq)
           <div class="faq-item">

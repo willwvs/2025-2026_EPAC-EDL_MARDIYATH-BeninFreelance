@@ -55,6 +55,64 @@
     @endforeach
   </ol>
 
+@elseif ($type === 'visual')
+  @php
+    $zones = $block['zones'] ?? [];
+    $kind = (string)($block['kind'] ?? 'mock');
+  @endphp
+
+  <div class="rounded-2xl border border-brd bg-surface2 p-5">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-4">
+      <div>
+        <p class="font-syne font-bold text-base text-tx mb-1">{{ $block['title'] ?? 'Visuel' }}</p>
+        @if (!empty($block['caption']))
+          <p class="text-sm text-muted leading-relaxed">{{ $block['caption'] }}</p>
+        @endif
+      </div>
+      <div class="text-xs text-muted border border-brd rounded-full px-3 py-1 shrink-0">
+        {{ strtoupper($kind) }}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-4">
+      <div class="rounded-xl border border-brd bg-bg/20 p-4">
+        <p class="text-xs uppercase tracking-wider font-bold text-muted mb-3">Zone à repérer</p>
+        <div class="space-y-3">
+          @foreach ($zones as $i => $zone)
+            <div class="flex items-start gap-3">
+              <span class="flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent text-xs font-bold font-syne shrink-0">
+                {{ $i + 1 }}
+              </span>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-tx leading-snug">{{ $zone['label'] ?? '' }}</p>
+                @if (!empty($zone['hint']))
+                  <p class="text-sm text-muted leading-relaxed mt-0.5">{{ $zone['hint'] }}</p>
+                @endif
+              </div>
+            </div>
+          @endforeach
+          @if (empty($zones))
+            <p class="text-sm text-muted">Aucun visuel défini.</p>
+          @endif
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-brd bg-bg/10 p-4">
+        <p class="text-xs uppercase tracking-wider font-bold text-muted mb-3">Ce que ça déclenche</p>
+        <div class="space-y-3">
+          @foreach ($zones as $i => $zone)
+            <div class="flex items-center gap-3">
+              <div class="h-3 w-3 rounded-full bg-accent/70 shrink-0"></div>
+              <p class="text-sm text-tx/90 leading-relaxed">
+                {{ $i + 1 }}. {{ $zone['label'] ?? '' }}
+              </p>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    </div>
+  </div>
+
 @elseif ($type === 'faq')
   <div class="space-y-3">
     @foreach ($block['items'] as $faq)
